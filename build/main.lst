@@ -1,0 +1,447 @@
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 1
+
+
+   1              		.file	"main.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text.setup_pwm,"ax",@progbits
+  10              		.align	1
+  11              		.globl	setup_pwm
+  13              	setup_pwm:
+  14              	.LFB2:
+  15              		.file 1 "main.c"
+   1:main.c        **** /* 
+   2:main.c        **** Replace this file with your code. Put your source files in this directory and any libraries in the 
+   3:main.c        **** If your main program should be assembly-language replace this file with main.S instead.
+   4:main.c        **** 
+   5:main.c        **** Libraries (other than vendor SDK and gcc libraries) must have .h-files in /lib/[library name]/inclu
+   6:main.c        **** */
+   7:main.c        **** 
+   8:main.c        **** 
+   9:main.c        **** #include "gd32vf103.h"
+  10:main.c        **** 
+  11:main.c        **** void setup_pwm(void) {
+  16              		.loc 1 11 22
+  17              		.cfi_startproc
+  12:main.c        ****     // 1. Aktivera klockor för GPIOA och TIMER1
+  13:main.c        ****     rcu_periph_clock_enable(RCU_GPIOA);
+  18              		.loc 1 13 5
+  11:main.c        ****     // 1. Aktivera klockor för GPIOA och TIMER1
+  19              		.loc 1 11 22 is_stmt 0
+  20 0000 7971     		addi	sp,sp,-48
+  21              	.LCFI0:
+  22              		.cfi_def_cfa_offset 48
+  23              		.loc 1 13 5
+  24 0002 13052060 		li	a0,1538
+  11:main.c        ****     // 1. Aktivera klockor för GPIOA och TIMER1
+  25              		.loc 1 11 22
+  26 0006 06D6     		sw	ra,44(sp)
+  27              		.cfi_offset 1, -4
+  28              		.loc 1 13 5
+  29 0008 97000000 		call	rcu_periph_clock_enable
+  29      E7800000 
+  30              	.LVL0:
+  14:main.c        ****     rcu_periph_clock_enable(RCU_TIMER1);
+  31              		.loc 1 14 5 is_stmt 1
+  32 0010 13050070 		li	a0,1792
+  33 0014 97000000 		call	rcu_periph_clock_enable
+  33      E7800000 
+  34              	.LVL1:
+  15:main.c        **** 
+  16:main.c        ****     // 2. Konfigurera PA0 till Alternativ Funktion (AF) Push-Pull
+  17:main.c        ****     gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
+  35              		.loc 1 17 5
+  36 001c 37150140 		li	a0,1073811456
+  37 0020 8546     		li	a3,1
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 2
+
+
+  38 0022 0D46     		li	a2,3
+  39 0024 E145     		li	a1,24
+  40 0026 13050580 		addi	a0,a0,-2048
+  41 002a 97000000 		call	gpio_init
+  41      E7800000 
+  42              	.LVL2:
+  18:main.c        **** 
+  19:main.c        ****     // 3. Konfigurera timern till 50 Hz (20 ms period)
+  20:main.c        ****     timer_parameter_struct timer_initpara;
+  43              		.loc 1 20 5
+  21:main.c        ****     timer_struct_para_init(&timer_initpara);
+  44              		.loc 1 21 5
+  45 0032 0808     		addi	a0,sp,16
+  46 0034 97000000 		call	timer_struct_para_init
+  46      E7800000 
+  47              	.LVL3:
+  22:main.c        ****     timer_initpara.prescaler         = 36 - 1;       // 108 MHz / 36 = 3 MHz
+  48              		.loc 1 22 5
+  23:main.c        ****     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
+  49              		.loc 1 23 5
+  24:main.c        ****     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+  50              		.loc 1 24 5
+  22:main.c        ****     timer_initpara.prescaler         = 36 - 1;       // 108 MHz / 36 = 3 MHz
+  51              		.loc 1 22 38 is_stmt 0
+  52 003c 93073002 		li	a5,35
+  53 0040 3EC8     		sw	a5,16(sp)
+  25:main.c        ****     timer_initpara.period            = 60000 - 1;    // 3 MHz / 60000 = 50 Hz
+  54              		.loc 1 25 38
+  55 0042 BD67     		li	a5,61440
+  56 0044 9387F7A5 		addi	a5,a5,-1441
+  26:main.c        ****     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+  27:main.c        ****     timer_init(TIMER1, &timer_initpara);
+  57              		.loc 1 27 5
+  58 0048 0C08     		addi	a1,sp,16
+  59 004a 37050040 		li	a0,1073741824
+  25:main.c        ****     timer_initpara.period            = 60000 - 1;    // 3 MHz / 60000 = 50 Hz
+  60              		.loc 1 25 38
+  61 004e 3ECC     		sw	a5,24(sp)
+  24:main.c        ****     timer_initpara.period            = 60000 - 1;    // 3 MHz / 60000 = 50 Hz
+  62              		.loc 1 24 38
+  63 0050 231A0100 		sh	zero,20(sp)
+  25:main.c        ****     timer_initpara.period            = 60000 - 1;    // 3 MHz / 60000 = 50 Hz
+  64              		.loc 1 25 5 is_stmt 1
+  26:main.c        ****     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+  65              		.loc 1 26 5
+  26:main.c        ****     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+  66              		.loc 1 26 38 is_stmt 0
+  67 0054 231E0100 		sh	zero,28(sp)
+  68              		.loc 1 27 5 is_stmt 1
+  69 0058 97000000 		call	timer_init
+  69      E7800000 
+  70              	.LVL4:
+  28:main.c        **** 
+  29:main.c        ****     // 4. Konfigurera TIMER1 kanal 0 (PA0)
+  30:main.c        ****     timer_oc_parameter_struct timer_ocintpara;
+  71              		.loc 1 30 5
+  31:main.c        ****     timer_channel_output_struct_para_init(&timer_ocintpara);
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 3
+
+
+  72              		.loc 1 31 5
+  73 0060 4800     		addi	a0,sp,4
+  74 0062 97000000 		call	timer_channel_output_struct_para_init
+  74      E7800000 
+  75              	.LVL5:
+  32:main.c        ****     timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
+  76              		.loc 1 32 5
+  77              		.loc 1 32 34 is_stmt 0
+  78 006a 8547     		li	a5,1
+  33:main.c        ****     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+  34:main.c        ****     timer_channel_output_config(TIMER1, TIMER_CH_0, &timer_ocintpara);
+  79              		.loc 1 34 5
+  80 006c 5000     		addi	a2,sp,4
+  81 006e 8145     		li	a1,0
+  82 0070 37050040 		li	a0,1073741824
+  32:main.c        ****     timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
+  83              		.loc 1 32 34
+  84 0074 2312F100 		sh	a5,4(sp)
+  33:main.c        ****     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+  85              		.loc 1 33 5 is_stmt 1
+  33:main.c        ****     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+  86              		.loc 1 33 34 is_stmt 0
+  87 0078 23140100 		sh	zero,8(sp)
+  88              		.loc 1 34 5 is_stmt 1
+  89 007c 97000000 		call	timer_channel_output_config
+  89      E7800000 
+  90              	.LVL6:
+  35:main.c        **** 
+  36:main.c        ****     // 5. Ställ in PWM-läge
+  37:main.c        ****     timer_channel_output_mode_config(TIMER1, TIMER_CH_0, TIMER_OC_MODE_PWM0);
+  91              		.loc 1 37 5
+  92 0084 13060006 		li	a2,96
+  93 0088 8145     		li	a1,0
+  94 008a 37050040 		li	a0,1073741824
+  95 008e 97000000 		call	timer_channel_output_mode_config
+  95      E7800000 
+  96              	.LVL7:
+  38:main.c        ****     timer_channel_output_shadow_config(TIMER1, TIMER_CH_0, TIMER_OC_SHADOW_DISABLE);
+  97              		.loc 1 38 5
+  98 0096 0146     		li	a2,0
+  99 0098 8145     		li	a1,0
+ 100 009a 37050040 		li	a0,1073741824
+ 101 009e 97000000 		call	timer_channel_output_shadow_config
+ 101      E7800000 
+ 102              	.LVL8:
+  39:main.c        **** 
+  40:main.c        ****     // 6. Sätt pulsen till 180 grader (~2.5 ms = 7500 av 60000) 90 grader -> 4500 0 grader -> 2000
+  41:main.c        ****     timer_channel_output_pulse_value_config(TIMER1, TIMER_CH_0, 7500);
+ 103              		.loc 1 41 5
+ 104 00a6 0966     		li	a2,8192
+ 105 00a8 1306C6D4 		addi	a2,a2,-692
+ 106 00ac 8145     		li	a1,0
+ 107 00ae 37050040 		li	a0,1073741824
+ 108 00b2 97000000 		call	timer_channel_output_pulse_value_config
+ 108      E7800000 
+ 109              	.LVL9:
+  42:main.c        **** 
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 4
+
+
+  43:main.c        ****     // 7. Starta timern
+  44:main.c        ****     timer_auto_reload_shadow_enable(TIMER1);
+ 110              		.loc 1 44 5
+ 111 00ba 37050040 		li	a0,1073741824
+ 112 00be 97000000 		call	timer_auto_reload_shadow_enable
+ 112      E7800000 
+ 113              	.LVL10:
+  45:main.c        ****     timer_enable(TIMER1);
+ 114              		.loc 1 45 5
+ 115 00c6 37050040 		li	a0,1073741824
+ 116 00ca 97000000 		call	timer_enable
+ 116      E7800000 
+ 117              	.LVL11:
+  46:main.c        **** }
+ 118              		.loc 1 46 1 is_stmt 0
+ 119 00d2 B250     		lw	ra,44(sp)
+ 120              		.cfi_restore 1
+ 121 00d4 4561     		addi	sp,sp,48
+ 122              	.LCFI1:
+ 123              		.cfi_def_cfa_offset 0
+ 124 00d6 8280     		jr	ra
+ 125              		.cfi_endproc
+ 126              	.LFE2:
+ 128              		.section	.text.startup.main,"ax",@progbits
+ 129              		.align	1
+ 130              		.globl	main
+ 132              	main:
+ 133              	.LFB3:
+  47:main.c        **** 
+  48:main.c        **** int main(void) {
+ 134              		.loc 1 48 16 is_stmt 1
+ 135              		.cfi_startproc
+  49:main.c        ****     setup_pwm();
+ 136              		.loc 1 49 5
+  48:main.c        ****     setup_pwm();
+ 137              		.loc 1 48 16 is_stmt 0
+ 138 0000 4111     		addi	sp,sp,-16
+ 139              	.LCFI2:
+ 140              		.cfi_def_cfa_offset 16
+ 141 0002 06C6     		sw	ra,12(sp)
+ 142              		.cfi_offset 1, -4
+ 143              		.loc 1 49 5
+ 144 0004 97000000 		call	setup_pwm
+ 144      E7800000 
+ 145              	.LVL12:
+ 146              	.L4:
+  50:main.c        ****     
+  51:main.c        ****     while(1) {
+ 147              		.loc 1 51 5 is_stmt 1 discriminator 1
+  52:main.c        ****         // Lämnas tom. Hårdvaran håller kvar servot i 180 grader automatiskt.
+  53:main.c        ****     }
+ 148              		.loc 1 53 5 discriminator 1
+ 149 000c 01A0     		j	.L4
+ 150              		.cfi_endproc
+ 151              	.LFE3:
+ 153              		.text
+ 154              	.Letext0:
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 5
+
+
+ 155              		.file 2 "c:\\users\\linas\\downloads\\toolchain-gd32v-v202-win\\toolchain-gd32v-v202-win\\compiler
+ 156              		.file 3 "c:\\users\\linas\\downloads\\toolchain-gd32v-v202-win\\toolchain-gd32v-v202-win\\compiler
+ 157              		.file 4 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_timer.h"
+ 158              		.file 5 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_rcu.h"
+ 159              		.file 6 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h"
+ 160              		.file 7 "./../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:13     .text.setup_pwm:0000000000000000 setup_pwm
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:17     .text.setup_pwm:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:18     .text.setup_pwm:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:19     .text.setup_pwm:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:20     .text.setup_pwm:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:22     .text.setup_pwm:0000000000000002 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:24     .text.setup_pwm:0000000000000002 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:26     .text.setup_pwm:0000000000000006 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:27     .text.setup_pwm:0000000000000008 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:29     .text.setup_pwm:0000000000000008 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:32     .text.setup_pwm:0000000000000010 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:36     .text.setup_pwm:000000000000001c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:44     .text.setup_pwm:0000000000000032 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:45     .text.setup_pwm:0000000000000032 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:49     .text.setup_pwm:000000000000003c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:50     .text.setup_pwm:000000000000003c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:51     .text.setup_pwm:000000000000003c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:52     .text.setup_pwm:000000000000003c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:55     .text.setup_pwm:0000000000000042 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:58     .text.setup_pwm:0000000000000048 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:61     .text.setup_pwm:000000000000004e .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:63     .text.setup_pwm:0000000000000050 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:65     .text.setup_pwm:0000000000000054 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:66     .text.setup_pwm:0000000000000054 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:67     .text.setup_pwm:0000000000000054 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:69     .text.setup_pwm:0000000000000058 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:72     .text.setup_pwm:0000000000000060 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:73     .text.setup_pwm:0000000000000060 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:77     .text.setup_pwm:000000000000006a .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:78     .text.setup_pwm:000000000000006a .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:80     .text.setup_pwm:000000000000006c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:84     .text.setup_pwm:0000000000000074 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:86     .text.setup_pwm:0000000000000078 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:87     .text.setup_pwm:0000000000000078 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:89     .text.setup_pwm:000000000000007c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:92     .text.setup_pwm:0000000000000084 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:98     .text.setup_pwm:0000000000000096 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:104    .text.setup_pwm:00000000000000a6 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:111    .text.setup_pwm:00000000000000ba .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:115    .text.setup_pwm:00000000000000c6 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:119    .text.setup_pwm:00000000000000d2 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:120    .text.setup_pwm:00000000000000d4 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:123    .text.setup_pwm:00000000000000d6 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:125    .text.setup_pwm:00000000000000d8 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:132    .text.startup.main:0000000000000000 main
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:135    .text.startup.main:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:136    .text.startup.main:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:137    .text.startup.main:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:138    .text.startup.main:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:140    .text.startup.main:0000000000000002 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:142    .text.startup.main:0000000000000004 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:144    .text.startup.main:0000000000000004 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:148    .text.startup.main:000000000000000c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:149    .text.startup.main:000000000000000c .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:150    .text.startup.main:000000000000000e .L0 
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 7
+
+
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:128    .text.setup_pwm:00000000000000d8 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:153    .text.startup.main:000000000000000e .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:146    .text.startup.main:000000000000000c .L4
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:858    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1232   .debug_str:0000000000000000 .LASF80
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1362   .debug_str:000000000000041e .LASF81
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1258   .debug_str:0000000000000128 .LASF82
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1222   .debug_ranges:0000000000000000 .Ldebug_ranges0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1230   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1332   .debug_str:0000000000000360 .LASF0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1326   .debug_str:0000000000000334 .LASF1
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1402   .debug_str:0000000000000539 .LASF4
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1316   .debug_str:00000000000002f3 .LASF2
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1294   .debug_str:0000000000000245 .LASF3
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1252   .debug_str:00000000000000e0 .LASF5
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1340   .debug_str:0000000000000388 .LASF6
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1282   .debug_str:0000000000000208 .LASF7
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1248   .debug_str:00000000000000cd .LASF8
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1364   .debug_str:0000000000000425 .LASF9
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1246   .debug_str:00000000000000bf .LASF10
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1328   .debug_str:0000000000000340 .LASF11
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1378   .debug_str:000000000000047c .LASF12
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1334   .debug_str:000000000000036d .LASF13
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1330   .debug_str:0000000000000357 .LASF14
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1352   .debug_str:00000000000003ef .LASF83
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1266   .debug_str:00000000000001b0 .LASF15
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1354   .debug_str:00000000000003ff .LASF16
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1398   .debug_str:0000000000000510 .LASF17
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1394   .debug_str:00000000000004fb .LASF18
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1392   .debug_str:00000000000004f1 .LASF19
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1300   .debug_str:0000000000000282 .LASF20
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1302   .debug_str:000000000000028d .LASF21
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1304   .debug_str:0000000000000298 .LASF22
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1306   .debug_str:00000000000002a3 .LASF23
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1308   .debug_str:00000000000002ae .LASF24
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1310   .debug_str:00000000000002b9 .LASF25
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1278   .debug_str:00000000000001f3 .LASF26
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1286   .debug_str:000000000000021a .LASF27
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1288   .debug_str:0000000000000223 .LASF28
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1374   .debug_str:0000000000000466 .LASF29
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1376   .debug_str:0000000000000471 .LASF30
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1380   .debug_str:0000000000000484 .LASF31
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1382   .debug_str:000000000000048e .LASF32
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1346   .debug_str:00000000000003cc .LASF33
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1348   .debug_str:00000000000003d5 .LASF34
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1274   .debug_str:00000000000001e1 .LASF35
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1276   .debug_str:00000000000001ea .LASF36
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1324   .debug_str:000000000000032b .LASF37
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1338   .debug_str:0000000000000380 .LASF38
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1356   .debug_str:0000000000000408 .LASF39
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1250   .debug_str:00000000000000d8 .LASF40
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1360   .debug_str:0000000000000417 .LASF41
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1234   .debug_str:0000000000000088 .LASF42
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1236   .debug_str:0000000000000092 .LASF43
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1238   .debug_str:000000000000009c .LASF44
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1240   .debug_str:00000000000000a6 .LASF45
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 8
+
+
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1242   .debug_str:00000000000000b0 .LASF46
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1320   .debug_str:0000000000000319 .LASF47
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1322   .debug_str:0000000000000322 .LASF48
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1298   .debug_str:0000000000000277 .LASF49
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1284   .debug_str:0000000000000211 .LASF50
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1372   .debug_str:000000000000045b .LASF51
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1336   .debug_str:0000000000000376 .LASF52
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1290   .debug_str:000000000000022c .LASF53
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1350   .debug_str:00000000000003de .LASF54
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1358   .debug_str:0000000000000410 .LASF55
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1260   .debug_str:0000000000000189 .LASF56
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1384   .debug_str:0000000000000498 .LASF57
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1256   .debug_str:0000000000000111 .LASF58
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1272   .debug_str:00000000000001d5 .LASF59
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1370   .debug_str:000000000000044e .LASF60
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1388   .debug_str:00000000000004ca .LASF61
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1396   .debug_str:0000000000000504 .LASF62
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1268   .debug_str:00000000000001b9 .LASF63
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1366   .debug_str:0000000000000437 .LASF64
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1344   .debug_str:00000000000003b2 .LASF65
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1312   .debug_str:00000000000002c4 .LASF66
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1244   .debug_str:00000000000000ba .LASF84
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:133    .text.startup.main:0000000000000000 .LFB3
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:151    .text.startup.main:000000000000000e .LFE3
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1176   .debug_loc:0000000000000000 .LLST1
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:145    .text.startup.main:000000000000000c .LVL12
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1264   .debug_str:00000000000001a6 .LASF85
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:14     .text.setup_pwm:0000000000000000 .LFB2
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:126    .text.setup_pwm:00000000000000d8 .LFE2
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1189   .debug_loc:0000000000000020 .LLST0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1262   .debug_str:0000000000000197 .LASF67
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1270   .debug_str:00000000000001c5 .LASF68
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:30     .text.setup_pwm:0000000000000010 .LVL0
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:34     .text.setup_pwm:000000000000001c .LVL1
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:42     .text.setup_pwm:0000000000000032 .LVL2
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:47     .text.setup_pwm:000000000000003c .LVL3
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:70     .text.setup_pwm:0000000000000060 .LVL4
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:75     .text.setup_pwm:000000000000006a .LVL5
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:90     .text.setup_pwm:0000000000000084 .LVL6
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:96     .text.setup_pwm:0000000000000096 .LVL7
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:102    .text.setup_pwm:00000000000000a6 .LVL8
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:109    .text.setup_pwm:00000000000000ba .LVL9
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:113    .text.setup_pwm:00000000000000c6 .LVL10
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:117    .text.setup_pwm:00000000000000d2 .LVL11
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1318   .debug_str:0000000000000301 .LASF69
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1368   .debug_str:0000000000000444 .LASF70
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1342   .debug_str:000000000000039b .LASF71
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1280   .debug_str:00000000000001fd .LASF72
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1254   .debug_str:00000000000000eb .LASF73
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1390   .debug_str:00000000000004d5 .LASF74
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1400   .debug_str:0000000000000518 .LASF75
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1314   .debug_str:00000000000002d0 .LASF76
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1296   .debug_str:000000000000024f .LASF77
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1386   .debug_str:00000000000004aa .LASF78
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:1292   .debug_str:0000000000000238 .LASF79
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:139    .text.startup.main:0000000000000002 .LCFI2
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:21     .text.setup_pwm:0000000000000002 .LCFI0
+GAS LISTING C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s 			page 9
+
+
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:122    .text.setup_pwm:00000000000000d6 .LCFI1
+C:\Users\LinaS\AppData\Local\Temp\ccmfYE1U.s:162    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+rcu_periph_clock_enable
+gpio_init
+timer_struct_para_init
+timer_init
+timer_channel_output_struct_para_init
+timer_channel_output_config
+timer_channel_output_mode_config
+timer_channel_output_shadow_config
+timer_channel_output_pulse_value_config
+timer_auto_reload_shadow_enable
+timer_enable
