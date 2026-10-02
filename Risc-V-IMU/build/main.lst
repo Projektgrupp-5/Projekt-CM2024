@@ -1,0 +1,1604 @@
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 1
+
+
+   1              		.file	"main.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.globl	__addsf3
+  10              		.globl	__divsf3
+  11              		.globl	__mulsf3
+  12              		.globl	__subsf3
+  13              		.globl	__ltsf2
+  14              		.globl	__fixunssfsi
+  15              		.globl	__fixsfsi
+  16              		.globl	__floatsisf
+  17              		.section	.text.startup.main,"ax",@progbits
+  18              		.align	1
+  19              		.globl	main
+  21              	main:
+  22              	.LFB5:
+  23              		.file 1 "main.c"
+   1:main.c        **** 
+   2:main.c        **** /*!
+   3:main.c        ****     \file  main.c
+   4:main.c        ****     \brief USB CDC ACM device
+   5:main.c        **** 
+   6:main.c        ****     \version 2019-6-5, V1.0.0, demo for GD32VF103
+   7:main.c        **** */
+   8:main.c        **** 
+   9:main.c        **** /*
+  10:main.c        ****     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+  11:main.c        **** 
+  12:main.c        ****     Redistribution and use in source and binary forms, with or without modification, 
+  13:main.c        **** are permitted provided that the following conditions are met:
+  14:main.c        **** 
+  15:main.c        ****     1. Redistributions of source code must retain the above copyright notice, this 
+  16:main.c        ****        list of conditions and the following disclaimer.
+  17:main.c        ****     2. Redistributions in binary form must reproduce the above copyright notice, 
+  18:main.c        ****        this list of conditions and the following disclaimer in the documentation 
+  19:main.c        ****        and/or other materials provided with the distribution.
+  20:main.c        ****     3. Neither the name of the copyright holder nor the names of its contributors 
+  21:main.c        ****        may be used to endorse or promote products derived from this software without 
+  22:main.c        ****        specific prior written permission.
+  23:main.c        **** 
+  24:main.c        ****     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+  25:main.c        **** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+  26:main.c        **** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+  27:main.c        **** IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+  28:main.c        **** INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  29:main.c        **** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+  30:main.c        **** PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+  31:main.c        **** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  32:main.c        **** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+  33:main.c        **** OF SUCH DAMAGE.
+  34:main.c        **** */
+  35:main.c        **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 2
+
+
+  36:main.c        **** 
+  37:main.c        **** #include "gd32vf103.h"
+  38:main.c        **** #include "lcd.h"
+  39:main.c        **** #include "gd32vf103_gpio.h"
+  40:main.c        **** #include "delay.h"
+  41:main.c        **** #include "gd32v_mpu6500_if.h"
+  42:main.c        **** #include "math.h"
+  43:main.c        **** 
+  44:main.c        **** 
+  45:main.c        **** #define GRAPH_HEIGHT    30
+  46:main.c        **** 
+  47:main.c        **** int main(void){
+  24              		.loc 1 47 15
+  25              		.cfi_startproc
+  48:main.c        ****     /* The related data structure for the IMU, contains a vector of x, y, z floats*/
+  49:main.c        ****     mpu_vector_t vec, vec_temp, result = {0}; 
+  26              		.loc 1 49 5
+  27              	.LVL0:
+  50:main.c        ****     mpu_vector_t inital = {0.0f,0.0f,0.0f};
+  28              		.loc 1 50 5
+  51:main.c        ****     /* for lcd */
+  52:main.c        ****     uint16_t line_color;
+  29              		.loc 1 52 5
+  53:main.c        **** 
+  54:main.c        ****     /* Initialize pins for I2C */
+  55:main.c        ****     rcu_periph_clock_enable(RCU_GPIOB);
+  30              		.loc 1 55 5
+  47:main.c        ****     /* The related data structure for the IMU, contains a vector of x, y, z floats*/
+  31              		.loc 1 47 15 is_stmt 0
+  32 0000 5971     		addi	sp,sp,-112
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 112
+  35              		.loc 1 55 5
+  36 0002 13053060 		li	a0,1539
+  47:main.c        ****     /* The related data structure for the IMU, contains a vector of x, y, z floats*/
+  37              		.loc 1 47 15
+  38 0006 86D6     		sw	ra,108(sp)
+  39 0008 A2D4     		sw	s0,104(sp)
+  40 000a CECE     		sw	s3,92(sp)
+  41 000c D2CC     		sw	s4,88(sp)
+  42 000e D6CA     		sw	s5,84(sp)
+  43 0010 A6D2     		sw	s1,100(sp)
+  44 0012 CAD0     		sw	s2,96(sp)
+  45 0014 DAC8     		sw	s6,80(sp)
+  46 0016 DEC6     		sw	s7,76(sp)
+  47 0018 E2C4     		sw	s8,72(sp)
+  48 001a E6C2     		sw	s9,68(sp)
+  49 001c EAC0     		sw	s10,64(sp)
+  50 001e 6EDE     		sw	s11,60(sp)
+  51              		.cfi_offset 1, -4
+  52              		.cfi_offset 8, -8
+  53              		.cfi_offset 19, -20
+  54              		.cfi_offset 20, -24
+  55              		.cfi_offset 21, -28
+  56              		.cfi_offset 9, -12
+  57              		.cfi_offset 18, -16
+  58              		.cfi_offset 22, -32
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 3
+
+
+  59              		.cfi_offset 23, -36
+  60              		.cfi_offset 24, -40
+  61              		.cfi_offset 25, -44
+  62              		.cfi_offset 26, -48
+  63              		.cfi_offset 27, -52
+  64              		.loc 1 55 5
+  65 0020 97000000 		call	rcu_periph_clock_enable
+  65      E7800000 
+  66              	.LVL1:
+  56:main.c        ****     rcu_periph_clock_enable(RCU_I2C0);
+  67              		.loc 1 56 5 is_stmt 1
+  68 0028 13055071 		li	a0,1813
+  69 002c 97000000 		call	rcu_periph_clock_enable
+  69      E7800000 
+  70              	.LVL2:
+  57:main.c        ****     gpio_init(GPIOB, GPIO_MODE_AF_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_6 | GPIO_PIN_7);
+  71              		.loc 1 57 5
+  72 0034 37150140 		li	a0,1073811456
+  73 0038 9306000C 		li	a3,192
+  74 003c 0D46     		li	a2,3
+  75 003e F145     		li	a1,28
+  76 0040 130505C0 		addi	a0,a0,-1024
+  77 0044 97000000 		call	gpio_init
+  77      E7800000 
+  78              	.LVL3:
+  58:main.c        ****     /* Initialize the IMU (Notice that MPU6500 is referenced, this is due to the fact that ICM-2060
+  59:main.c        ****        ICM-20600 is mostly register compatible with MPU6500, if MPU6500 is used only thing that nee
+  60:main.c        ****        to change is MPU6500_WHO_AM_I_ID from 0x11 to 0x70. */
+  61:main.c        ****     mpu6500_install(I2C0);
+  79              		.loc 1 61 5
+  80 004c 37550040 		li	a0,1073762304
+  81 0050 13050540 		addi	a0,a0,1024
+  82 0054 97000000 		call	mpu6500_install
+  82      E7800000 
+  83              	.LVL4:
+  62:main.c        ****     
+  63:main.c        ****     /* Initialize LCD */
+  64:main.c        ****     Lcd_SetType(LCD_INVERTED);
+  84              		.loc 1 64 5
+  85 005c 0545     		li	a0,1
+  86 005e 97000000 		call	Lcd_SetType
+  86      E7800000 
+  87              	.LVL5:
+  65:main.c        ****     Lcd_Init();
+  88              		.loc 1 65 5
+  89 0066 97000000 		call	Lcd_Init
+  89      E7800000 
+  90              	.LVL6:
+  66:main.c        ****     LCD_Clear(BLACK);
+  91              		.loc 1 66 5
+  50:main.c        ****     /* for lcd */
+  92              		.loc 1 50 18 is_stmt 0
+  93 006e 130A0000 		mv	s4,zero
+  94              		.loc 1 66 5
+  95 0072 0145     		li	a0,0
+  96 0074 97000000 		call	LCD_Clear
+  96      E7800000 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 4
+
+
+  97              	.LVL7:
+  67:main.c        ****     
+  68:main.c        ****     mpu_vector_t temp;
+  98              		.loc 1 68 5 is_stmt 1
+  69:main.c        ****     const int SAMPLES = 100;
+  99              		.loc 1 69 5
+  70:main.c        **** 
+  71:main.c        ****     for (int i = 0; i < SAMPLES; i++) {
+ 100              		.loc 1 71 5
+ 101              	.LBB2:
+ 102              		.loc 1 71 10
+ 103              	.LBE2:
+  66:main.c        ****     
+ 104              		.loc 1 66 5 is_stmt 0
+ 105 007c 13044006 		li	s0,100
+  50:main.c        ****     /* for lcd */
+ 106              		.loc 1 50 18
+ 107 0080 D28A     		mv	s5,s4
+ 108 0082 D289     		mv	s3,s4
+ 109              	.LVL8:
+ 110              	.L2:
+ 111              	.LBB3:
+  72:main.c        ****     mpu6500_getAccel(&temp);
+ 112              		.loc 1 72 5 is_stmt 1 discriminator 3
+ 113 0084 4810     		addi	a0,sp,36
+ 114 0086 97000000 		call	mpu6500_getAccel
+ 114      E7800000 
+ 115              	.LVL9:
+  73:main.c        ****     inital.x += temp.x;
+ 116              		.loc 1 73 5 discriminator 3
+ 117              		.loc 1 73 14 is_stmt 0 discriminator 3
+ 118 008e 9255     		lw	a1,36(sp)
+ 119 0090 4E85     		mv	a0,s3
+ 120 0092 7D14     		addi	s0,s0,-1
+ 121              	.LVL10:
+ 122 0094 97000000 		call	__addsf3
+ 122      E7800000 
+ 123              	.LVL11:
+  74:main.c        ****     inital.y += temp.y;
+ 124              		.loc 1 74 14 discriminator 3
+ 125 009c A255     		lw	a1,40(sp)
+  73:main.c        ****     inital.x += temp.x;
+ 126              		.loc 1 73 14 discriminator 3
+ 127 009e AA89     		mv	s3,a0
+ 128              	.LVL12:
+ 129              		.loc 1 74 5 is_stmt 1 discriminator 3
+ 130              		.loc 1 74 14 is_stmt 0 discriminator 3
+ 131 00a0 5285     		mv	a0,s4
+ 132              	.LVL13:
+ 133 00a2 97000000 		call	__addsf3
+ 133      E7800000 
+ 134              	.LVL14:
+  75:main.c        ****     inital.z += temp.z;
+ 135              		.loc 1 75 14 discriminator 3
+ 136 00aa B255     		lw	a1,44(sp)
+  74:main.c        ****     inital.y += temp.y;
+ 137              		.loc 1 74 14 discriminator 3
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 5
+
+
+ 138 00ac 2A8A     		mv	s4,a0
+ 139              	.LVL15:
+ 140              		.loc 1 75 5 is_stmt 1 discriminator 3
+ 141              		.loc 1 75 14 is_stmt 0 discriminator 3
+ 142 00ae 5685     		mv	a0,s5
+ 143              	.LVL16:
+ 144 00b0 97000000 		call	__addsf3
+ 144      E7800000 
+ 145              	.LVL17:
+ 146 00b8 AA8A     		mv	s5,a0
+ 147              	.LVL18:
+  76:main.c        ****     delay_1ms(2);
+ 148              		.loc 1 76 5 is_stmt 1 discriminator 3
+ 149 00ba 0945     		li	a0,2
+ 150              	.LVL19:
+ 151 00bc 97000000 		call	delay_1ms
+ 151      E7800000 
+ 152              	.LVL20:
+  71:main.c        ****     mpu6500_getAccel(&temp);
+ 153              		.loc 1 71 5 is_stmt 0 discriminator 3
+ 154 00c4 61F0     		bne	s0,zero,.L2
+ 155              	.LBE3:
+  77:main.c        ****     }
+  78:main.c        **** 
+  79:main.c        ****     inital.x /= (float)SAMPLES;
+ 156              		.loc 1 79 5 is_stmt 1
+ 157              		.loc 1 79 14 is_stmt 0
+ 158 00c6 37040000 		lui	s0,%hi(.LC0)
+ 159 00ca 83250400 		lw	a1,%lo(.LC0)(s0)
+ 160 00ce 4E85     		mv	a0,s3
+ 161              	.LBB4:
+  80:main.c        ****     inital.y /= (float)SAMPLES;
+  81:main.c        ****     inital.z /= (float)SAMPLES;
+  82:main.c        **** 
+  83:main.c        ****     mpu_vector_t gravity_offset = inital;
+  84:main.c        **** 
+  85:main.c        ****     delay_1ms(100);
+  86:main.c        ****     while(1){
+  87:main.c        ****         /* Get accelleration data (Note: Blocking read) puts a force vector with 1G = 4096 into x, 
+  88:main.c        ****         mpu6500_getAccel(&vec);
+  89:main.c        **** 
+  90:main.c        ****         gravity_offset.x = (0.01f * vec.x) + (0.99f * gravity_offset.x); // 1% av nya värde och 99
+ 162              		.loc 1 90 53
+ 163 00d0 B70B0000 		lui	s7,%hi(.LC2)
+ 164              	.LBE4:
+  79:main.c        ****     inital.y /= (float)SAMPLES;
+ 165              		.loc 1 79 14
+ 166 00d4 97000000 		call	__divsf3
+ 166      E7800000 
+ 167              	.LVL21:
+  80:main.c        ****     inital.y /= (float)SAMPLES;
+ 168              		.loc 1 80 14
+ 169 00dc 83250400 		lw	a1,%lo(.LC0)(s0)
+  79:main.c        ****     inital.y /= (float)SAMPLES;
+ 170              		.loc 1 79 14
+ 171 00e0 AA89     		mv	s3,a0
+ 172              	.LVL22:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 6
+
+
+  80:main.c        ****     inital.y /= (float)SAMPLES;
+ 173              		.loc 1 80 5 is_stmt 1
+  80:main.c        ****     inital.y /= (float)SAMPLES;
+ 174              		.loc 1 80 14 is_stmt 0
+ 175 00e2 5285     		mv	a0,s4
+ 176              	.LVL23:
+ 177 00e4 97000000 		call	__divsf3
+ 177      E7800000 
+ 178              	.LVL24:
+  81:main.c        **** 
+ 179              		.loc 1 81 14
+ 180 00ec 83250400 		lw	a1,%lo(.LC0)(s0)
+  80:main.c        ****     inital.y /= (float)SAMPLES;
+ 181              		.loc 1 80 14
+ 182 00f0 2A8A     		mv	s4,a0
+ 183              	.LVL25:
+  81:main.c        **** 
+ 184              		.loc 1 81 5 is_stmt 1
+  81:main.c        **** 
+ 185              		.loc 1 81 14 is_stmt 0
+ 186 00f2 5685     		mv	a0,s5
+ 187              	.LVL26:
+ 188 00f4 97000000 		call	__divsf3
+ 188      E7800000 
+ 189              	.LVL27:
+ 190 00fc AA8A     		mv	s5,a0
+ 191              	.LVL28:
+  83:main.c        **** 
+ 192              		.loc 1 83 5 is_stmt 1
+  85:main.c        ****     while(1){
+ 193              		.loc 1 85 5
+ 194 00fe 13054006 		li	a0,100
+ 195              	.LVL29:
+ 196 0102 97000000 		call	delay_1ms
+ 196      E7800000 
+ 197              	.LVL30:
+ 198              	.LBB5:
+  91:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+  92:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+  93:main.c        **** 
+  94:main.c        ****         result.x = vec.x - gravity_offset.x; //Subtraherar vectorn från tyngdkraftens förskjutnin
+  95:main.c        ****         result.y = vec.y - gravity_offset.y; //När den är helt stilla och x & y = 0 blir gravity 
+  96:main.c        ****         result.z = vec.z - gravity_offset.z; // dvs att x och y leden också påverkas
+  97:main.c        **** 
+  98:main.c        ****         float ac = sqrtf( (result.x * result.x) + 
+  99:main.c        ****                           (result.y * result.y) + 
+ 100:main.c        ****                           (result.z * result.z) );
+ 101:main.c        **** 
+ 102:main.c        ****         if (ac < 25.0f) { //(stannade ej på 0 utan ändras från 0-20 så la till en threshold)
+ 199              		.loc 1 102 12 is_stmt 0
+ 200 010a B7070000 		lui	a5,%hi(.LC3)
+ 201 010e 03AC0700 		lw	s8,%lo(.LC3)(a5)
+ 103:main.c        ****             ac = 0.0f;
+ 104:main.c        ****         } else {
+ 105:main.c        ****             ac = ac - 25.0f;
+ 106:main.c        ****         }
+ 107:main.c        ****         float ombandladAC = (ac * (9.82f/4096.0f))*100; // mm/s^2
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 7
+
+
+ 202              		.loc 1 107 33
+ 203 0112 B7070000 		lui	a5,%hi(.LC4)
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 204              		.loc 1 90 53
+ 205 0116 03AD0B00 		lw	s10,%lo(.LC2)(s7)
+ 206              		.loc 1 107 33
+ 207 011a 83AD0700 		lw	s11,%lo(.LC4)(a5)
+ 208 011e 22C0     		sw	s0,0(sp)
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 209              		.loc 1 90 35
+ 210 0120 370B0000 		lui	s6,%hi(.LC1)
+ 108:main.c        **** 
+ 109:main.c        ****         /* Green if pointing up, red if down */
+ 110:main.c        ****         line_color = (vec.z < 0) ? RED : GREEN;
+ 111:main.c        ****         /* Draw a unit circle (1G) */
+ 112:main.c        ****         Draw_Circle(250/2, 80/2, 28, BLUE);
+ 113:main.c        ****         /* Erase last line */
+ 114:main.c        ****         LCD_DrawLine(250/2, 80/2, (250/2)+(vec_temp.y)/(4096/28), (80/2)+(vec_temp.x/(4096/28)),BLA
+ 211              		.loc 1 114 85
+ 212 0124 37040000 		lui	s0,%hi(.LC5)
+ 213              	.LVL31:
+ 214              	.L5:
+ 215              	.LBE5:
+  86:main.c        ****         /* Get accelleration data (Note: Blocking read) puts a force vector with 1G = 4096 into x, 
+ 216              		.loc 1 86 5 is_stmt 1
+ 217              	.LBB6:
+  88:main.c        **** 
+ 218              		.loc 1 88 9
+ 219 0128 2808     		addi	a0,sp,24
+ 220 012a 97000000 		call	mpu6500_getAccel
+ 220      E7800000 
+ 221              	.LVL32:
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 222              		.loc 1 90 9
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 223              		.loc 1 90 40 is_stmt 0
+ 224 0132 6247     		lw	a4,24(sp)
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 225              		.loc 1 90 35
+ 226 0134 B7070000 		lui	a5,%hi(.LC1)
+ 227 0138 83A50700 		lw	a1,%lo(.LC1)(a5)
+ 228 013c 3A85     		mv	a0,a4
+ 229 013e 3AC6     		sw	a4,12(sp)
+ 230 0140 97000000 		call	__mulsf3
+ 230      E7800000 
+ 231              	.LVL33:
+ 232 0148 AA8C     		mv	s9,a0
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 233              		.loc 1 90 53
+ 234 014a EA85     		mv	a1,s10
+ 235 014c 4E85     		mv	a0,s3
+ 236 014e 97000000 		call	__mulsf3
+ 236      E7800000 
+ 237              	.LVL34:
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 238              		.loc 1 90 44
+ 239 0156 AA85     		mv	a1,a0
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 8
+
+
+ 240 0158 6685     		mv	a0,s9
+ 241 015a 97000000 		call	__addsf3
+ 241      E7800000 
+ 242              	.LVL35:
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 243              		.loc 1 91 40
+ 244 0162 F247     		lw	a5,28(sp)
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 245              		.loc 1 91 35
+ 246 0164 83250B00 		lw	a1,%lo(.LC1)(s6)
+  90:main.c        ****         gravity_offset.y = (0.01f * vec.y) + (0.99f * gravity_offset.y); // dvs påverkas mindre oc
+ 247              		.loc 1 90 44
+ 248 0168 AA89     		mv	s3,a0
+ 249              	.LVL36:
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 250              		.loc 1 91 9 is_stmt 1
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 251              		.loc 1 91 35 is_stmt 0
+ 252 016a 3E85     		mv	a0,a5
+ 253              	.LVL37:
+ 254 016c 3EC4     		sw	a5,8(sp)
+ 255 016e 97000000 		call	__mulsf3
+ 255      E7800000 
+ 256              	.LVL38:
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 257              		.loc 1 91 53
+ 258 0176 83A50B00 		lw	a1,%lo(.LC2)(s7)
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 259              		.loc 1 91 35
+ 260 017a AA8C     		mv	s9,a0
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 261              		.loc 1 91 53
+ 262 017c 5285     		mv	a0,s4
+ 263 017e 97000000 		call	__mulsf3
+ 263      E7800000 
+ 264              	.LVL39:
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 265              		.loc 1 91 44
+ 266 0186 AA85     		mv	a1,a0
+ 267 0188 6685     		mv	a0,s9
+ 268 018a 97000000 		call	__addsf3
+ 268      E7800000 
+ 269              	.LVL40:
+  92:main.c        **** 
+ 270              		.loc 1 92 40
+ 271 0192 825C     		lw	s9,32(sp)
+  92:main.c        **** 
+ 272              		.loc 1 92 35
+ 273 0194 83250B00 		lw	a1,%lo(.LC1)(s6)
+  91:main.c        ****         gravity_offset.z = (0.01f * vec.z) + (0.99f * gravity_offset.z);
+ 274              		.loc 1 91 44
+ 275 0198 2A8A     		mv	s4,a0
+ 276              	.LVL41:
+  92:main.c        **** 
+ 277              		.loc 1 92 9 is_stmt 1
+  92:main.c        **** 
+ 278              		.loc 1 92 35 is_stmt 0
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 9
+
+
+ 279 019a 6685     		mv	a0,s9
+ 280              	.LVL42:
+ 281 019c 97000000 		call	__mulsf3
+ 281      E7800000 
+ 282              	.LVL43:
+  92:main.c        **** 
+ 283              		.loc 1 92 53
+ 284 01a4 83A50B00 		lw	a1,%lo(.LC2)(s7)
+  92:main.c        **** 
+ 285              		.loc 1 92 35
+ 286 01a8 2AC2     		sw	a0,4(sp)
+  92:main.c        **** 
+ 287              		.loc 1 92 53
+ 288 01aa 5685     		mv	a0,s5
+ 289 01ac 97000000 		call	__mulsf3
+ 289      E7800000 
+ 290              	.LVL44:
+  92:main.c        **** 
+ 291              		.loc 1 92 44
+ 292 01b4 9246     		lw	a3,4(sp)
+ 293 01b6 AA85     		mv	a1,a0
+ 294 01b8 3685     		mv	a0,a3
+ 295 01ba 97000000 		call	__addsf3
+ 295      E7800000 
+ 296              	.LVL45:
+  94:main.c        ****         result.y = vec.y - gravity_offset.y; //När den är helt stilla och x & y = 0 blir gravity 
+ 297              		.loc 1 94 26
+ 298 01c2 3247     		lw	a4,12(sp)
+  92:main.c        **** 
+ 299              		.loc 1 92 44
+ 300 01c4 AA8A     		mv	s5,a0
+ 301              	.LVL46:
+  94:main.c        ****         result.y = vec.y - gravity_offset.y; //När den är helt stilla och x & y = 0 blir gravity 
+ 302              		.loc 1 94 9 is_stmt 1
+  94:main.c        ****         result.y = vec.y - gravity_offset.y; //När den är helt stilla och x & y = 0 blir gravity 
+ 303              		.loc 1 94 26 is_stmt 0
+ 304 01c6 CE85     		mv	a1,s3
+ 305 01c8 3A85     		mv	a0,a4
+ 306              	.LVL47:
+ 307 01ca 97000000 		call	__subsf3
+ 307      E7800000 
+ 308              	.LVL48:
+  95:main.c        ****         result.z = vec.z - gravity_offset.z; // dvs att x och y leden också påverkas
+ 309              		.loc 1 95 26
+ 310 01d2 A247     		lw	a5,8(sp)
+  94:main.c        ****         result.y = vec.y - gravity_offset.y; //När den är helt stilla och x & y = 0 blir gravity 
+ 311              		.loc 1 94 26
+ 312 01d4 2AC6     		sw	a0,12(sp)
+ 313              	.LVL49:
+  95:main.c        ****         result.z = vec.z - gravity_offset.z; // dvs att x och y leden också påverkas
+ 314              		.loc 1 95 9 is_stmt 1
+  95:main.c        ****         result.z = vec.z - gravity_offset.z; // dvs att x och y leden också påverkas
+ 315              		.loc 1 95 26 is_stmt 0
+ 316 01d6 D285     		mv	a1,s4
+ 317 01d8 3E85     		mv	a0,a5
+ 318 01da 97000000 		call	__subsf3
+ 318      E7800000 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 10
+
+
+ 319              	.LVL50:
+ 320 01e2 2AC4     		sw	a0,8(sp)
+ 321              	.LVL51:
+  96:main.c        **** 
+ 322              		.loc 1 96 9 is_stmt 1
+  96:main.c        **** 
+ 323              		.loc 1 96 26 is_stmt 0
+ 324 01e4 D685     		mv	a1,s5
+ 325 01e6 6685     		mv	a0,s9
+ 326 01e8 97000000 		call	__subsf3
+ 326      E7800000 
+ 327              	.LVL52:
+  98:main.c        ****                           (result.y * result.y) + 
+ 328              		.loc 1 98 37
+ 329 01f0 B246     		lw	a3,12(sp)
+  96:main.c        **** 
+ 330              		.loc 1 96 26
+ 331 01f2 2AC2     		sw	a0,4(sp)
+ 332              	.LVL53:
+  98:main.c        ****                           (result.y * result.y) + 
+ 333              		.loc 1 98 9 is_stmt 1
+  98:main.c        ****                           (result.y * result.y) + 
+ 334              		.loc 1 98 37 is_stmt 0
+ 335 01f4 B685     		mv	a1,a3
+ 336 01f6 3685     		mv	a0,a3
+ 337 01f8 97000000 		call	__mulsf3
+ 337      E7800000 
+ 338              	.LVL54:
+  99:main.c        ****                           (result.z * result.z) );
+ 339              		.loc 1 99 37
+ 340 0200 2247     		lw	a4,8(sp)
+  98:main.c        ****                           (result.y * result.y) + 
+ 341              		.loc 1 98 37
+ 342 0202 AA8C     		mv	s9,a0
+  99:main.c        ****                           (result.z * result.z) );
+ 343              		.loc 1 99 37
+ 344 0204 BA85     		mv	a1,a4
+ 345 0206 3A85     		mv	a0,a4
+ 346 0208 97000000 		call	__mulsf3
+ 346      E7800000 
+ 347              	.LVL55:
+  98:main.c        ****                           (result.y * result.y) + 
+ 348              		.loc 1 98 49
+ 349 0210 AA85     		mv	a1,a0
+ 350 0212 6685     		mv	a0,s9
+ 351 0214 97000000 		call	__addsf3
+ 351      E7800000 
+ 352              	.LVL56:
+ 100:main.c        **** 
+ 353              		.loc 1 100 37
+ 354 021c 9247     		lw	a5,4(sp)
+  98:main.c        ****                           (result.y * result.y) + 
+ 355              		.loc 1 98 49
+ 356 021e AA8C     		mv	s9,a0
+ 100:main.c        **** 
+ 357              		.loc 1 100 37
+ 358 0220 BE85     		mv	a1,a5
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 11
+
+
+ 359 0222 3E85     		mv	a0,a5
+ 360 0224 97000000 		call	__mulsf3
+ 360      E7800000 
+ 361              	.LVL57:
+  98:main.c        ****                           (result.y * result.y) + 
+ 362              		.loc 1 98 20
+ 363 022c AA85     		mv	a1,a0
+ 364 022e 6685     		mv	a0,s9
+ 365 0230 97000000 		call	__addsf3
+ 365      E7800000 
+ 366              	.LVL58:
+ 367 0238 97000000 		call	sqrtf
+ 367      E7800000 
+ 368              	.LVL59:
+ 102:main.c        ****             ac = 0.0f;
+ 369              		.loc 1 102 12
+ 370 0240 E285     		mv	a1,s8
+  98:main.c        ****                           (result.y * result.y) + 
+ 371              		.loc 1 98 20
+ 372 0242 AA8C     		mv	s9,a0
+ 373              	.LVL60:
+ 102:main.c        ****             ac = 0.0f;
+ 374              		.loc 1 102 9 is_stmt 1
+ 102:main.c        ****             ac = 0.0f;
+ 375              		.loc 1 102 12 is_stmt 0
+ 376 0244 97000000 		call	__ltsf2
+ 376      E7800000 
+ 377              	.LVL61:
+ 103:main.c        ****         } else {
+ 378              		.loc 1 103 16
+ 379 024c 93070000 		mv	a5,zero
+ 102:main.c        ****             ac = 0.0f;
+ 380              		.loc 1 102 12
+ 381 0250 63490500 		blt	a0,zero,.L3
+ 105:main.c        ****         }
+ 382              		.loc 1 105 13 is_stmt 1
+ 105:main.c        ****         }
+ 383              		.loc 1 105 16 is_stmt 0
+ 384 0254 E285     		mv	a1,s8
+ 385 0256 6685     		mv	a0,s9
+ 386 0258 97000000 		call	__subsf3
+ 386      E7800000 
+ 387              	.LVL62:
+ 388 0260 AA87     		mv	a5,a0
+ 389              	.LVL63:
+ 390              	.L3:
+ 107:main.c        **** 
+ 391              		.loc 1 107 9 is_stmt 1
+ 107:main.c        **** 
+ 392              		.loc 1 107 33 is_stmt 0
+ 393 0262 EE85     		mv	a1,s11
+ 394 0264 3E85     		mv	a0,a5
+ 395 0266 97000000 		call	__mulsf3
+ 395      E7800000 
+ 396              	.LVL64:
+ 107:main.c        **** 
+ 397              		.loc 1 107 15
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 12
+
+
+ 398 026e 8247     		lw	a5,0(sp)
+ 399 0270 83A50700 		lw	a1,%lo(.LC0)(a5)
+ 400 0274 97000000 		call	__mulsf3
+ 400      E7800000 
+ 401              	.LVL65:
+ 402 027c AA8C     		mv	s9,a0
+ 403              	.LVL66:
+ 110:main.c        ****         /* Draw a unit circle (1G) */
+ 404              		.loc 1 110 9 is_stmt 1
+ 110:main.c        ****         /* Draw a unit circle (1G) */
+ 405              		.loc 1 110 20 is_stmt 0
+ 406 027e 0255     		lw	a0,32(sp)
+ 407              	.LVL67:
+ 408 0280 93050000 		mv	a1,zero
+ 409 0284 97000000 		call	__ltsf2
+ 409      E7800000 
+ 410              	.LVL68:
+ 411 028c 9307007E 		li	a5,2016
+ 412 0290 63550500 		bge	a0,zero,.L4
+ 413 0294 C167     		li	a5,65536
+ 414 0296 93870780 		addi	a5,a5,-2048
+ 415              	.L4:
+ 112:main.c        ****         /* Erase last line */
+ 416              		.loc 1 112 9 discriminator 4
+ 417 029a FD46     		li	a3,31
+ 418 029c 7146     		li	a2,28
+ 419 029e 93058002 		li	a1,40
+ 420 02a2 1305D007 		li	a0,125
+ 421 02a6 3EC4     		sw	a5,8(sp)
+ 422              	.LVL69:
+ 112:main.c        ****         /* Erase last line */
+ 423              		.loc 1 112 9 is_stmt 1 discriminator 4
+ 424 02a8 97000000 		call	Draw_Circle
+ 424      E7800000 
+ 425              	.LVL70:
+ 426              		.loc 1 114 9 discriminator 4
+ 427              		.loc 1 114 85 is_stmt 0 discriminator 4
+ 428 02b0 B7070000 		lui	a5,%hi(.LC5)
+ 429 02b4 83A50700 		lw	a1,%lo(.LC5)(a5)
+ 430 02b8 2685     		mv	a0,s1
+ 431              		.loc 1 114 73 discriminator 4
+ 432 02ba B7040000 		lui	s1,%hi(.LC6)
+ 433              	.LVL71:
+ 434              		.loc 1 114 85 discriminator 4
+ 435 02be 97000000 		call	__divsf3
+ 435      E7800000 
+ 436              	.LVL72:
+ 437              		.loc 1 114 73 discriminator 4
+ 438 02c6 83A50400 		lw	a1,%lo(.LC6)(s1)
+ 439 02ca 97000000 		call	__addsf3
+ 439      E7800000 
+ 440              	.LVL73:
+ 441              		.loc 1 114 9 discriminator 4
+ 442 02d2 97000000 		call	__fixunssfsi
+ 442      E7800000 
+ 443              	.LVL74:
+ 444              		.loc 1 114 55 discriminator 4
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 13
+
+
+ 445 02da 83250400 		lw	a1,%lo(.LC5)(s0)
+ 446              		.loc 1 114 9 discriminator 4
+ 447 02de 2AC2     		sw	a0,4(sp)
+ 448              	.LVL75:
+ 449              		.loc 1 114 55 discriminator 4
+ 450 02e0 4A85     		mv	a0,s2
+ 451 02e2 97000000 		call	__divsf3
+ 451      E7800000 
+ 452              	.LVL76:
+ 453              		.loc 1 114 42 discriminator 4
+ 454 02ea 37090000 		lui	s2,%hi(.LC7)
+ 455              	.LVL77:
+ 456 02ee 83250900 		lw	a1,%lo(.LC7)(s2)
+ 457 02f2 97000000 		call	__addsf3
+ 457      E7800000 
+ 458              	.LVL78:
+ 459              		.loc 1 114 9 discriminator 4
+ 460 02fa 97000000 		call	__fixunssfsi
+ 460      E7800000 
+ 461              	.LVL79:
+ 462 0302 9246     		lw	a3,4(sp)
+ 463 0304 2A86     		mv	a2,a0
+ 464 0306 0147     		li	a4,0
+ 465 0308 93058002 		li	a1,40
+ 466 030c 1305D007 		li	a0,125
+ 467 0310 97000000 		call	LCD_DrawLine
+ 467      E7800000 
+ 468              	.LVL80:
+ 115:main.c        ****         /* Draw new line, scaled to the unit circle */
+ 116:main.c        ****         LCD_DrawLine(250/2, 80/2, (250/2)+(vec.y)/(4096/28), (80/2)+(vec.x/(4096/28)),line_color);
+ 469              		.loc 1 116 9 is_stmt 1 discriminator 4
+ 470              		.loc 1 116 75 is_stmt 0 discriminator 4
+ 471 0318 83250400 		lw	a1,%lo(.LC5)(s0)
+ 472 031c 6245     		lw	a0,24(sp)
+ 473 031e 97000000 		call	__divsf3
+ 473      E7800000 
+ 474              	.LVL81:
+ 475              		.loc 1 116 68 discriminator 4
+ 476 0326 83A50400 		lw	a1,%lo(.LC6)(s1)
+ 477 032a 97000000 		call	__addsf3
+ 477      E7800000 
+ 478              	.LVL82:
+ 479              		.loc 1 116 9 discriminator 4
+ 480 0332 97000000 		call	__fixunssfsi
+ 480      E7800000 
+ 481              	.LVL83:
+ 482              		.loc 1 116 50 discriminator 4
+ 483 033a 83250400 		lw	a1,%lo(.LC5)(s0)
+ 484              		.loc 1 116 9 discriminator 4
+ 485 033e 2AC2     		sw	a0,4(sp)
+ 486              		.loc 1 116 50 discriminator 4
+ 487 0340 7245     		lw	a0,28(sp)
+ 488 0342 97000000 		call	__divsf3
+ 488      E7800000 
+ 489              	.LVL84:
+ 490              		.loc 1 116 42 discriminator 4
+ 491 034a 83250900 		lw	a1,%lo(.LC7)(s2)
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 14
+
+
+ 492 034e 97000000 		call	__addsf3
+ 492      E7800000 
+ 493              	.LVL85:
+ 494              		.loc 1 116 9 discriminator 4
+ 495 0356 97000000 		call	__fixunssfsi
+ 495      E7800000 
+ 496              	.LVL86:
+ 497 035e A247     		lw	a5,8(sp)
+ 498 0360 9246     		lw	a3,4(sp)
+ 499 0362 2A86     		mv	a2,a0
+ 500 0364 3E87     		mv	a4,a5
+ 501 0366 93058002 		li	a1,40
+ 502 036a 1305D007 		li	a0,125
+ 503 036e 97000000 		call	LCD_DrawLine
+ 503      E7800000 
+ 504              	.LVL87:
+ 117:main.c        ****         /* Store the last vector so it can be erased */
+ 118:main.c        ****         LCD_ShowStr(0,0,"Acceleration",BLUE,0);
+ 505              		.loc 1 118 9 is_stmt 1 discriminator 4
+ 506 0376 37060000 		lui	a2,%hi(.LC8)
+ 507 037a 0147     		li	a4,0
+ 508 037c FD46     		li	a3,31
+ 509 037e 13060600 		addi	a2,a2,%lo(.LC8)
+ 510 0382 8145     		li	a1,0
+ 511 0384 0145     		li	a0,0
+ 512 0386 97000000 		call	LCD_ShowStr
+ 512      E7800000 
+ 513              	.LVL88:
+ 119:main.c        ****         LCD_ShowStr(10,20,"[mm/s^2]",BLUE,0);
+ 514              		.loc 1 119 9 discriminator 4
+ 515 038e 37060000 		lui	a2,%hi(.LC9)
+ 516 0392 0147     		li	a4,0
+ 517 0394 FD46     		li	a3,31
+ 518 0396 13060600 		addi	a2,a2,%lo(.LC9)
+ 519 039a D145     		li	a1,20
+ 520 039c 2945     		li	a0,10
+ 521 039e 97000000 		call	LCD_ShowStr
+ 521      E7800000 
+ 522              	.LVL89:
+ 120:main.c        ****         LCD_ShowNum(10,40,(int)(ombandladAC),5,BLUE); // för att öka känslighet (kunna se i hund
+ 523              		.loc 1 120 9 discriminator 4
+ 524              		.loc 1 120 27 is_stmt 0 discriminator 4
+ 525 03a6 6685     		mv	a0,s9
+ 526 03a8 97000000 		call	__fixsfsi
+ 526      E7800000 
+ 527              	.LVL90:
+ 528              		.loc 1 120 9 discriminator 4
+ 529 03b0 2A86     		mv	a2,a0
+ 530 03b2 7D47     		li	a4,31
+ 531 03b4 9546     		li	a3,5
+ 532 03b6 93058002 		li	a1,40
+ 533 03ba 2945     		li	a0,10
+ 534 03bc 97000000 		call	LCD_ShowNum
+ 534      E7800000 
+ 535              	.LVL91:
+ 121:main.c        ****     
+ 122:main.c        ****         float x = abs((250/2) - ((250/2)+(vec.y)/(4096/28)));
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 15
+
+
+ 536              		.loc 1 122 9 is_stmt 1 discriminator 4
+ 537              		.loc 1 122 49 is_stmt 0 discriminator 4
+ 538 03c4 83250400 		lw	a1,%lo(.LC5)(s0)
+ 539 03c8 7245     		lw	a0,28(sp)
+ 540 03ca 97000000 		call	__divsf3
+ 540      E7800000 
+ 541              	.LVL92:
+ 542              		.loc 1 122 41 discriminator 4
+ 543 03d2 83250900 		lw	a1,%lo(.LC7)(s2)
+ 544 03d6 97000000 		call	__addsf3
+ 544      E7800000 
+ 545              	.LVL93:
+ 546              		.loc 1 122 31 discriminator 4
+ 547 03de AA85     		mv	a1,a0
+ 548 03e0 03250900 		lw	a0,%lo(.LC7)(s2)
+ 549 03e4 97000000 		call	__subsf3
+ 549      E7800000 
+ 550              	.LVL94:
+ 551              		.loc 1 122 19 discriminator 4
+ 552 03ec 97000000 		call	__fixsfsi
+ 552      E7800000 
+ 553              	.LVL95:
+ 554 03f4 9357F541 		srai	a5,a0,31
+ 555 03f8 3D8D     		xor	a0,a5,a0
+ 556              		.loc 1 122 15 discriminator 4
+ 557 03fa 1D8D     		sub	a0,a0,a5
+ 558 03fc 97000000 		call	__floatsisf
+ 558      E7800000 
+ 559              	.LVL96:
+ 123:main.c        ****         float y = abs(( 80/2) - (( 80/2)+(vec.x)/(4096/28)));
+ 560              		.loc 1 123 49 discriminator 4
+ 561 0404 83250400 		lw	a1,%lo(.LC5)(s0)
+ 122:main.c        ****         float y = abs(( 80/2) - (( 80/2)+(vec.x)/(4096/28)));
+ 562              		.loc 1 122 15 discriminator 4
+ 563 0408 2A89     		mv	s2,a0
+ 564              	.LVL97:
+ 565              		.loc 1 123 9 is_stmt 1 discriminator 4
+ 566              		.loc 1 123 49 is_stmt 0 discriminator 4
+ 567 040a 6245     		lw	a0,24(sp)
+ 568              	.LVL98:
+ 569 040c 97000000 		call	__divsf3
+ 569      E7800000 
+ 570              	.LVL99:
+ 571              		.loc 1 123 41 discriminator 4
+ 572 0414 83A50400 		lw	a1,%lo(.LC6)(s1)
+ 573 0418 97000000 		call	__addsf3
+ 573      E7800000 
+ 574              	.LVL100:
+ 575              		.loc 1 123 31 discriminator 4
+ 576 0420 AA85     		mv	a1,a0
+ 577 0422 03A50400 		lw	a0,%lo(.LC6)(s1)
+ 578 0426 97000000 		call	__subsf3
+ 578      E7800000 
+ 579              	.LVL101:
+ 580              		.loc 1 123 19 discriminator 4
+ 581 042e 97000000 		call	__fixsfsi
+ 581      E7800000 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 16
+
+
+ 582              	.LVL102:
+ 583 0436 9357F541 		srai	a5,a0,31
+ 584 043a 3D8D     		xor	a0,a5,a0
+ 585              		.loc 1 123 15 discriminator 4
+ 586 043c 1D8D     		sub	a0,a0,a5
+ 587 043e 97000000 		call	__floatsisf
+ 587      E7800000 
+ 588              	.LVL103:
+ 124:main.c        **** 
+ 125:main.c        ****         LCD_ShowStr(0,60,"x:",GREEN,0);
+ 589              		.loc 1 125 9 discriminator 4
+ 590 0446 37060000 		lui	a2,%hi(.LC10)
+ 123:main.c        **** 
+ 591              		.loc 1 123 15 discriminator 4
+ 592 044a AA84     		mv	s1,a0
+ 593              	.LVL104:
+ 594              		.loc 1 125 9 is_stmt 1 discriminator 4
+ 595 044c 0147     		li	a4,0
+ 596 044e 9306007E 		li	a3,2016
+ 597 0452 13060600 		addi	a2,a2,%lo(.LC10)
+ 598 0456 9305C003 		li	a1,60
+ 599 045a 0145     		li	a0,0
+ 600 045c 97000000 		call	LCD_ShowStr
+ 600      E7800000 
+ 601              	.LVL105:
+ 126:main.c        ****         LCD_ShowNum(20,60,(int)x,2,GREEN);
+ 602              		.loc 1 126 9 discriminator 4
+ 603              		.loc 1 126 27 is_stmt 0 discriminator 4
+ 604 0464 4A85     		mv	a0,s2
+ 605 0466 97000000 		call	__fixsfsi
+ 605      E7800000 
+ 606              	.LVL106:
+ 607              		.loc 1 126 9 discriminator 4
+ 608 046e 2A86     		mv	a2,a0
+ 609 0470 1307007E 		li	a4,2016
+ 610 0474 8946     		li	a3,2
+ 611 0476 9305C003 		li	a1,60
+ 612 047a 5145     		li	a0,20
+ 613 047c 97000000 		call	LCD_ShowNum
+ 613      E7800000 
+ 614              	.LVL107:
+ 127:main.c        ****         LCD_ShowStr(50,60,"y:",GREEN,0);
+ 615              		.loc 1 127 9 is_stmt 1 discriminator 4
+ 616 0484 37060000 		lui	a2,%hi(.LC11)
+ 617 0488 0147     		li	a4,0
+ 618 048a 9306007E 		li	a3,2016
+ 619 048e 13060600 		addi	a2,a2,%lo(.LC11)
+ 620 0492 9305C003 		li	a1,60
+ 621 0496 13052003 		li	a0,50
+ 622 049a 97000000 		call	LCD_ShowStr
+ 622      E7800000 
+ 623              	.LVL108:
+ 128:main.c        ****         LCD_ShowNum(70,60,(int)y,2,GREEN);
+ 624              		.loc 1 128 9 discriminator 4
+ 625              		.loc 1 128 27 is_stmt 0 discriminator 4
+ 626 04a2 2685     		mv	a0,s1
+ 627 04a4 97000000 		call	__fixsfsi
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 17
+
+
+ 627      E7800000 
+ 628              	.LVL109:
+ 629              		.loc 1 128 9 discriminator 4
+ 630 04ac 2A86     		mv	a2,a0
+ 631 04ae 1307007E 		li	a4,2016
+ 632 04b2 8946     		li	a3,2
+ 633 04b4 9305C003 		li	a1,60
+ 634 04b8 13056004 		li	a0,70
+ 635 04bc 97000000 		call	LCD_ShowNum
+ 635      E7800000 
+ 636              	.LVL110:
+ 129:main.c        ****         vec_temp = vec;
+ 637              		.loc 1 129 9 is_stmt 1 discriminator 4
+ 638              		.loc 1 129 18 is_stmt 0 discriminator 4
+ 639 04c4 E244     		lw	s1,24(sp)
+ 640              	.LVL111:
+ 641 04c6 7249     		lw	s2,28(sp)
+ 642              	.LVL112:
+ 130:main.c        ****         /* Subtract the gravity component from the raw vector in a component-wise way. */
+ 131:main.c        **** 
+ 132:main.c        ****         /* Wait for LCD to finish drawing */
+ 133:main.c        ****         LCD_Wait_On_Queue();
+ 643              		.loc 1 133 9 is_stmt 1 discriminator 4
+ 644 04c8 97000000 		call	LCD_Wait_On_Queue
+ 644      E7800000 
+ 645              	.LVL113:
+ 646              	.LBE6:
+  86:main.c        ****         /* Get accelleration data (Note: Blocking read) puts a force vector with 1G = 4096 into x, 
+ 647              		.loc 1 86 13 is_stmt 0 discriminator 4
+ 648 04d0 A1B9     		j	.L5
+ 649              		.cfi_endproc
+ 650              	.LFE5:
+ 652              		.section	.rodata.main.cst4,"aM",@progbits,4
+ 653              		.align	2
+ 654              	.LC0:
+ 655 0000 0000C842 		.word	1120403456
+ 656              	.LC1:
+ 657 0004 0AD7233C 		.word	1008981770
+ 658              	.LC2:
+ 659 0008 A4707D3F 		.word	1065185444
+ 660              	.LC3:
+ 661 000c 0000C841 		.word	1103626240
+ 662              	.LC4:
+ 663 0010 B81E1D3B 		.word	991764152
+ 664              	.LC5:
+ 665 0014 00001243 		.word	1125253120
+ 666              	.LC6:
+ 667 0018 00002042 		.word	1109393408
+ 668              	.LC7:
+ 669 001c 0000FA42 		.word	1123680256
+ 670              		.section	.rodata.main.str1.4,"aMS",@progbits,1
+ 671              		.align	2
+ 672              	.LC8:
+ 673 0000 41636365 		.string	"Acceleration"
+ 673      6C657261 
+ 673      74696F6E 
+ 673      00
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 18
+
+
+ 674 000d 000000   		.zero	3
+ 675              	.LC9:
+ 676 0010 5B6D6D2F 		.string	"[mm/s^2]"
+ 676      735E325D 
+ 676      00
+ 677 0019 000000   		.zero	3
+ 678              	.LC10:
+ 679 001c 783A00   		.string	"x:"
+ 680 001f 00       		.zero	1
+ 681              	.LC11:
+ 682 0020 793A00   		.string	"y:"
+ 683              		.text
+ 684              	.Letext0:
+ 685              		.file 2 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 686              		.file 3 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 687              		.file 4 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 688              		.file 5 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 689              		.file 6 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 690              		.file 7 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 691              		.file 8 "./../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+ 692              		.file 9 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 693              		.file 10 "lcd.h"
+ 694              		.file 11 "mpu6500_driver.h"
+ 695              		.file 12 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\
+ 696              		.file 13 "delay.h"
+ 697              		.file 14 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_rcu.h"
+ 698              		.file 15 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h"
+ 699              		.file 16 "gd32v_mpu6500_if.h"
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 19
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:21     .text.startup.main:0000000000000000 main
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:25     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:26     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:28     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:29     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:30     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:31     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:32     .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:34     .text.startup.main:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:36     .text.startup.main:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:38     .text.startup.main:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:51     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:52     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:53     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:54     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:55     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:56     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:57     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:58     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:59     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:60     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:61     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:62     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:63     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:65     .text.startup.main:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:68     .text.startup.main:0000000000000028 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:72     .text.startup.main:0000000000000034 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:80     .text.startup.main:000000000000004c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:85     .text.startup.main:000000000000005c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:89     .text.startup.main:0000000000000066 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:92     .text.startup.main:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:93     .text.startup.main:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:95     .text.startup.main:0000000000000072 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:99     .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:100    .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:102    .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:104    .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:105    .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:107    .text.startup.main:0000000000000080 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:113    .text.startup.main:0000000000000084 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:117    .text.startup.main:000000000000008e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:118    .text.startup.main:000000000000008e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:125    .text.startup.main:000000000000009c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:127    .text.startup.main:000000000000009e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:130    .text.startup.main:00000000000000a0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:131    .text.startup.main:00000000000000a0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:136    .text.startup.main:00000000000000aa .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:138    .text.startup.main:00000000000000ac .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:141    .text.startup.main:00000000000000ae .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:142    .text.startup.main:00000000000000ae .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:149    .text.startup.main:00000000000000ba .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:154    .text.startup.main:00000000000000c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:157    .text.startup.main:00000000000000c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:158    .text.startup.main:00000000000000c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:163    .text.startup.main:00000000000000d0 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 20
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:166    .text.startup.main:00000000000000d4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:169    .text.startup.main:00000000000000dc .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:171    .text.startup.main:00000000000000e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:174    .text.startup.main:00000000000000e2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:175    .text.startup.main:00000000000000e2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:180    .text.startup.main:00000000000000ec .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:182    .text.startup.main:00000000000000f0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:185    .text.startup.main:00000000000000f2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:186    .text.startup.main:00000000000000f2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:193    .text.startup.main:00000000000000fe .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:194    .text.startup.main:00000000000000fe .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:200    .text.startup.main:000000000000010a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:203    .text.startup.main:0000000000000112 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:205    .text.startup.main:0000000000000116 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:207    .text.startup.main:000000000000011a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:210    .text.startup.main:0000000000000120 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:212    .text.startup.main:0000000000000124 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:218    .text.startup.main:0000000000000128 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:219    .text.startup.main:0000000000000128 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:223    .text.startup.main:0000000000000132 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:224    .text.startup.main:0000000000000132 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:226    .text.startup.main:0000000000000134 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:234    .text.startup.main:000000000000014a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:239    .text.startup.main:0000000000000156 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:244    .text.startup.main:0000000000000162 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:246    .text.startup.main:0000000000000164 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:248    .text.startup.main:0000000000000168 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:251    .text.startup.main:000000000000016a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:252    .text.startup.main:000000000000016a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:258    .text.startup.main:0000000000000176 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:260    .text.startup.main:000000000000017a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:262    .text.startup.main:000000000000017c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:266    .text.startup.main:0000000000000186 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:271    .text.startup.main:0000000000000192 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:273    .text.startup.main:0000000000000194 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:275    .text.startup.main:0000000000000198 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:278    .text.startup.main:000000000000019a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:279    .text.startup.main:000000000000019a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:284    .text.startup.main:00000000000001a4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:286    .text.startup.main:00000000000001a8 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:288    .text.startup.main:00000000000001aa .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:292    .text.startup.main:00000000000001b4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:298    .text.startup.main:00000000000001c2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:300    .text.startup.main:00000000000001c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:303    .text.startup.main:00000000000001c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:304    .text.startup.main:00000000000001c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:310    .text.startup.main:00000000000001d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:312    .text.startup.main:00000000000001d4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:315    .text.startup.main:00000000000001d6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:316    .text.startup.main:00000000000001d6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:323    .text.startup.main:00000000000001e4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:324    .text.startup.main:00000000000001e4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:329    .text.startup.main:00000000000001f0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:331    .text.startup.main:00000000000001f2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:334    .text.startup.main:00000000000001f4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:335    .text.startup.main:00000000000001f4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:340    .text.startup.main:0000000000000200 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 21
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:342    .text.startup.main:0000000000000202 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:344    .text.startup.main:0000000000000204 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:349    .text.startup.main:0000000000000210 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:354    .text.startup.main:000000000000021c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:356    .text.startup.main:000000000000021e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:358    .text.startup.main:0000000000000220 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:363    .text.startup.main:000000000000022c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:370    .text.startup.main:0000000000000240 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:372    .text.startup.main:0000000000000242 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:375    .text.startup.main:0000000000000244 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:376    .text.startup.main:0000000000000244 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:379    .text.startup.main:000000000000024c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:381    .text.startup.main:0000000000000250 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:383    .text.startup.main:0000000000000254 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:384    .text.startup.main:0000000000000254 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:392    .text.startup.main:0000000000000262 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:393    .text.startup.main:0000000000000262 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:398    .text.startup.main:000000000000026e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:405    .text.startup.main:000000000000027e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:406    .text.startup.main:000000000000027e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:417    .text.startup.main:000000000000029a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:424    .text.startup.main:00000000000002a8 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:427    .text.startup.main:00000000000002b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:428    .text.startup.main:00000000000002b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:432    .text.startup.main:00000000000002ba .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:435    .text.startup.main:00000000000002be .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:438    .text.startup.main:00000000000002c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:442    .text.startup.main:00000000000002d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:445    .text.startup.main:00000000000002da .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:447    .text.startup.main:00000000000002de .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:450    .text.startup.main:00000000000002e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:454    .text.startup.main:00000000000002ea .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:460    .text.startup.main:00000000000002fa .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:470    .text.startup.main:0000000000000318 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:471    .text.startup.main:0000000000000318 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:476    .text.startup.main:0000000000000326 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:480    .text.startup.main:0000000000000332 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:483    .text.startup.main:000000000000033a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:485    .text.startup.main:000000000000033e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:487    .text.startup.main:0000000000000340 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:491    .text.startup.main:000000000000034a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:495    .text.startup.main:0000000000000356 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:506    .text.startup.main:0000000000000376 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:515    .text.startup.main:000000000000038e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:524    .text.startup.main:00000000000003a6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:525    .text.startup.main:00000000000003a6 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:529    .text.startup.main:00000000000003b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:537    .text.startup.main:00000000000003c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:538    .text.startup.main:00000000000003c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:543    .text.startup.main:00000000000003d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:547    .text.startup.main:00000000000003de .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:552    .text.startup.main:00000000000003ec .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:557    .text.startup.main:00000000000003fa .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:561    .text.startup.main:0000000000000404 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:563    .text.startup.main:0000000000000408 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:566    .text.startup.main:000000000000040a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:567    .text.startup.main:000000000000040a .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 22
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:572    .text.startup.main:0000000000000414 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:576    .text.startup.main:0000000000000420 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:581    .text.startup.main:000000000000042e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:586    .text.startup.main:000000000000043c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:590    .text.startup.main:0000000000000446 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:592    .text.startup.main:000000000000044a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:595    .text.startup.main:000000000000044c .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:603    .text.startup.main:0000000000000464 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:604    .text.startup.main:0000000000000464 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:608    .text.startup.main:000000000000046e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:616    .text.startup.main:0000000000000484 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:625    .text.startup.main:00000000000004a2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:626    .text.startup.main:00000000000004a2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:630    .text.startup.main:00000000000004ac .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:638    .text.startup.main:00000000000004c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:639    .text.startup.main:00000000000004c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:644    .text.startup.main:00000000000004c8 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:648    .text.startup.main:00000000000004d0 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:649    .text.startup.main:00000000000004d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:652    .text.startup.main:00000000000004d2 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:654    .rodata.main.cst4:0000000000000000 .LC0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:658    .rodata.main.cst4:0000000000000008 .LC2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:660    .rodata.main.cst4:000000000000000c .LC3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:662    .rodata.main.cst4:0000000000000010 .LC4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:656    .rodata.main.cst4:0000000000000004 .LC1
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:664    .rodata.main.cst4:0000000000000014 .LC5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:666    .rodata.main.cst4:0000000000000018 .LC6
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:668    .rodata.main.cst4:000000000000001c .LC7
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:672    .rodata.main.str1.4:0000000000000000 .LC8
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:675    .rodata.main.str1.4:0000000000000010 .LC9
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:678    .rodata.main.str1.4:000000000000001c .LC10
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:681    .rodata.main.str1.4:0000000000000020 .LC11
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:110    .text.startup.main:0000000000000084 .L2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:390    .text.startup.main:0000000000000262 .L3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:415    .text.startup.main:000000000000029a .L4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:214    .text.startup.main:0000000000000128 .L5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:3007   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4558   .debug_str:00000000000006d7 .LASF194
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4400   .debug_str:00000000000003c3 .LASF195
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4234   .debug_str:0000000000000033 .LASF196
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4202   .debug_ranges:0000000000000000 .Ldebug_ranges0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4222   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4538   .debug_str:0000000000000673 .LASF0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4296   .debug_str:00000000000001e2 .LASF1
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4246   .debug_str:00000000000000cb .LASF4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4468   .debug_str:0000000000000528 .LASF2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4544   .debug_str:0000000000000694 .LASF3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4540   .debug_str:0000000000000680 .LASF5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4488   .debug_str:000000000000057f .LASF6
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4254   .debug_str:00000000000000f2 .LASF7
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4346   .debug_str:00000000000002ca .LASF8
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4372   .debug_str:000000000000033a .LASF9
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4326   .debug_str:0000000000000264 .LASF10
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4264   .debug_str:000000000000012f .LASF11
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4548   .debug_str:00000000000006a6 .LASF12
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4328   .debug_str:0000000000000272 .LASF13
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 23
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4618   .debug_str:000000000000087b .LASF14
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4364   .debug_str:000000000000030e .LASF161
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4236   .debug_str:00000000000000a0 .LASF15
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4298   .debug_str:00000000000001ee .LASF16
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4292   .debug_str:00000000000001d3 .LASF17
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4542   .debug_str:000000000000068b .LASF18
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4324   .debug_str:000000000000025a .LASF19
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4454   .debug_str:00000000000004d9 .LASF20
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4456   .debug_str:00000000000004e4 .LASF21
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4458   .debug_str:00000000000004ef .LASF22
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4460   .debug_str:00000000000004fa .LASF23
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4462   .debug_str:0000000000000505 .LASF24
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4464   .debug_str:0000000000000510 .LASF25
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4556   .debug_str:00000000000006cd .LASF26
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4230   .debug_str:0000000000000021 .LASF27
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4232   .debug_str:000000000000002a .LASF28
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4434   .debug_str:0000000000000474 .LASF29
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4436   .debug_str:000000000000047f .LASF30
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4266   .debug_str:0000000000000146 .LASF31
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4268   .debug_str:0000000000000150 .LASF32
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4594   .debug_str:0000000000000814 .LASF33
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4520   .debug_str:0000000000000628 .LASF34
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4340   .debug_str:00000000000002b1 .LASF35
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4290   .debug_str:00000000000001ca .LASF36
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4526   .debug_str:0000000000000643 .LASF37
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4572   .debug_str:000000000000079b .LASF38
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4390   .debug_str:0000000000000394 .LASF39
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4382   .debug_str:0000000000000374 .LASF40
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4244   .debug_str:00000000000000c4 .LASF41
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4274   .debug_str:000000000000016b .LASF42
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4366   .debug_str:000000000000031e .LASF43
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4368   .debug_str:0000000000000328 .LASF44
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4278   .debug_str:0000000000000180 .LASF45
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4282   .debug_str:000000000000019a .LASF46
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4378   .debug_str:0000000000000362 .LASF47
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4380   .debug_str:000000000000036b .LASF48
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4452   .debug_str:00000000000004ce .LASF49
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4228   .debug_str:0000000000000018 .LASF50
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4432   .debug_str:0000000000000469 .LASF51
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4528   .debug_str:000000000000064c .LASF52
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4444   .debug_str:00000000000004ac .LASF53
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4250   .debug_str:00000000000000de .LASF54
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4524   .debug_str:000000000000063b .LASF55
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4588   .debug_str:00000000000007f7 .LASF56
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4398   .debug_str:00000000000003bd .LASF57
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4362   .debug_str:0000000000000307 .LASF58
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4514   .debug_str:0000000000000612 .LASF59
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4516   .debug_str:000000000000061a .LASF60
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4450   .debug_str:00000000000004c3 .LASF61
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4568   .debug_str:0000000000000786 .LASF62
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4420   .debug_str:0000000000000413 .LASF63
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4474   .debug_str:0000000000000545 .LASF64
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4354   .debug_str:00000000000002ef .LASF69
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4552   .debug_str:00000000000006ba .LASF65
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4506   .debug_str:00000000000005ee .LASF66
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4348   .debug_str:00000000000002d5 .LASF67
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4584   .debug_str:00000000000007ec .LASF68
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 24
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4360   .debug_str:0000000000000302 .LASF70
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4288   .debug_str:00000000000001c1 .LASF71
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4604   .debug_str:0000000000000845 .LASF72
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4304   .debug_str:0000000000000203 .LASF73
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4620   .debug_str:0000000000000884 .LASF74
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4426   .debug_str:0000000000000441 .LASF75
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4416   .debug_str:0000000000000400 .LASF76
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4522   .debug_str:0000000000000631 .LASF77
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4476   .debug_str:000000000000054e .LASF78
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4600   .debug_str:000000000000082b .LASF79
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4308   .debug_str:0000000000000212 .LASF80
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4238   .debug_str:00000000000000a9 .LASF81
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4224   .debug_str:0000000000000000 .LASF82
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4560   .debug_str:000000000000075f .LASF83
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4318   .debug_str:0000000000000241 .LASF84
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4438   .debug_str:000000000000048a .LASF85
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4494   .debug_str:00000000000005a3 .LASF86
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4344   .debug_str:00000000000002c5 .LASF87
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4478   .debug_str:0000000000000558 .LASF88
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4302   .debug_str:00000000000001fd .LASF89
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4536   .debug_str:000000000000066d .LASF90
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4484   .debug_str:000000000000056e .LASF91
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4316   .debug_str:000000000000023a .LASF92
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4374   .debug_str:000000000000034c .LASF93
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4270   .debug_str:000000000000015a .LASF94
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4310   .debug_str:0000000000000220 .LASF95
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4356   .debug_str:00000000000002f7 .LASF96
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4414   .debug_str:00000000000003f9 .LASF97
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4518   .debug_str:0000000000000622 .LASF98
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4294   .debug_str:00000000000001db .LASF99
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4300   .debug_str:00000000000001f7 .LASF100
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4596   .debug_str:000000000000081d .LASF101
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4534   .debug_str:0000000000000664 .LASF102
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4334   .debug_str:000000000000028a .LASF103
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4384   .debug_str:000000000000037c .LASF104
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4404   .debug_str:00000000000003cf .LASF105
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4486   .debug_str:0000000000000576 .LASF106
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4480   .debug_str:000000000000055f .LASF107
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4508   .debug_str:00000000000005f6 .LASF108
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4530   .debug_str:0000000000000658 .LASF109
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4320   .debug_str:0000000000000249 .LASF110
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4546   .debug_str:000000000000069e .LASF111
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4352   .debug_str:00000000000002e7 .LASF112
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4492   .debug_str:000000000000059e .LASF113
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4242   .debug_str:00000000000000b9 .LASF114
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4502   .debug_str:00000000000005c6 .LASF115
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4498   .debug_str:00000000000005b4 .LASF116
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4440   .debug_str:0000000000000492 .LASF117
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4500   .debug_str:00000000000005bc .LASF118
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4396   .debug_str:00000000000003b5 .LASF119
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4322   .debug_str:0000000000000250 .LASF120
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4612   .debug_str:000000000000086a .LASF121
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4448   .debug_str:00000000000004b9 .LASF122
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4370   .debug_str:0000000000000332 .LASF123
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4332   .debug_str:0000000000000282 .LASF124
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4402   .debug_str:00000000000003ca .LASF125
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4248   .debug_str:00000000000000d5 .LASF126
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 25
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4592   .debug_str:000000000000080a .LASF127
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4312   .debug_str:0000000000000228 .LASF128
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4306   .debug_str:000000000000020d .LASF129
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4532   .debug_str:000000000000065f .LASF130
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4482   .debug_str:0000000000000567 .LASF131
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4586   .debug_str:00000000000007f1 .LASF132
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4386   .debug_str:0000000000000382 .LASF133
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4470   .debug_str:0000000000000536 .LASF134
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4240   .debug_str:00000000000000b1 .LASF135
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4510   .debug_str:00000000000005fd .LASF136
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4406   .debug_str:00000000000003d5 .LASF137
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4566   .debug_str:0000000000000781 .LASF138
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4580   .debug_str:00000000000007d5 .LASF139
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4554   .debug_str:00000000000006c0 .LASF140
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4394   .debug_str:00000000000003a8 .LASF141
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4602   .debug_str:0000000000000836 .LASF142
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4442   .debug_str:000000000000049d .LASF143
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4388   .debug_str:0000000000000389 .LASF144
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4606   .debug_str:000000000000084e .LASF145
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4466   .debug_str:000000000000051b .LASF146
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4610   .debug_str:000000000000085c .LASF147
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4286   .debug_str:00000000000001b3 .LASF148
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4590   .debug_str:0000000000000800 .LASF149
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4392   .debug_str:000000000000039c .LASF150
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4570   .debug_str:000000000000078e .LASF151
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4338   .debug_str:00000000000002a3 .LASF152
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4284   .debug_str:00000000000001a4 .LASF153
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4336   .debug_str:0000000000000292 .LASF154
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4256   .debug_str:00000000000000fb .LASF155
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4258   .debug_str:000000000000010a .LASF156
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4472   .debug_str:000000000000053c .LASF157
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4430   .debug_str:0000000000000462 .LASF158
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4418   .debug_str:000000000000040a .LASF159
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4598   .debug_str:0000000000000823 .LASF160
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4276   .debug_str:0000000000000175 .LASF197
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4350   .debug_str:00000000000002db .LASF162
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4576   .debug_str:00000000000007b4 .LASF163
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4422   .debug_str:0000000000000425 .LASF164
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4262   .debug_str:0000000000000124 .LASF165
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4446   .debug_str:00000000000004b3 .LASF166
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4252   .debug_str:00000000000000e5 .LASF167
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4330   .debug_str:000000000000027b .LASF168
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4574   .debug_str:00000000000007a3 .LASF198
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4578   .debug_str:00000000000007c7 .LASF169
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4504   .debug_str:00000000000005df .LASF170
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4280   .debug_str:000000000000018a .LASF171
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4614   .debug_str:000000000000086f .LASF199
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:22     .text.startup.main:0000000000000000 .LFB5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:650    .text.startup.main:00000000000004d2 .LFE5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:3696   .debug_loc:0000000000000000 .LLST0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4260   .debug_str:000000000000011b .LASF172
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:3709   .debug_loc:0000000000000021 .LLST1
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4616   .debug_str:0000000000000874 .LASF173
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:3763   .debug_loc:000000000000007f .LLST2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4410   .debug_str:00000000000003e1 .LASF174
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:3843   .debug_loc:0000000000000110 .LLST3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4342   .debug_str:00000000000002ba .LASF175
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 26
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4358   .debug_str:00000000000002fd .LASF176
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4272   .debug_str:0000000000000163 .LASF177
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4512   .debug_str:0000000000000603 .LASF178
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4020   .debug_loc:0000000000000231 .LLST4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4119   .debug_loc:00000000000002d1 .LLST5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:115    .text.startup.main:000000000000008e .LVL9
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:152    .text.startup.main:00000000000000c4 .LVL20
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4145   .debug_loc:0000000000000305 .LLST6
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4226   .debug_str:000000000000000c .LASF179
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4160   .debug_loc:000000000000032e .LLST7
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4171   .debug_loc:000000000000034c .LLST8
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4182   .debug_loc:000000000000036a .LLST9
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:221    .text.startup.main:0000000000000132 .LVL32
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:368    .text.startup.main:0000000000000240 .LVL59
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:425    .text.startup.main:00000000000002b0 .LVL70
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:468    .text.startup.main:0000000000000318 .LVL80
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:504    .text.startup.main:0000000000000376 .LVL87
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:513    .text.startup.main:000000000000038e .LVL88
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:522    .text.startup.main:00000000000003a6 .LVL89
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:535    .text.startup.main:00000000000003c4 .LVL91
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:601    .text.startup.main:0000000000000464 .LVL105
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:614    .text.startup.main:0000000000000484 .LVL107
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:623    .text.startup.main:00000000000004a2 .LVL108
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:636    .text.startup.main:00000000000004c4 .LVL110
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:645    .text.startup.main:00000000000004d0 .LVL113
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:66     .text.startup.main:0000000000000028 .LVL1
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:70     .text.startup.main:0000000000000034 .LVL2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:78     .text.startup.main:000000000000004c .LVL3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:83     .text.startup.main:000000000000005c .LVL4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:87     .text.startup.main:0000000000000066 .LVL5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:90     .text.startup.main:000000000000006e .LVL6
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:97     .text.startup.main:000000000000007c .LVL7
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:197    .text.startup.main:000000000000010a .LVL30
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4412   .debug_str:00000000000003e8 .LASF180
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4582   .debug_str:00000000000007e2 .LASF181
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4408   .debug_str:00000000000003db .LASF182
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4496   .debug_str:00000000000005a8 .LASF183
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4564   .debug_str:0000000000000774 .LASF184
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4550   .debug_str:00000000000006ae .LASF185
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4562   .debug_str:0000000000000768 .LASF186
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4424   .debug_str:000000000000042f .LASF187
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4428   .debug_str:000000000000044a .LASF188
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4622   .debug_str:000000000000088e .LASF189
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4376   .debug_str:0000000000000352 .LASF190
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4490   .debug_str:0000000000000592 .LASF191
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4608   .debug_str:0000000000000853 .LASF192
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:4314   .debug_str:0000000000000230 .LASF193
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:33     .text.startup.main:0000000000000002 .LCFI0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:213    .text.startup.main:0000000000000128 .LVL31
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:433    .text.startup.main:00000000000002be .LVL71
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:436    .text.startup.main:00000000000002c6 .LVL72
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:455    .text.startup.main:00000000000002ee .LVL77
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:640    .text.startup.main:00000000000004c6 .LVL111
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:642    .text.startup.main:00000000000004c8 .LVL112
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:27     .text.startup.main:0000000000000000 .LVL0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:313    .text.startup.main:00000000000001d6 .LVL49
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:321    .text.startup.main:00000000000001e4 .LVL51
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 27
+
+
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:332    .text.startup.main:00000000000001f4 .LVL53
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:422    .text.startup.main:00000000000002a8 .LVL69
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:448    .text.startup.main:00000000000002e0 .LVL75
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:109    .text.startup.main:0000000000000084 .LVL8
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:128    .text.startup.main:00000000000000a0 .LVL12
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:132    .text.startup.main:00000000000000a2 .LVL13
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:139    .text.startup.main:00000000000000ae .LVL15
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:143    .text.startup.main:00000000000000b0 .LVL16
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:147    .text.startup.main:00000000000000ba .LVL18
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:150    .text.startup.main:00000000000000bc .LVL19
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:172    .text.startup.main:00000000000000e2 .LVL22
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:176    .text.startup.main:00000000000000e4 .LVL23
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:183    .text.startup.main:00000000000000f2 .LVL25
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:187    .text.startup.main:00000000000000f4 .LVL26
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:191    .text.startup.main:00000000000000fe .LVL28
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:195    .text.startup.main:0000000000000102 .LVL29
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:249    .text.startup.main:000000000000016a .LVL36
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:253    .text.startup.main:000000000000016c .LVL37
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:276    .text.startup.main:000000000000019a .LVL41
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:280    .text.startup.main:000000000000019c .LVL42
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:301    .text.startup.main:00000000000001c6 .LVL46
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:306    .text.startup.main:00000000000001ca .LVL47
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:121    .text.startup.main:0000000000000094 .LVL10
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:373    .text.startup.main:0000000000000244 .LVL60
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:377    .text.startup.main:000000000000024c .LVL61
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:389    .text.startup.main:0000000000000262 .LVL63
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:396    .text.startup.main:000000000000026e .LVL64
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:403    .text.startup.main:000000000000027e .LVL66
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:407    .text.startup.main:0000000000000280 .LVL67
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:564    .text.startup.main:000000000000040a .LVL97
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:568    .text.startup.main:000000000000040c .LVL98
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:593    .text.startup.main:000000000000044c .LVL104
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:701    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:101    .text.startup.main:000000000000007c .LBB2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:103    .text.startup.main:000000000000007c .LBE2
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:111    .text.startup.main:0000000000000084 .LBB3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:155    .text.startup.main:00000000000000c6 .LBE3
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:161    .text.startup.main:00000000000000d0 .LBB4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:164    .text.startup.main:00000000000000d4 .LBE4
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:198    .text.startup.main:000000000000010a .LBB5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:215    .text.startup.main:0000000000000128 .LBE5
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:217    .text.startup.main:0000000000000128 .LBB6
+C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s:646    .text.startup.main:00000000000004d0 .LBE6
+
+UNDEFINED SYMBOLS
+__addsf3
+__divsf3
+__mulsf3
+__subsf3
+__ltsf2
+__fixunssfsi
+__fixsfsi
+__floatsisf
+rcu_periph_clock_enable
+gpio_init
+mpu6500_install
+Lcd_SetType
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccjkutbg.s 			page 28
+
+
+Lcd_Init
+LCD_Clear
+mpu6500_getAccel
+delay_1ms
+sqrtf
+Draw_Circle
+LCD_DrawLine
+LCD_ShowStr
+LCD_ShowNum
+LCD_Wait_On_Queue

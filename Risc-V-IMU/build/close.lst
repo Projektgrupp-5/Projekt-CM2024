@@ -1,0 +1,227 @@
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s 			page 1
+
+
+   1              		.file	"close.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text._close,"ax",@progbits
+  10              		.align	1
+  11              		.globl	_close
+  13              	_close:
+  14              	.LFB1:
+  15              		.file 1 "./../../firmware/RISCV/stubs/close.c"
+   1:./../../firmware/RISCV/stubs/close.c **** /* See LICENSE of license details. */
+   2:./../../firmware/RISCV/stubs/close.c **** 
+   3:./../../firmware/RISCV/stubs/close.c **** #include <errno.h>
+   4:./../../firmware/RISCV/stubs/close.c **** #include "stub.h"
+   5:./../../firmware/RISCV/stubs/close.c **** 
+   6:./../../firmware/RISCV/stubs/close.c **** int _close(int fd)
+   7:./../../firmware/RISCV/stubs/close.c **** {
+  16              		.loc 1 7 1
+  17              		.cfi_startproc
+  18              	.LVL0:
+   8:./../../firmware/RISCV/stubs/close.c ****   return _stub(EBADF);
+  19              		.loc 1 8 3
+  20              		.file 2 "./../../firmware/RISCV/stubs/stub.h"
+   1:./../../firmware/RISCV/stubs/stub.h **** /* See LICENSE of license details. */
+   2:./../../firmware/RISCV/stubs/stub.h **** #ifndef _NUCLEI_SYS_STUB_H
+   3:./../../firmware/RISCV/stubs/stub.h **** #define _NUCLEI_SYS_STUB_H
+   4:./../../firmware/RISCV/stubs/stub.h **** 
+   5:./../../firmware/RISCV/stubs/stub.h **** #include <stdint.h>
+   6:./../../firmware/RISCV/stubs/stub.h **** #if   defined (__GNUC__)
+   7:./../../firmware/RISCV/stubs/stub.h **** #include <unistd.h>
+   8:./../../firmware/RISCV/stubs/stub.h **** #endif
+   9:./../../firmware/RISCV/stubs/stub.h **** 
+  10:./../../firmware/RISCV/stubs/stub.h **** void write_hex(int fd, unsigned long int hex);
+  11:./../../firmware/RISCV/stubs/stub.h **** 
+  12:./../../firmware/RISCV/stubs/stub.h **** static inline int _stub(int err)
+  13:./../../firmware/RISCV/stubs/stub.h **** {
+  14:./../../firmware/RISCV/stubs/stub.h ****   return -1;
+  21              		.loc 2 14 3
+   9:./../../firmware/RISCV/stubs/close.c **** }
+  22              		.loc 1 9 1 is_stmt 0
+  23 0000 7D55     		li	a0,-1
+  24              	.LVL1:
+  25 0002 8280     		ret
+  26              		.cfi_endproc
+  27              	.LFE1:
+  29              		.text
+  30              	.Letext0:
+  31              		.file 3 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  32              		.file 4 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  33              		.file 5 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  34              		.file 6 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  35              		.file 7 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  36              		.file 8 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s 			page 2
+
+
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 close.c
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:13     .text._close:0000000000000000 _close
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:17     .text._close:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:19     .text._close:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:21     .text._close:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:22     .text._close:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:23     .text._close:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:26     .text._close:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:29     .text._close:0000000000000004 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:1540   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2288   .debug_str:000000000000048c .LASF128
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2094   .debug_str:00000000000000f8 .LASF129
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2070   .debug_str:000000000000000c .LASF130
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2060   .debug_ranges:0000000000000000 .Ldebug_ranges0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2066   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2158   .debug_str:000000000000023b .LASF0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2172   .debug_str:000000000000027e .LASF1
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2100   .debug_str:0000000000000134 .LASF2
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2202   .debug_str:0000000000000308 .LASF3
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2186   .debug_str:00000000000002c9 .LASF10
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2102   .debug_str:0000000000000142 .LASF4
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2220   .debug_str:0000000000000361 .LASF5
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2226   .debug_str:000000000000037d .LASF6
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2118   .debug_str:0000000000000187 .LASF7
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2166   .debug_str:000000000000025f .LASF8
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2084   .debug_str:00000000000000b8 .LASF9
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2214   .debug_str:000000000000033e .LASF11
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2272   .debug_str:000000000000044f .LASF12
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2308   .debug_str:000000000000056c .LASF13
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2182   .debug_str:00000000000002bb .LASF14
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2160   .debug_str:0000000000000248 .LASF15
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2264   .debug_str:000000000000042d .LASF16
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2266   .debug_str:0000000000000435 .LASF17
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2236   .debug_str:00000000000003a5 .LASF18
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2294   .debug_str:0000000000000522 .LASF19
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2218   .debug_str:000000000000034f .LASF20
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2144   .debug_str:00000000000001fe .LASF21
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2148   .debug_str:000000000000020f .LASF26
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2284   .debug_str:0000000000000479 .LASF22
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2258   .debug_str:0000000000000418 .LASF23
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2142   .debug_str:00000000000001f8 .LASF24
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2302   .debug_str:0000000000000557 .LASF25
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2156   .debug_str:0000000000000236 .LASF27
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2098   .debug_str:000000000000012b .LASF28
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2278   .debug_str:0000000000000463 .LASF29
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2108   .debug_str:000000000000015a .LASF30
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2332   .debug_str:00000000000005d7 .LASF31
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2208   .debug_str:0000000000000322 .LASF32
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2196   .debug_str:00000000000002ee .LASF33
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2304   .debug_str:000000000000055c .LASF34
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2228   .debug_str:0000000000000387 .LASF35
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2318   .debug_str:0000000000000597 .LASF36
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2112   .debug_str:0000000000000169 .LASF37
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2138   .debug_str:00000000000001eb .LASF38
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2068   .debug_str:0000000000000000 .LASF39
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s 			page 4
+
+
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2290   .debug_str:0000000000000514 .LASF40
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2122   .debug_str:0000000000000197 .LASF41
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2210   .debug_str:000000000000032b .LASF42
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2250   .debug_str:00000000000003e8 .LASF43
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2140   .debug_str:00000000000001f3 .LASF44
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2230   .debug_str:0000000000000391 .LASF45
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2106   .debug_str:0000000000000154 .LASF46
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2072   .debug_str:0000000000000079 .LASF47
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2238   .debug_str:00000000000003b0 .LASF48
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2120   .debug_str:0000000000000190 .LASF49
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2168   .debug_str:0000000000000271 .LASF50
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2086   .debug_str:00000000000000cf .LASF51
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2114   .debug_str:0000000000000177 .LASF52
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2152   .debug_str:0000000000000226 .LASF53
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2194   .debug_str:00000000000002e7 .LASF54
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2268   .debug_str:000000000000043d .LASF55
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2322   .debug_str:00000000000005b1 .LASF56
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2104   .debug_str:000000000000014e .LASF57
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2314   .debug_str:0000000000000589 .LASF58
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2126   .debug_str:00000000000001a6 .LASF59
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2132   .debug_str:00000000000001c4 .LASF60
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2078   .debug_str:0000000000000092 .LASF61
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2188   .debug_str:00000000000002d0 .LASF62
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2242   .debug_str:00000000000003c2 .LASF63
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2190   .debug_str:00000000000002d6 .LASF64
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2260   .debug_str:0000000000000420 .LASF65
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2274   .debug_str:0000000000000457 .LASF66
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2124   .debug_str:000000000000019f .LASF67
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2162   .debug_str:000000000000024f .LASF68
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2146   .debug_str:0000000000000207 .LASF69
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2248   .debug_str:00000000000003e3 .LASF70
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2076   .debug_str:0000000000000087 .LASF71
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2256   .debug_str:00000000000003ff .LASF72
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2252   .debug_str:00000000000003ed .LASF73
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2212   .debug_str:0000000000000333 .LASF74
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2254   .debug_str:00000000000003f5 .LASF75
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2180   .debug_str:00000000000002b3 .LASF76
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2154   .debug_str:000000000000022c .LASF77
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2330   .debug_str:00000000000005d2 .LASF78
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2216   .debug_str:0000000000000345 .LASF79
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2164   .debug_str:0000000000000257 .LASF80
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2130   .debug_str:00000000000001bc .LASF81
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2222   .debug_str:000000000000036f .LASF82
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2174   .debug_str:0000000000000291 .LASF83
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2312   .debug_str:000000000000057f .LASF84
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2116   .debug_str:000000000000017f .LASF85
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2110   .debug_str:0000000000000164 .LASF86
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2276   .debug_str:000000000000045e .LASF87
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2234   .debug_str:000000000000039e .LASF88
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2306   .debug_str:0000000000000566 .LASF89
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2170   .debug_str:0000000000000277 .LASF90
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2232   .debug_str:0000000000000398 .LASF91
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2074   .debug_str:000000000000007f .LASF92
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2262   .debug_str:0000000000000427 .LASF93
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2282   .debug_str:0000000000000473 .LASF94
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2292   .debug_str:000000000000051d .LASF95
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2300   .debug_str:000000000000054a .LASF96
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s 			page 5
+
+
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2286   .debug_str:000000000000047f .LASF97
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2178   .debug_str:00000000000002a6 .LASF98
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2320   .debug_str:00000000000005a2 .LASF99
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2150   .debug_str:0000000000000217 .LASF100
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2244   .debug_str:00000000000003cb .LASF101
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2324   .debug_str:00000000000005b8 .LASF102
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2246   .debug_str:00000000000003d6 .LASF103
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2328   .debug_str:00000000000005c4 .LASF104
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2096   .debug_str:000000000000011d .LASF105
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2310   .debug_str:0000000000000575 .LASF106
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2176   .debug_str:000000000000029a .LASF107
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2296   .debug_str:000000000000052a .LASF108
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2136   .debug_str:00000000000001dd .LASF109
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2092   .debug_str:00000000000000e9 .LASF110
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2134   .debug_str:00000000000001cc .LASF111
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2080   .debug_str:0000000000000098 .LASF112
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2082   .debug_str:00000000000000a7 .LASF113
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2224   .debug_str:0000000000000374 .LASF114
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2206   .debug_str:000000000000031b .LASF115
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2198   .debug_str:00000000000002f8 .LASF116
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2316   .debug_str:000000000000058f .LASF117
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2088   .debug_str:00000000000000d8 .LASF131
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2270   .debug_str:0000000000000443 .LASF118
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2298   .debug_str:0000000000000537 .LASF119
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2128   .debug_str:00000000000001af .LASF120
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2240   .debug_str:00000000000003b8 .LASF121
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2184   .debug_str:00000000000002c1 .LASF122
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2200   .debug_str:0000000000000301 .LASF123
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2204   .debug_str:0000000000000314 .LASF124
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2280   .debug_str:000000000000046c .LASF125
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2326   .debug_str:00000000000005bd .LASF126
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2192   .debug_str:00000000000002de .LASF127
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:14     .text._close:0000000000000000 .LFB1
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:27     .text._close:0000000000000004 .LFE1
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2033   .debug_loc:0000000000000000 .LLST0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:2090   .debug_str:00000000000000e3 .LASF132
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:18     .text._close:0000000000000000 .LVL0
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:24     .text._close:0000000000000002 .LVL1
+C:\Users\zerda\AppData\Local\Temp\ccXHUltt.s:38     .debug_info:0000000000000000 .Ldebug_info0
+
+NO UNDEFINED SYMBOLS

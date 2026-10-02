@@ -1,0 +1,354 @@
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 1
+
+
+   1              		.file	"handlers.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text.handle_nmi,"ax",@progbits
+  10              		.align	1
+  11              		.weak	handle_nmi
+  13              	handle_nmi:
+  14              	.LFB5:
+  15              		.file 1 "./../../firmware/RISCV/env_Eclipse/handlers.c"
+   1:./../../firmware/RISCV/env_Eclipse/handlers.c **** //See LICENSE for license details.
+   2:./../../firmware/RISCV/env_Eclipse/handlers.c **** #include <stdint.h>
+   3:./../../firmware/RISCV/env_Eclipse/handlers.c **** #include <stdio.h>
+   4:./../../firmware/RISCV/env_Eclipse/handlers.c **** #include <unistd.h>
+   5:./../../firmware/RISCV/env_Eclipse/handlers.c **** #include "riscv_encoding.h"
+   6:./../../firmware/RISCV/env_Eclipse/handlers.c **** #include "n200_func.h"
+   7:./../../firmware/RISCV/env_Eclipse/handlers.c **** 
+   8:./../../firmware/RISCV/env_Eclipse/handlers.c **** __attribute__((weak)) uintptr_t handle_nmi()
+   9:./../../firmware/RISCV/env_Eclipse/handlers.c **** {
+  16              		.loc 1 9 1
+  17              		.cfi_startproc
+  10:./../../firmware/RISCV/env_Eclipse/handlers.c ****   write(1, "nmi\n", 5);
+  18              		.loc 1 10 3
+  19 0000 B7050000 		lui	a1,%hi(.LC0)
+   9:./../../firmware/RISCV/env_Eclipse/handlers.c ****   write(1, "nmi\n", 5);
+  20              		.loc 1 9 1 is_stmt 0
+  21 0004 4111     		addi	sp,sp,-16
+  22              	.LCFI0:
+  23              		.cfi_def_cfa_offset 16
+  24              		.loc 1 10 3
+  25 0006 1546     		li	a2,5
+  26 0008 93850500 		addi	a1,a1,%lo(.LC0)
+  27 000c 0545     		li	a0,1
+   9:./../../firmware/RISCV/env_Eclipse/handlers.c ****   write(1, "nmi\n", 5);
+  28              		.loc 1 9 1
+  29 000e 06C6     		sw	ra,12(sp)
+  30              		.cfi_offset 1, -4
+  31              		.loc 1 10 3
+  32 0010 97000000 		call	write
+  32      E7800000 
+  33              	.LVL0:
+  11:./../../firmware/RISCV/env_Eclipse/handlers.c ****   _exit(1);
+  34              		.loc 1 11 3 is_stmt 1
+  35 0018 0545     		li	a0,1
+  36 001a 97000000 		call	_exit
+  36      E7800000 
+  37              	.LVL1:
+  38              		.cfi_endproc
+  39              	.LFE5:
+  41              		.section	.text.handle_trap,"ax",@progbits
+  42              		.align	1
+  43              		.weak	handle_trap
+  45              	handle_trap:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 2
+
+
+  46              	.LFB6:
+  12:./../../firmware/RISCV/env_Eclipse/handlers.c ****   return 0;
+  13:./../../firmware/RISCV/env_Eclipse/handlers.c **** }
+  14:./../../firmware/RISCV/env_Eclipse/handlers.c **** 
+  15:./../../firmware/RISCV/env_Eclipse/handlers.c **** 
+  16:./../../firmware/RISCV/env_Eclipse/handlers.c **** __attribute__((weak)) uintptr_t handle_trap(uintptr_t mcause, uintptr_t sp)
+  17:./../../firmware/RISCV/env_Eclipse/handlers.c **** {
+  47              		.loc 1 17 1
+  48              		.cfi_startproc
+  49              	.LVL2:
+  18:./../../firmware/RISCV/env_Eclipse/handlers.c ****   if((mcause & 0xFFF) == 0xFFF) {
+  50              		.loc 1 18 3
+  17:./../../firmware/RISCV/env_Eclipse/handlers.c ****   if((mcause & 0xFFF) == 0xFFF) {
+  51              		.loc 1 17 1 is_stmt 0
+  52 0000 4111     		addi	sp,sp,-16
+  53              	.LCFI1:
+  54              		.cfi_def_cfa_offset 16
+  55              		.loc 1 18 14
+  56 0002 9347F5FF 		not	a5,a0
+  17:./../../firmware/RISCV/env_Eclipse/handlers.c ****   if((mcause & 0xFFF) == 0xFFF) {
+  57              		.loc 1 17 1
+  58 0006 22C4     		sw	s0,8(sp)
+  59 0008 06C6     		sw	ra,12(sp)
+  60              		.cfi_offset 8, -8
+  61              		.cfi_offset 1, -4
+  62              		.loc 1 18 5
+  63 000a 13974701 		slli	a4,a5,20
+  17:./../../firmware/RISCV/env_Eclipse/handlers.c ****   if((mcause & 0xFFF) == 0xFFF) {
+  64              		.loc 1 17 1
+  65 000e 2A84     		mv	s0,a0
+  66              		.loc 1 18 5
+  67 0010 09E7     		bne	a4,zero,.L4
+  19:./../../firmware/RISCV/env_Eclipse/handlers.c ****       handle_nmi();
+  68              		.loc 1 19 7 is_stmt 1
+  69 0012 97000000 		call	handle_nmi
+  69      E7800000 
+  70              	.LVL3:
+  71              	.L4:
+  20:./../../firmware/RISCV/env_Eclipse/handlers.c ****   }
+  21:./../../firmware/RISCV/env_Eclipse/handlers.c ****   write(1, "trap\n", 5);
+  72              		.loc 1 21 3
+  73 001a B7050000 		lui	a1,%hi(.LC1)
+  74 001e 1546     		li	a2,5
+  75 0020 93850500 		addi	a1,a1,%lo(.LC1)
+  76 0024 0545     		li	a0,1
+  77 0026 97000000 		call	write
+  77      E7800000 
+  78              	.LVL4:
+  22:./../../firmware/RISCV/env_Eclipse/handlers.c ****   //printf("In trap handler, the mcause is %d\n", mcause);
+  23:./../../firmware/RISCV/env_Eclipse/handlers.c ****   //printf("In trap handler, the mepc is 0x%x\n", read_csr(mepc));
+  24:./../../firmware/RISCV/env_Eclipse/handlers.c ****   //printf("In trap handler, the mtval is 0x%x\n", read_csr(mbadaddr));
+  25:./../../firmware/RISCV/env_Eclipse/handlers.c ****   _exit(mcause);
+  79              		.loc 1 25 3
+  80 002e 2285     		mv	a0,s0
+  81 0030 97000000 		call	_exit
+  81      E7800000 
+  82              	.LVL5:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 3
+
+
+  83              		.cfi_endproc
+  84              	.LFE6:
+  86              		.section	.rodata.handle_nmi.str1.4,"aMS",@progbits,1
+  87              		.align	2
+  88              	.LC0:
+  89 0000 6E6D690A 		.string	"nmi\n"
+  89      00
+  90              		.section	.rodata.handle_trap.str1.4,"aMS",@progbits,1
+  91              		.align	2
+  92              	.LC1:
+  93 0000 74726170 		.string	"trap\n"
+  93      0A00
+  94              		.text
+  95              	.Letext0:
+  96              		.file 2 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  97              		.file 3 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  98              		.file 4 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+  99              		.file 5 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 100              		.file 6 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 101              		.file 7 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 102              		.file 8 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 handlers.c
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:13     .text.handle_nmi:0000000000000000 handle_nmi
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:17     .text.handle_nmi:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:18     .text.handle_nmi:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:19     .text.handle_nmi:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:21     .text.handle_nmi:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:23     .text.handle_nmi:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:25     .text.handle_nmi:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:29     .text.handle_nmi:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:30     .text.handle_nmi:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:32     .text.handle_nmi:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:35     .text.handle_nmi:0000000000000018 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:38     .text.handle_nmi:0000000000000022 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:45     .text.handle_trap:0000000000000000 handle_trap
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:48     .text.handle_trap:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:50     .text.handle_trap:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:51     .text.handle_trap:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:52     .text.handle_trap:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:54     .text.handle_trap:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:56     .text.handle_trap:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:58     .text.handle_trap:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:60     .text.handle_trap:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:61     .text.handle_trap:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:63     .text.handle_trap:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:65     .text.handle_trap:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:67     .text.handle_trap:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:69     .text.handle_trap:0000000000000012 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:73     .text.handle_trap:000000000000001a .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:80     .text.handle_trap:000000000000002e .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:83     .text.handle_trap:0000000000000038 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:41     .text.handle_nmi:0000000000000022 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:86     .text.handle_trap:0000000000000038 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:88     .rodata.handle_nmi.str1.4:0000000000000000 .LC0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:92     .rodata.handle_trap.str1.4:0000000000000000 .LC1
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:71     .text.handle_trap:000000000000001a .L4
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:1676   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2535   .debug_str:00000000000004b8 .LASF131
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2349   .debug_str:000000000000014c .LASF132
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2309   .debug_str:000000000000000c .LASF133
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2297   .debug_ranges:0000000000000000 .Ldebug_ranges0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2305   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2345   .debug_str:000000000000013a .LASF0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2467   .debug_str:000000000000038c .LASF1
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2473   .debug_str:00000000000003a8 .LASF2
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2415   .debug_str:0000000000000298 .LASF3
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2361   .debug_str:00000000000001a7 .LASF4
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2407   .debug_str:0000000000000272 .LASF5
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2343   .debug_str:000000000000012c .LASF6
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2329   .debug_str:00000000000000d5 .LASF7
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2487   .debug_str:00000000000003e3 .LASF9
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2399   .debug_str:000000000000024e .LASF8
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2313   .debug_str:000000000000007f .LASF10
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2447   .debug_str:000000000000032d .LASF11
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2429   .debug_str:00000000000002e3 .LASF12
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2459   .debug_str:0000000000000363 .LASF13
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 5
+
+
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2519   .debug_str:000000000000047b .LASF14
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2555   .debug_str:0000000000000598 .LASF15
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2425   .debug_str:00000000000002d5 .LASF16
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2401   .debug_str:000000000000025b .LASF17
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2511   .debug_str:0000000000000459 .LASF18
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2513   .debug_str:0000000000000461 .LASF19
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2483   .debug_str:00000000000003d0 .LASF20
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2541   .debug_str:000000000000054e .LASF21
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2463   .debug_str:0000000000000374 .LASF22
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2385   .debug_str:0000000000000211 .LASF23
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2389   .debug_str:0000000000000222 .LASF28
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2531   .debug_str:00000000000004a5 .LASF24
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2503   .debug_str:000000000000043c .LASF25
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2383   .debug_str:000000000000020b .LASF26
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2549   .debug_str:0000000000000583 .LASF27
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2397   .debug_str:0000000000000249 .LASF29
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2339   .debug_str:000000000000011d .LASF30
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2525   .debug_str:000000000000048f .LASF31
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2351   .debug_str:000000000000017a .LASF32
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2579   .debug_str:0000000000000603 .LASF33
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2453   .debug_str:0000000000000347 .LASF34
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2441   .debug_str:0000000000000313 .LASF35
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2551   .debug_str:0000000000000588 .LASF36
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2475   .debug_str:00000000000003b2 .LASF37
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2565   .debug_str:00000000000005c3 .LASF38
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2355   .debug_str:0000000000000189 .LASF39
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2379   .debug_str:00000000000001fe .LASF40
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2307   .debug_str:0000000000000000 .LASF41
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2537   .debug_str:0000000000000540 .LASF42
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2365   .debug_str:00000000000001b7 .LASF43
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2455   .debug_str:0000000000000350 .LASF44
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2495   .debug_str:000000000000040c .LASF45
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2381   .debug_str:0000000000000206 .LASF46
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2477   .debug_str:00000000000003bc .LASF47
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2465   .debug_str:0000000000000386 .LASF48
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2311   .debug_str:0000000000000079 .LASF49
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2485   .debug_str:00000000000003db .LASF50
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2363   .debug_str:00000000000001b0 .LASF51
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2409   .debug_str:0000000000000284 .LASF52
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2331   .debug_str:00000000000000ec .LASF53
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2357   .debug_str:0000000000000197 .LASF54
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2393   .debug_str:0000000000000239 .LASF55
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2439   .debug_str:000000000000030c .LASF56
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2515   .debug_str:0000000000000469 .LASF57
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2569   .debug_str:00000000000005dd .LASF58
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2347   .debug_str:0000000000000146 .LASF59
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2561   .debug_str:00000000000005b5 .LASF60
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2369   .debug_str:00000000000001c6 .LASF61
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2373   .debug_str:00000000000001d7 .LASF62
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2323   .debug_str:00000000000000af .LASF63
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2433   .debug_str:00000000000002f5 .LASF64
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2319   .debug_str:000000000000009a .LASF65
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2435   .debug_str:00000000000002fb .LASF66
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2505   .debug_str:0000000000000444 .LASF67
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2521   .debug_str:0000000000000483 .LASF68
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2367   .debug_str:00000000000001bf .LASF69
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2403   .debug_str:0000000000000262 .LASF70
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 6
+
+
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2387   .debug_str:000000000000021a .LASF71
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2493   .debug_str:0000000000000407 .LASF72
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2315   .debug_str:0000000000000089 .LASF73
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2501   .debug_str:0000000000000423 .LASF74
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2497   .debug_str:0000000000000411 .LASF75
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2457   .debug_str:0000000000000358 .LASF76
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2499   .debug_str:0000000000000419 .LASF77
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2423   .debug_str:00000000000002cd .LASF78
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2395   .debug_str:000000000000023f .LASF79
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2577   .debug_str:00000000000005fe .LASF80
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2461   .debug_str:000000000000036a .LASF81
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2405   .debug_str:000000000000026a .LASF82
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2371   .debug_str:00000000000001cf .LASF83
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2469   .debug_str:000000000000039a .LASF84
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2417   .debug_str:00000000000002ab .LASF85
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2559   .debug_str:00000000000005ab .LASF86
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2359   .debug_str:000000000000019f .LASF87
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2353   .debug_str:0000000000000184 .LASF88
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2523   .debug_str:000000000000048a .LASF89
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2481   .debug_str:00000000000003c9 .LASF90
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2553   .debug_str:0000000000000592 .LASF91
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2411   .debug_str:000000000000028a .LASF92
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2479   .debug_str:00000000000003c3 .LASF93
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2507   .debug_str:000000000000044b .LASF94
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2509   .debug_str:0000000000000453 .LASF95
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2529   .debug_str:000000000000049f .LASF96
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2539   .debug_str:0000000000000549 .LASF97
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2547   .debug_str:0000000000000576 .LASF98
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2533   .debug_str:00000000000004ab .LASF99
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2421   .debug_str:00000000000002c0 .LASF100
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2567   .debug_str:00000000000005ce .LASF101
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2391   .debug_str:000000000000022a .LASF102
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2489   .debug_str:00000000000003ef .LASF103
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2571   .debug_str:00000000000005e4 .LASF104
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2491   .debug_str:00000000000003fa .LASF105
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2575   .debug_str:00000000000005f0 .LASF106
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2337   .debug_str:000000000000010f .LASF107
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2557   .debug_str:00000000000005a1 .LASF108
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2419   .debug_str:00000000000002b4 .LASF109
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2543   .debug_str:0000000000000556 .LASF110
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2377   .debug_str:00000000000001f0 .LASF111
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2335   .debug_str:0000000000000100 .LASF112
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2375   .debug_str:00000000000001df .LASF113
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2325   .debug_str:00000000000000b5 .LASF114
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2327   .debug_str:00000000000000c4 .LASF115
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2471   .debug_str:000000000000039f .LASF116
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2451   .debug_str:0000000000000340 .LASF117
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2443   .debug_str:000000000000031d .LASF118
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2563   .debug_str:00000000000005bb .LASF119
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2333   .debug_str:00000000000000f5 .LASF134
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2517   .debug_str:000000000000046f .LASF120
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2545   .debug_str:0000000000000563 .LASF121
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2427   .debug_str:00000000000002db .LASF122
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2445   .debug_str:0000000000000326 .LASF123
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2449   .debug_str:0000000000000339 .LASF124
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2527   .debug_str:0000000000000498 .LASF125
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2573   .debug_str:00000000000005e9 .LASF126
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s 			page 7
+
+
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2437   .debug_str:0000000000000303 .LASF127
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2321   .debug_str:00000000000000a3 .LASF135
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:46     .text.handle_trap:0000000000000000 .LFB6
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:84     .text.handle_trap:0000000000000038 .LFE6
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2231   .debug_loc:0000000000000000 .LLST1
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2413   .debug_str:0000000000000291 .LASF128
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2244   .debug_loc:0000000000000020 .LLST2
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2255   .debug_loc:000000000000003e .LLST3
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:70     .text.handle_trap:000000000000001a .LVL3
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:78     .text.handle_trap:000000000000002e .LVL4
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:82     .text.handle_trap:0000000000000038 .LVL5
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2431   .debug_str:00000000000002ea .LASF136
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:14     .text.handle_nmi:0000000000000000 .LFB5
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:39     .text.handle_nmi:0000000000000022 .LFE5
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2269   .debug_loc:000000000000005f .LLST0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:33     .text.handle_nmi:0000000000000018 .LVL0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:37     .text.handle_nmi:0000000000000022 .LVL1
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2317   .debug_str:0000000000000094 .LASF129
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:2341   .debug_str:0000000000000126 .LASF130
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:53     .text.handle_trap:0000000000000002 .LCFI1
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:49     .text.handle_trap:0000000000000000 .LVL2
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:22     .text.handle_nmi:0000000000000006 .LCFI0
+C:\Users\zerda\AppData\Local\Temp\ccPt4EfG.s:104    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+write
+_exit

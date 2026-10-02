@@ -1,0 +1,3513 @@
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 1
+
+
+   1              		.file	"testMain.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text.touch_sensor_init,"ax",@progbits
+  10              		.align	1
+  11              		.globl	touch_sensor_init
+  13              	touch_sensor_init:
+  14              	.LFB6:
+  15              		.file 1 "testMain.c"
+   1:testMain.c    **** #include "gd32vf103.h" 
+   2:testMain.c    **** #include "lcd.h" 
+   3:testMain.c    **** #include <stdio.h> 
+   4:testMain.c    **** #include <stdint.h> 
+   5:testMain.c    **** #include <stdbool.h> 
+   6:testMain.c    **** // ============================================================================ 
+   7:testMain.c    **** 
+   8:testMain.c    **** // KONSTANTER OCH DEFINITIONER 
+   9:testMain.c    **** 
+  10:testMain.c    **** // ============================================================================ 
+  11:testMain.c    **** // Servovinklar (PA0 / TIMER1) 
+  12:testMain.c    **** 
+  13:testMain.c    **** #define SERVO_0_DEG       2000  // Pulsbredd för 0 grader (~0.67 ms) 
+  14:testMain.c    **** #define SERVO_180_DEG     7500  // Pulsbredd för 180 grader (~2.5 ms) 
+  15:testMain.c    **** // Tider (i millisekunder) 
+  16:testMain.c    **** #define HALL_TIMEOUT_MS   1500  // Tid utan pulser innan vagnen anses stå still 
+  17:testMain.c    **** #define RELEASE_WAIT_MS   5000  // Väntetid efter släppt handtag (5 sekunder) 
+  18:testMain.c    **** #define BRAKE_DURATION_MS 30000 // Bromstid när servot är aktiverat (30 sekunder) 
+  19:testMain.c    **** #define DEBOUNCE_MS       5     // Avstörning för hall-sensorn 
+  20:testMain.c    **** #define LCD_REFRESH_MS    200   // Uppdatera skärmen 5 gånger per sekund (200 ms) 
+  21:testMain.c    **** // Kapacitiv Touch-sensor (PB0 & PB1) 
+  22:testMain.c    **** #define TOUCH_THRESHOLD   70    // Tröskelvärde för grepp 
+  23:testMain.c    **** #define MAX_TIMEOUT       500000 // Säkerhetsgräns mot oändlig loop 
+  24:testMain.c    **** #define SAMPLES           16    // Antal mätningar för medelvärdesbildning 
+  25:testMain.c    **** // ============================================================================ 
+  26:testMain.c    **** // GLOBALA VARIABLER (volatile för avbrottshantering) 
+  27:testMain.c    **** // ============================================================================ 
+  28:testMain.c    **** 
+  29:testMain.c    **** volatile uint32_t ms_ticks = 0;           // Global millisekundräknare 
+  30:testMain.c    **** volatile uint32_t last_pulse_time = 0;    // Tidstämpel för senaste magnetpuls 
+  31:testMain.c    **** volatile uint32_t current_interval = 0;   // Tid mellan de två senaste magneterna 
+  32:testMain.c    **** volatile uint32_t previous_interval = 0;  // Tid mellan de näst senaste magneterna 
+  33:testMain.c    **** volatile uint8_t new_pulse_flag = 0;      // Flaggas vid ny godkänd magnet 
+  34:testMain.c    **** volatile uint8_t pulse_count = 0;         // Antal magneter sedan start/stopp 
+  35:testMain.c    **** 
+  36:testMain.c    **** // Systemets olika tillstånd (Tillståndsmaskin) 
+  37:testMain.c    **** 
+  38:testMain.c    **** typedef enum { 
+  39:testMain.c    ****     STATE_HELD,     // Någon håller i handtaget -> Servo 0° 
+  40:testMain.c    ****     STATE_WAITING,  // Handtag nyss släppt, väntar 5 sek -> Servo 0° 
+  41:testMain.c    ****     STATE_ARMED,    // 5 sek har gått, övervakar acceleration -> Servo 0° 
+  42:testMain.c    **** 
+  43:testMain.c    ****     STATE_BRAKED    // Broms aktiverad! -> Servo 180° i 30 sek 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 2
+
+
+  44:testMain.c    **** 
+  45:testMain.c    **** } SystemState; 
+  46:testMain.c    **** 
+  47:testMain.c    ****  
+  48:testMain.c    **** 
+  49:testMain.c    **** // ============================================================================ 
+  50:testMain.c    **** 
+  51:testMain.c    **** // 1. HJÄLPFUNKTIONER FÖR FÖRDRÖJNING (Mikrosekunder) 
+  52:testMain.c    **** 
+  53:testMain.c    **** // ============================================================================ 
+  54:testMain.c    **** 
+  55:testMain.c    **** static void delay_us(uint32_t us) { 
+  56:testMain.c    **** 
+  57:testMain.c    ****     volatile uint32_t count = us * 27; 
+  58:testMain.c    **** 
+  59:testMain.c    ****     while (count--) { 
+  60:testMain.c    **** 
+  61:testMain.c    ****         __asm__ volatile ("nop"); 
+  62:testMain.c    **** 
+  63:testMain.c    ****     } 
+  64:testMain.c    **** 
+  65:testMain.c    **** } 
+  66:testMain.c    **** 
+  67:testMain.c    ****  
+  68:testMain.c    **** 
+  69:testMain.c    **** // ============================================================================ 
+  70:testMain.c    **** 
+  71:testMain.c    **** // 2. KAPACITIV TOUCH-SENSOR (PB0 = Sändare, PB1 = Mottagare) 
+  72:testMain.c    **** 
+  73:testMain.c    **** // ============================================================================ 
+  74:testMain.c    **** 
+  75:testMain.c    **** void touch_sensor_init(void) { 
+  16              		.loc 1 75 30
+  17              		.cfi_startproc
+  76:testMain.c    **** 
+  77:testMain.c    ****     rcu_periph_clock_enable(RCU_GPIOB); 
+  18              		.loc 1 77 5
+  75:testMain.c    **** 
+  19              		.loc 1 75 30 is_stmt 0
+  20 0000 4111     		addi	sp,sp,-16
+  21              	.LCFI0:
+  22              		.cfi_def_cfa_offset 16
+  23              		.loc 1 77 5
+  24 0002 13053060 		li	a0,1539
+  75:testMain.c    **** 
+  25              		.loc 1 75 30
+  26 0006 06C6     		sw	ra,12(sp)
+  27 0008 22C4     		sw	s0,8(sp)
+  28              		.cfi_offset 1, -4
+  29              		.cfi_offset 8, -8
+  30              		.loc 1 77 5
+  31 000a 97000000 		call	rcu_periph_clock_enable
+  31      E7800000 
+  32              	.LVL0:
+  78:testMain.c    **** 
+  79:testMain.c    ****     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0 | GPIO_PIN_1); 
+  33              		.loc 1 79 5 is_stmt 1
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 3
+
+
+  34 0012 37140140 		li	s0,1073811456
+  35 0016 130504C0 		addi	a0,s0,-1024
+  36 001a 8D46     		li	a3,3
+  37 001c 0D46     		li	a2,3
+  38 001e C145     		li	a1,16
+  39 0020 97000000 		call	gpio_init
+  39      E7800000 
+  40              	.LVL1:
+  80:testMain.c    **** 
+  81:testMain.c    ****     gpio_bit_reset(GPIOB, GPIO_PIN_0); 
+  41              		.loc 1 81 5
+  42 0028 130504C0 		addi	a0,s0,-1024
+  43 002c 8545     		li	a1,1
+  44 002e 97000000 		call	gpio_bit_reset
+  44      E7800000 
+  45              	.LVL2:
+  82:testMain.c    **** 
+  83:testMain.c    ****     gpio_bit_reset(GPIOB, GPIO_PIN_1); 
+  46              		.loc 1 83 5
+  47 0036 130504C0 		addi	a0,s0,-1024
+  84:testMain.c    **** 
+  85:testMain.c    **** } 
+  48              		.loc 1 85 1 is_stmt 0
+  49 003a 2244     		lw	s0,8(sp)
+  50              		.cfi_restore 8
+  51 003c B240     		lw	ra,12(sp)
+  52              		.cfi_restore 1
+  83:testMain.c    **** 
+  53              		.loc 1 83 5
+  54 003e 8945     		li	a1,2
+  55              		.loc 1 85 1
+  56 0040 4101     		addi	sp,sp,16
+  57              	.LCFI1:
+  58              		.cfi_def_cfa_offset 0
+  83:testMain.c    **** 
+  59              		.loc 1 83 5
+  60 0042 17030000 		tail	gpio_bit_reset
+  60      67000300 
+  61              	.LVL3:
+  62              		.cfi_endproc
+  63              	.LFE6:
+  65              		.section	.text.measure_charge_time,"ax",@progbits
+  66              		.align	1
+  67              		.globl	measure_charge_time
+  69              	measure_charge_time:
+  70              	.LFB7:
+  86:testMain.c    **** 
+  87:testMain.c    ****  
+  88:testMain.c    **** 
+  89:testMain.c    **** uint32_t measure_charge_time(void) { 
+  71              		.loc 1 89 36 is_stmt 1
+  72              		.cfi_startproc
+  90:testMain.c    **** 
+  91:testMain.c    ****     uint32_t counter = 0; 
+  73              		.loc 1 91 5
+  74              	.LVL4:
+  92:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 4
+
+
+  93:testMain.c    ****  
+  94:testMain.c    **** 
+  95:testMain.c    ****     // 1. Töm restladdning (PB0 & PB1 till 0V Push-Pull) 
+  96:testMain.c    **** 
+  97:testMain.c    ****     GPIO_CTL0(GPIOB) &= ~(0xFF); 
+  75              		.loc 1 97 5
+  76              		.loc 1 97 22 is_stmt 0
+  77 0000 37150140 		li	a0,1073811456
+  78 0004 832705C0 		lw	a5,-1024(a0)
+  89:testMain.c    **** 
+  79              		.loc 1 89 36
+  80 0008 0111     		addi	sp,sp,-32
+  81              	.LCFI2:
+  82              		.cfi_def_cfa_offset 32
+  83 000a 06CE     		sw	ra,28(sp)
+  84 000c 22CC     		sw	s0,24(sp)
+  85              		.cfi_offset 1, -4
+  86              		.cfi_offset 8, -8
+  87              		.loc 1 97 22
+  88 000e 93F707F0 		andi	a5,a5,-256
+  89 0012 2320F5C0 		sw	a5,-1024(a0)
+  98:testMain.c    **** 
+  99:testMain.c    ****     GPIO_CTL0(GPIOB) |=  0x33; 
+  90              		.loc 1 99 5 is_stmt 1
+  91              		.loc 1 99 22 is_stmt 0
+  92 0016 832705C0 		lw	a5,-1024(a0)
+ 100:testMain.c    **** 
+ 101:testMain.c    ****     gpio_bit_reset(GPIOB, GPIO_PIN_0 | GPIO_PIN_1); 
+  93              		.loc 1 101 5
+  94 001a 8D45     		li	a1,3
+  95 001c 130505C0 		addi	a0,a0,-1024
+  99:testMain.c    **** 
+  96              		.loc 1 99 22
+  97 0020 93E73703 		ori	a5,a5,51
+  98 0024 1CC1     		sw	a5,0(a0)
+  99              		.loc 1 101 5 is_stmt 1
+ 100 0026 97000000 		call	gpio_bit_reset
+ 100      E7800000 
+ 101              	.LVL5:
+ 102:testMain.c    **** 
+ 103:testMain.c    ****     delay_us(500); 
+ 102              		.loc 1 103 5
+ 103              	.LBB4:
+ 104              	.LBB5:
+  57:testMain.c    **** 
+ 105              		.loc 1 57 5
+  57:testMain.c    **** 
+ 106              		.loc 1 57 23 is_stmt 0
+ 107 002e 8D67     		li	a5,12288
+ 108 0030 9387C74B 		addi	a5,a5,1212
+ 109 0034 3EC6     		sw	a5,12(sp)
+  59:testMain.c    **** 
+ 110              		.loc 1 59 5 is_stmt 1
+ 111              	.L4:
+  59:testMain.c    **** 
+ 112              		.loc 1 59 17 is_stmt 0
+ 113 0036 3244     		lw	s0,12(sp)
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 5
+
+
+ 114 0038 9307F4FF 		addi	a5,s0,-1
+ 115 003c 3EC6     		sw	a5,12(sp)
+  59:testMain.c    **** 
+ 116              		.loc 1 59 11
+ 117 003e 21E4     		bne	s0,zero,.L5
+ 118              	.LVL6:
+ 119              	.LBE5:
+ 120              	.LBE4:
+ 104:testMain.c    **** 
+ 105:testMain.c    ****  
+ 106:testMain.c    **** 
+ 107:testMain.c    ****     // 2. PB1 sätts som Floating Input (mottagare) 
+ 108:testMain.c    **** 
+ 109:testMain.c    ****     GPIO_CTL0(GPIOB) &= ~(0xF0); 
+ 121              		.loc 1 109 5 is_stmt 1
+ 122              		.loc 1 109 22 is_stmt 0
+ 123 0040 37150140 		li	a0,1073811456
+ 124 0044 832705C0 		lw	a5,-1024(a0)
+ 110:testMain.c    **** 
+ 111:testMain.c    ****     GPIO_CTL0(GPIOB) |=  (0x4 << 4); 
+ 112:testMain.c    **** 
+ 113:testMain.c    ****  
+ 114:testMain.c    **** 
+ 115:testMain.c    ****     // 3. Starta laddning: Sätt PB0 hög (3.3V) 
+ 116:testMain.c    **** 
+ 117:testMain.c    ****     gpio_bit_set(GPIOB, GPIO_PIN_0); 
+ 125              		.loc 1 117 5
+ 126 0048 8545     		li	a1,1
+ 127 004a 130505C0 		addi	a0,a0,-1024
+ 109:testMain.c    **** 
+ 128              		.loc 1 109 22
+ 129 004e 93F7F7F0 		andi	a5,a5,-241
+ 130 0052 1CC1     		sw	a5,0(a0)
+ 111:testMain.c    **** 
+ 131              		.loc 1 111 5 is_stmt 1
+ 111:testMain.c    **** 
+ 132              		.loc 1 111 22 is_stmt 0
+ 133 0054 1C41     		lw	a5,0(a0)
+ 134 0056 93E70704 		ori	a5,a5,64
+ 135 005a 1CC1     		sw	a5,0(a0)
+ 136              		.loc 1 117 5 is_stmt 1
+ 137 005c 97000000 		call	gpio_bit_set
+ 137      E7800000 
+ 138              	.LVL7:
+ 118:testMain.c    **** 
+ 119:testMain.c    ****  
+ 120:testMain.c    **** 
+ 121:testMain.c    ****     // 4. Räkna tills PB1 blir logisk etta 
+ 122:testMain.c    **** 
+ 123:testMain.c    ****     while (!(GPIO_ISTAT(GPIOB) & (1 << 1)) && (counter < MAX_TIMEOUT)) { 
+ 139              		.loc 1 123 5
+ 140              		.loc 1 123 44 is_stmt 0
+ 141 0064 B7A70700 		li	a5,499712
+ 142              		.loc 1 123 14
+ 143 0068 B7160140 		li	a3,1073811456
+ 144              		.loc 1 123 44
+ 145 006c 93870712 		addi	a5,a5,288
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 6
+
+
+ 146              	.LVL8:
+ 147              	.L6:
+ 148              		.loc 1 123 14
+ 149 0070 03A786C0 		lw	a4,-1016(a3)
+ 150              		.loc 1 123 32
+ 151 0074 098B     		andi	a4,a4,2
+ 152              		.loc 1 123 11
+ 153 0076 19E3     		bne	a4,zero,.L3
+ 154              		.loc 1 123 44 discriminator 1
+ 155 0078 6319F400 		bne	s0,a5,.L8
+ 156              	.L3:
+ 124:testMain.c    **** 
+ 125:testMain.c    ****         counter++; 
+ 126:testMain.c    **** 
+ 127:testMain.c    ****     } 
+ 128:testMain.c    **** 
+ 129:testMain.c    ****  
+ 130:testMain.c    **** 
+ 131:testMain.c    ****     return counter; 
+ 132:testMain.c    **** 
+ 133:testMain.c    **** } 
+ 157              		.loc 1 133 1
+ 158 007c 2285     		mv	a0,s0
+ 159 007e F240     		lw	ra,28(sp)
+ 160              		.cfi_remember_state
+ 161              		.cfi_restore 1
+ 162 0080 6244     		lw	s0,24(sp)
+ 163              		.cfi_restore 8
+ 164              	.LVL9:
+ 165 0082 0561     		addi	sp,sp,32
+ 166              	.LCFI3:
+ 167              		.cfi_def_cfa_offset 0
+ 168 0084 8280     		jr	ra
+ 169              	.LVL10:
+ 170              	.L5:
+ 171              	.LCFI4:
+ 172              		.cfi_restore_state
+ 173              	.LBB7:
+ 174              	.LBB6:
+  61:testMain.c    **** 
+ 175              		.loc 1 61 9 is_stmt 1
+ 176              	 #APP
+ 177              	# 61 "testMain.c" 1
+ 178              		nop
+ 179              	# 0 "" 2
+ 180              	 #NO_APP
+ 181 0088 7DB7     		j	.L4
+ 182              	.LVL11:
+ 183              	.L8:
+ 184              	.LBE6:
+ 185              	.LBE7:
+ 125:testMain.c    **** 
+ 186              		.loc 1 125 9
+ 125:testMain.c    **** 
+ 187              		.loc 1 125 16 is_stmt 0
+ 188 008a 0504     		addi	s0,s0,1
+ 189              	.LVL12:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 7
+
+
+ 190 008c D5B7     		j	.L6
+ 191              		.cfi_endproc
+ 192              	.LFE7:
+ 194              		.section	.text.get_filtered_touch,"ax",@progbits
+ 195              		.align	1
+ 196              		.globl	get_filtered_touch
+ 198              	get_filtered_touch:
+ 199              	.LFB8:
+ 134:testMain.c    **** 
+ 135:testMain.c    ****  
+ 136:testMain.c    **** 
+ 137:testMain.c    **** uint32_t get_filtered_touch(void) { 
+ 200              		.loc 1 137 35 is_stmt 1
+ 201              		.cfi_startproc
+ 138:testMain.c    **** 
+ 139:testMain.c    ****     uint32_t sum = 0; 
+ 202              		.loc 1 139 5
+ 203              	.LVL13:
+ 140:testMain.c    **** 
+ 141:testMain.c    ****     for (int i = 0; i < SAMPLES; i++) { 
+ 204              		.loc 1 141 5
+ 205              	.LBB11:
+ 206              		.loc 1 141 10
+ 207              	.LBE11:
+ 137:testMain.c    **** 
+ 208              		.loc 1 137 35 is_stmt 0
+ 209 0000 0111     		addi	sp,sp,-32
+ 210              	.LCFI5:
+ 211              		.cfi_def_cfa_offset 32
+ 212 0002 22CC     		sw	s0,24(sp)
+ 213 0004 26CA     		sw	s1,20(sp)
+ 214 0006 4AC8     		sw	s2,16(sp)
+ 215 0008 06CE     		sw	ra,28(sp)
+ 216              		.cfi_offset 8, -8
+ 217              		.cfi_offset 9, -12
+ 218              		.cfi_offset 18, -16
+ 219              		.cfi_offset 1, -4
+ 137:testMain.c    **** 
+ 220              		.loc 1 137 35
+ 221 000a C144     		li	s1,16
+ 139:testMain.c    **** 
+ 222              		.loc 1 139 14
+ 223 000c 0144     		li	s0,0
+ 224              	.LBB18:
+ 225              	.LBB12:
+ 226              	.LBB13:
+  57:testMain.c    **** 
+ 227              		.loc 1 57 23
+ 228 000e 13096054 		li	s2,1350
+ 229              	.LVL14:
+ 230              	.L13:
+ 231              	.LBE13:
+ 232              	.LBE12:
+ 142:testMain.c    **** 
+ 143:testMain.c    ****         sum += measure_charge_time(); 
+ 233              		.loc 1 143 9 is_stmt 1 discriminator 3
+ 234              		.loc 1 143 16 is_stmt 0 discriminator 3
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 8
+
+
+ 235 0012 97000000 		call	measure_charge_time
+ 235      E7800000 
+ 236              	.LVL15:
+ 237              		.loc 1 143 13 discriminator 3
+ 238 001a 2A94     		add	s0,s0,a0
+ 239              	.LVL16:
+ 144:testMain.c    **** 
+ 145:testMain.c    ****         delay_us(50); 
+ 240              		.loc 1 145 9 is_stmt 1 discriminator 3
+ 241              	.LBB16:
+ 242              	.LBB14:
+  57:testMain.c    **** 
+ 243              		.loc 1 57 5 discriminator 3
+  57:testMain.c    **** 
+ 244              		.loc 1 57 23 is_stmt 0 discriminator 3
+ 245 001c 4AC6     		sw	s2,12(sp)
+  59:testMain.c    **** 
+ 246              		.loc 1 59 5 is_stmt 1 discriminator 3
+ 247              	.L11:
+  59:testMain.c    **** 
+ 248              		.loc 1 59 17 is_stmt 0
+ 249 001e B247     		lw	a5,12(sp)
+ 250 0020 1387F7FF 		addi	a4,a5,-1
+ 251 0024 3AC6     		sw	a4,12(sp)
+  59:testMain.c    **** 
+ 252              		.loc 1 59 11
+ 253 0026 99EB     		bne	a5,zero,.L12
+ 254              	.LVL17:
+ 255 0028 FD14     		addi	s1,s1,-1
+ 256              	.LVL18:
+ 257              	.LBE14:
+ 258              	.LBE16:
+ 141:testMain.c    **** 
+ 259              		.loc 1 141 5 discriminator 3
+ 260 002a E5F4     		bne	s1,zero,.L13
+ 261              	.LBE18:
+ 146:testMain.c    **** 
+ 147:testMain.c    ****     } 
+ 148:testMain.c    **** 
+ 149:testMain.c    ****     return sum / SAMPLES; 
+ 262              		.loc 1 149 5 is_stmt 1
+ 150:testMain.c    **** 
+ 151:testMain.c    **** } 
+ 263              		.loc 1 151 1 is_stmt 0
+ 264 002c 13554400 		srli	a0,s0,4
+ 265 0030 F240     		lw	ra,28(sp)
+ 266              		.cfi_remember_state
+ 267              		.cfi_restore 1
+ 268 0032 6244     		lw	s0,24(sp)
+ 269              		.cfi_restore 8
+ 270              	.LVL19:
+ 271 0034 D244     		lw	s1,20(sp)
+ 272              		.cfi_restore 9
+ 273              	.LVL20:
+ 274 0036 4249     		lw	s2,16(sp)
+ 275              		.cfi_restore 18
+ 276 0038 0561     		addi	sp,sp,32
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 9
+
+
+ 277              	.LCFI6:
+ 278              		.cfi_def_cfa_offset 0
+ 279 003a 8280     		jr	ra
+ 280              	.LVL21:
+ 281              	.L12:
+ 282              	.LCFI7:
+ 283              		.cfi_restore_state
+ 284              	.LBB19:
+ 285              	.LBB17:
+ 286              	.LBB15:
+  61:testMain.c    **** 
+ 287              		.loc 1 61 9 is_stmt 1
+ 288              	 #APP
+ 289              	# 61 "testMain.c" 1
+ 290              		nop
+ 291              	# 0 "" 2
+ 292              	 #NO_APP
+ 293 003e C5B7     		j	.L11
+ 294              	.LBE15:
+ 295              	.LBE17:
+ 296              	.LBE19:
+ 297              		.cfi_endproc
+ 298              	.LFE8:
+ 300              		.section	.text.servo_pwm_init,"ax",@progbits
+ 301              		.align	1
+ 302              		.globl	servo_pwm_init
+ 304              	servo_pwm_init:
+ 305              	.LFB9:
+ 152:testMain.c    **** 
+ 153:testMain.c    ****  
+ 154:testMain.c    **** 
+ 155:testMain.c    **** // ============================================================================ 
+ 156:testMain.c    **** 
+ 157:testMain.c    **** // 3. SERVO & TIMERS (PA0 = PWM, TIMER2 = 1ms tick, PA1 = EXTI1 Hall) 
+ 158:testMain.c    **** 
+ 159:testMain.c    **** // ============================================================================ 
+ 160:testMain.c    **** 
+ 161:testMain.c    **** void servo_pwm_init(void) { 
+ 306              		.loc 1 161 27
+ 307              		.cfi_startproc
+ 162:testMain.c    **** 
+ 163:testMain.c    ****     rcu_periph_clock_enable(RCU_GPIOA); 
+ 308              		.loc 1 163 5
+ 161:testMain.c    **** 
+ 309              		.loc 1 161 27 is_stmt 0
+ 310 0000 7971     		addi	sp,sp,-48
+ 311              	.LCFI8:
+ 312              		.cfi_def_cfa_offset 48
+ 313              		.loc 1 163 5
+ 314 0002 13052060 		li	a0,1538
+ 161:testMain.c    **** 
+ 315              		.loc 1 161 27
+ 316 0006 06D6     		sw	ra,44(sp)
+ 317              		.cfi_offset 1, -4
+ 318              		.loc 1 163 5
+ 319 0008 97000000 		call	rcu_periph_clock_enable
+ 319      E7800000 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 10
+
+
+ 320              	.LVL22:
+ 164:testMain.c    **** 
+ 165:testMain.c    ****     rcu_periph_clock_enable(RCU_TIMER1); 
+ 321              		.loc 1 165 5 is_stmt 1
+ 322 0010 13050070 		li	a0,1792
+ 323 0014 97000000 		call	rcu_periph_clock_enable
+ 323      E7800000 
+ 324              	.LVL23:
+ 166:testMain.c    **** 
+ 167:testMain.c    ****  
+ 168:testMain.c    **** 
+ 169:testMain.c    ****     gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0); 
+ 325              		.loc 1 169 5
+ 326 001c 37150140 		li	a0,1073811456
+ 327 0020 8546     		li	a3,1
+ 328 0022 0D46     		li	a2,3
+ 329 0024 E145     		li	a1,24
+ 330 0026 13050580 		addi	a0,a0,-2048
+ 331 002a 97000000 		call	gpio_init
+ 331      E7800000 
+ 332              	.LVL24:
+ 170:testMain.c    **** 
+ 171:testMain.c    ****  
+ 172:testMain.c    **** 
+ 173:testMain.c    ****     timer_parameter_struct timer_initpara; 
+ 333              		.loc 1 173 5
+ 174:testMain.c    **** 
+ 175:testMain.c    ****     timer_struct_para_init(&timer_initpara); 
+ 334              		.loc 1 175 5
+ 335 0032 0808     		addi	a0,sp,16
+ 336 0034 97000000 		call	timer_struct_para_init
+ 336      E7800000 
+ 337              	.LVL25:
+ 176:testMain.c    **** 
+ 177:testMain.c    ****     timer_initpara.prescaler         = 36 - 1;      // 108 MHz / 36 = 3 MHz 
+ 338              		.loc 1 177 5
+ 178:testMain.c    **** 
+ 179:testMain.c    ****     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE; 
+ 339              		.loc 1 179 5
+ 180:testMain.c    **** 
+ 181:testMain.c    ****     timer_initpara.counterdirection  = TIMER_COUNTER_UP; 
+ 340              		.loc 1 181 5
+ 177:testMain.c    **** 
+ 341              		.loc 1 177 38 is_stmt 0
+ 342 003c 93073002 		li	a5,35
+ 343 0040 3EC8     		sw	a5,16(sp)
+ 182:testMain.c    **** 
+ 183:testMain.c    ****     timer_initpara.period            = 60000 - 1;   // 3 MHz / 60000 = 50 Hz PWM 
+ 344              		.loc 1 183 38
+ 345 0042 BD67     		li	a5,61440
+ 346 0044 9387F7A5 		addi	a5,a5,-1441
+ 184:testMain.c    **** 
+ 185:testMain.c    ****     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1; 
+ 186:testMain.c    **** 
+ 187:testMain.c    ****     timer_init(TIMER1, &timer_initpara); 
+ 347              		.loc 1 187 5
+ 348 0048 0C08     		addi	a1,sp,16
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 11
+
+
+ 349 004a 37050040 		li	a0,1073741824
+ 183:testMain.c    **** 
+ 350              		.loc 1 183 38
+ 351 004e 3ECC     		sw	a5,24(sp)
+ 181:testMain.c    **** 
+ 352              		.loc 1 181 38
+ 353 0050 231A0100 		sh	zero,20(sp)
+ 183:testMain.c    **** 
+ 354              		.loc 1 183 5 is_stmt 1
+ 185:testMain.c    **** 
+ 355              		.loc 1 185 5
+ 185:testMain.c    **** 
+ 356              		.loc 1 185 38 is_stmt 0
+ 357 0054 231E0100 		sh	zero,28(sp)
+ 358              		.loc 1 187 5 is_stmt 1
+ 359 0058 97000000 		call	timer_init
+ 359      E7800000 
+ 360              	.LVL26:
+ 188:testMain.c    **** 
+ 189:testMain.c    ****  
+ 190:testMain.c    **** 
+ 191:testMain.c    ****     timer_oc_parameter_struct timer_ocintpara; 
+ 361              		.loc 1 191 5
+ 192:testMain.c    **** 
+ 193:testMain.c    ****     timer_channel_output_struct_para_init(&timer_ocintpara); 
+ 362              		.loc 1 193 5
+ 363 0060 4800     		addi	a0,sp,4
+ 364 0062 97000000 		call	timer_channel_output_struct_para_init
+ 364      E7800000 
+ 365              	.LVL27:
+ 194:testMain.c    **** 
+ 195:testMain.c    ****     timer_ocintpara.outputstate  = TIMER_CCX_ENABLE; 
+ 366              		.loc 1 195 5
+ 367              		.loc 1 195 34 is_stmt 0
+ 368 006a 8547     		li	a5,1
+ 196:testMain.c    **** 
+ 197:testMain.c    ****     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH; 
+ 198:testMain.c    **** 
+ 199:testMain.c    ****     timer_channel_output_config(TIMER1, TIMER_CH_0, &timer_ocintpara); 
+ 369              		.loc 1 199 5
+ 370 006c 5000     		addi	a2,sp,4
+ 371 006e 8145     		li	a1,0
+ 372 0070 37050040 		li	a0,1073741824
+ 195:testMain.c    **** 
+ 373              		.loc 1 195 34
+ 374 0074 2312F100 		sh	a5,4(sp)
+ 197:testMain.c    **** 
+ 375              		.loc 1 197 5 is_stmt 1
+ 197:testMain.c    **** 
+ 376              		.loc 1 197 34 is_stmt 0
+ 377 0078 23140100 		sh	zero,8(sp)
+ 378              		.loc 1 199 5 is_stmt 1
+ 379 007c 97000000 		call	timer_channel_output_config
+ 379      E7800000 
+ 380              	.LVL28:
+ 200:testMain.c    **** 
+ 201:testMain.c    ****  
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 12
+
+
+ 202:testMain.c    **** 
+ 203:testMain.c    ****     timer_channel_output_mode_config(TIMER1, TIMER_CH_0, TIMER_OC_MODE_PWM0); 
+ 381              		.loc 1 203 5
+ 382 0084 13060006 		li	a2,96
+ 383 0088 8145     		li	a1,0
+ 384 008a 37050040 		li	a0,1073741824
+ 385 008e 97000000 		call	timer_channel_output_mode_config
+ 385      E7800000 
+ 386              	.LVL29:
+ 204:testMain.c    **** 
+ 205:testMain.c    ****      
+ 206:testMain.c    **** 
+ 207:testMain.c    ****     // AKTIVERAT SKUGGBUFFERT: Förhindrar att PWM-signalen kapa mitt i en cykel 
+ 208:testMain.c    **** 
+ 209:testMain.c    ****     timer_channel_output_shadow_config(TIMER1, TIMER_CH_0, TIMER_OC_SHADOW_ENABLE); 
+ 387              		.loc 1 209 5
+ 388 0096 2146     		li	a2,8
+ 389 0098 8145     		li	a1,0
+ 390 009a 37050040 		li	a0,1073741824
+ 391 009e 97000000 		call	timer_channel_output_shadow_config
+ 391      E7800000 
+ 392              	.LVL30:
+ 210:testMain.c    **** 
+ 211:testMain.c    ****  
+ 212:testMain.c    **** 
+ 213:testMain.c    ****     timer_channel_output_pulse_value_config(TIMER1, TIMER_CH_0, SERVO_0_DEG); 
+ 393              		.loc 1 213 5
+ 394 00a6 1306007D 		li	a2,2000
+ 395 00aa 8145     		li	a1,0
+ 396 00ac 37050040 		li	a0,1073741824
+ 397 00b0 97000000 		call	timer_channel_output_pulse_value_config
+ 397      E7800000 
+ 398              	.LVL31:
+ 214:testMain.c    **** 
+ 215:testMain.c    ****     timer_auto_reload_shadow_enable(TIMER1); 
+ 399              		.loc 1 215 5
+ 400 00b8 37050040 		li	a0,1073741824
+ 401 00bc 97000000 		call	timer_auto_reload_shadow_enable
+ 401      E7800000 
+ 402              	.LVL32:
+ 216:testMain.c    **** 
+ 217:testMain.c    ****     timer_enable(TIMER1); 
+ 403              		.loc 1 217 5
+ 404 00c4 37050040 		li	a0,1073741824
+ 405 00c8 97000000 		call	timer_enable
+ 405      E7800000 
+ 406              	.LVL33:
+ 218:testMain.c    **** 
+ 219:testMain.c    **** } 
+ 407              		.loc 1 219 1 is_stmt 0
+ 408 00d0 B250     		lw	ra,44(sp)
+ 409              		.cfi_restore 1
+ 410 00d2 4561     		addi	sp,sp,48
+ 411              	.LCFI9:
+ 412              		.cfi_def_cfa_offset 0
+ 413 00d4 8280     		jr	ra
+ 414              		.cfi_endproc
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 13
+
+
+ 415              	.LFE9:
+ 417              		.section	.text.set_servo_pulse,"ax",@progbits
+ 418              		.align	1
+ 419              		.globl	set_servo_pulse
+ 421              	set_servo_pulse:
+ 422              	.LFB10:
+ 220:testMain.c    **** 
+ 221:testMain.c    ****  
+ 222:testMain.c    **** 
+ 223:testMain.c    **** void set_servo_pulse(uint16_t pulse) { 
+ 423              		.loc 1 223 38 is_stmt 1
+ 424              		.cfi_startproc
+ 425              	.LVL34:
+ 224:testMain.c    **** 
+ 225:testMain.c    ****     timer_channel_output_pulse_value_config(TIMER1, TIMER_CH_0, pulse); 
+ 426              		.loc 1 225 5
+ 427 0000 2A86     		mv	a2,a0
+ 428 0002 8145     		li	a1,0
+ 429 0004 37050040 		li	a0,1073741824
+ 430              	.LVL35:
+ 431 0008 17030000 		tail	timer_channel_output_pulse_value_config
+ 431      67000300 
+ 432              	.LVL36:
+ 433              		.cfi_endproc
+ 434              	.LFE10:
+ 436              		.section	.text.timer_1ms_init,"ax",@progbits
+ 437              		.align	1
+ 438              		.globl	timer_1ms_init
+ 440              	timer_1ms_init:
+ 441              	.LFB11:
+ 226:testMain.c    **** 
+ 227:testMain.c    **** } 
+ 228:testMain.c    **** 
+ 229:testMain.c    ****  
+ 230:testMain.c    **** 
+ 231:testMain.c    **** void timer_1ms_init(void) { 
+ 442              		.loc 1 231 27
+ 443              		.cfi_startproc
+ 232:testMain.c    **** 
+ 233:testMain.c    ****     rcu_periph_clock_enable(RCU_TIMER2); 
+ 444              		.loc 1 233 5
+ 231:testMain.c    **** 
+ 445              		.loc 1 231 27 is_stmt 0
+ 446 0000 0111     		addi	sp,sp,-32
+ 447              	.LCFI10:
+ 448              		.cfi_def_cfa_offset 32
+ 449              		.loc 1 233 5
+ 450 0002 13051070 		li	a0,1793
+ 231:testMain.c    **** 
+ 451              		.loc 1 231 27
+ 452 0006 06CE     		sw	ra,28(sp)
+ 453 0008 22CC     		sw	s0,24(sp)
+ 454              		.cfi_offset 1, -4
+ 455              		.cfi_offset 8, -8
+ 456              		.loc 1 233 5
+ 457 000a 97000000 		call	rcu_periph_clock_enable
+ 457      E7800000 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 14
+
+
+ 458              	.LVL37:
+ 234:testMain.c    **** 
+ 235:testMain.c    ****     eclic_irq_enable(TIMER2_IRQn, 2, 0); 
+ 459              		.loc 1 235 5 is_stmt 1
+ 460 0012 0146     		li	a2,0
+ 461 0014 8945     		li	a1,2
+ 462 0016 13050003 		li	a0,48
+ 463 001a 97000000 		call	eclic_irq_enable
+ 463      E7800000 
+ 464              	.LVL38:
+ 236:testMain.c    **** 
+ 237:testMain.c    ****  
+ 238:testMain.c    **** 
+ 239:testMain.c    ****     timer_parameter_struct timer_initpara; 
+ 465              		.loc 1 239 5
+ 240:testMain.c    **** 
+ 241:testMain.c    ****     timer_deinit(TIMER2); 
+ 466              		.loc 1 241 5
+ 467 0022 37040040 		li	s0,1073741824
+ 468 0026 13050440 		addi	a0,s0,1024
+ 469 002a 97000000 		call	timer_deinit
+ 469      E7800000 
+ 470              	.LVL39:
+ 242:testMain.c    **** 
+ 243:testMain.c    ****     timer_initpara.prescaler         = 108 - 1;     // Avbrott var 1000:e us (1 ms) 
+ 471              		.loc 1 243 5
+ 244:testMain.c    **** 
+ 245:testMain.c    ****     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE; 
+ 472              		.loc 1 245 5
+ 246:testMain.c    **** 
+ 247:testMain.c    ****     timer_initpara.counterdirection  = TIMER_COUNTER_UP; 
+ 473              		.loc 1 247 5
+ 243:testMain.c    **** 
+ 474              		.loc 1 243 38 is_stmt 0
+ 475 0032 9307B006 		li	a5,107
+ 476 0036 3EC0     		sw	a5,0(sp)
+ 248:testMain.c    **** 
+ 249:testMain.c    ****     timer_initpara.period            = 1000 - 1; 
+ 250:testMain.c    **** 
+ 251:testMain.c    ****     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1; 
+ 252:testMain.c    **** 
+ 253:testMain.c    ****     timer_initpara.repetitioncounter = 0; 
+ 254:testMain.c    **** 
+ 255:testMain.c    ****     timer_init(TIMER2, &timer_initpara); 
+ 477              		.loc 1 255 5
+ 478 0038 8A85     		mv	a1,sp
+ 249:testMain.c    **** 
+ 479              		.loc 1 249 38
+ 480 003a 9307703E 		li	a5,999
+ 481              		.loc 1 255 5
+ 482 003e 13050440 		addi	a0,s0,1024
+ 249:testMain.c    **** 
+ 483              		.loc 1 249 38
+ 484 0042 3EC4     		sw	a5,8(sp)
+ 247:testMain.c    **** 
+ 485              		.loc 1 247 38
+ 486 0044 23120100 		sh	zero,4(sp)
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 15
+
+
+ 249:testMain.c    **** 
+ 487              		.loc 1 249 5 is_stmt 1
+ 251:testMain.c    **** 
+ 488              		.loc 1 251 5
+ 251:testMain.c    **** 
+ 489              		.loc 1 251 38 is_stmt 0
+ 490 0048 23160100 		sh	zero,12(sp)
+ 253:testMain.c    **** 
+ 491              		.loc 1 253 5 is_stmt 1
+ 253:testMain.c    **** 
+ 492              		.loc 1 253 38 is_stmt 0
+ 493 004c 23070100 		sb	zero,14(sp)
+ 494              		.loc 1 255 5 is_stmt 1
+ 495 0050 97000000 		call	timer_init
+ 495      E7800000 
+ 496              	.LVL40:
+ 256:testMain.c    **** 
+ 257:testMain.c    ****  
+ 258:testMain.c    **** 
+ 259:testMain.c    ****     timer_interrupt_enable(TIMER2, TIMER_INT_UP); 
+ 497              		.loc 1 259 5
+ 498 0058 13050440 		addi	a0,s0,1024
+ 499 005c 8545     		li	a1,1
+ 500 005e 97000000 		call	timer_interrupt_enable
+ 500      E7800000 
+ 501              	.LVL41:
+ 260:testMain.c    **** 
+ 261:testMain.c    ****     timer_enable(TIMER2); 
+ 502              		.loc 1 261 5
+ 503 0066 13050440 		addi	a0,s0,1024
+ 504 006a 97000000 		call	timer_enable
+ 504      E7800000 
+ 505              	.LVL42:
+ 262:testMain.c    **** 
+ 263:testMain.c    **** } 
+ 506              		.loc 1 263 1 is_stmt 0
+ 507 0072 F240     		lw	ra,28(sp)
+ 508              		.cfi_restore 1
+ 509 0074 6244     		lw	s0,24(sp)
+ 510              		.cfi_restore 8
+ 511 0076 0561     		addi	sp,sp,32
+ 512              	.LCFI11:
+ 513              		.cfi_def_cfa_offset 0
+ 514 0078 8280     		jr	ra
+ 515              		.cfi_endproc
+ 516              	.LFE11:
+ 518              		.section	.text.TIMER2_IRQHandler,"ax",@progbits
+ 519              		.align	1
+ 520              		.globl	TIMER2_IRQHandler
+ 522              	TIMER2_IRQHandler:
+ 523              	.LFB12:
+ 264:testMain.c    **** 
+ 265:testMain.c    ****  
+ 266:testMain.c    **** 
+ 267:testMain.c    **** void TIMER2_IRQHandler(void) { 
+ 524              		.loc 1 267 30 is_stmt 1
+ 525              		.cfi_startproc
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 16
+
+
+ 268:testMain.c    **** 
+ 269:testMain.c    ****     if (SET == timer_interrupt_flag_get(TIMER2, TIMER_INT_FLAG_UP)) { 
+ 526              		.loc 1 269 5
+ 267:testMain.c    **** 
+ 527              		.loc 1 267 30 is_stmt 0
+ 528 0000 4111     		addi	sp,sp,-16
+ 529              	.LCFI12:
+ 530              		.cfi_def_cfa_offset 16
+ 531 0002 22C4     		sw	s0,8(sp)
+ 532              		.cfi_offset 8, -8
+ 533              		.loc 1 269 16
+ 534 0004 37040040 		li	s0,1073741824
+ 535 0008 8545     		li	a1,1
+ 536 000a 13050440 		addi	a0,s0,1024
+ 267:testMain.c    **** 
+ 537              		.loc 1 267 30
+ 538 000e 06C6     		sw	ra,12(sp)
+ 539              		.cfi_offset 1, -4
+ 540              		.loc 1 269 16
+ 541 0010 97000000 		call	timer_interrupt_flag_get
+ 541      E7800000 
+ 542              	.LVL43:
+ 543              		.loc 1 269 8
+ 544 0018 8547     		li	a5,1
+ 545 001a 6310F502 		bne	a0,a5,.L21
+ 270:testMain.c    **** 
+ 271:testMain.c    ****         timer_interrupt_flag_clear(TIMER2, TIMER_INT_FLAG_UP); 
+ 546              		.loc 1 271 9 is_stmt 1
+ 547 001e 8545     		li	a1,1
+ 548 0020 13050440 		addi	a0,s0,1024
+ 549 0024 97000000 		call	timer_interrupt_flag_clear
+ 549      E7800000 
+ 550              	.LVL44:
+ 272:testMain.c    **** 
+ 273:testMain.c    ****         ms_ticks++; 
+ 551              		.loc 1 273 9
+ 552              		.loc 1 273 17 is_stmt 0
+ 553 002c B7070000 		lui	a5,%hi(.LANCHOR0)
+ 554 0030 93870700 		addi	a5,a5,%lo(.LANCHOR0)
+ 555 0034 9843     		lw	a4,0(a5)
+ 556 0036 0507     		addi	a4,a4,1
+ 557 0038 98C3     		sw	a4,0(a5)
+ 558              	.L21:
+ 274:testMain.c    **** 
+ 275:testMain.c    ****     } 
+ 276:testMain.c    **** 
+ 277:testMain.c    **** } 
+ 559              		.loc 1 277 1
+ 560 003a B240     		lw	ra,12(sp)
+ 561              		.cfi_restore 1
+ 562 003c 2244     		lw	s0,8(sp)
+ 563              		.cfi_restore 8
+ 564 003e 4101     		addi	sp,sp,16
+ 565              	.LCFI13:
+ 566              		.cfi_def_cfa_offset 0
+ 567 0040 8280     		jr	ra
+ 568              		.cfi_endproc
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 17
+
+
+ 569              	.LFE12:
+ 571              		.section	.text.get_millis,"ax",@progbits
+ 572              		.align	1
+ 573              		.globl	get_millis
+ 575              	get_millis:
+ 576              	.LFB13:
+ 278:testMain.c    **** 
+ 279:testMain.c    ****  
+ 280:testMain.c    **** 
+ 281:testMain.c    **** uint32_t get_millis(void) { 
+ 577              		.loc 1 281 27 is_stmt 1
+ 578              		.cfi_startproc
+ 282:testMain.c    **** 
+ 283:testMain.c    ****     uint32_t m; 
+ 579              		.loc 1 283 5
+ 284:testMain.c    **** 
+ 285:testMain.c    ****     eclic_global_interrupt_disable(); 
+ 580              		.loc 1 285 5
+ 281:testMain.c    **** 
+ 581              		.loc 1 281 27 is_stmt 0
+ 582 0000 0111     		addi	sp,sp,-32
+ 583              	.LCFI14:
+ 584              		.cfi_def_cfa_offset 32
+ 585 0002 06CE     		sw	ra,28(sp)
+ 586              		.cfi_offset 1, -4
+ 587              		.loc 1 285 5
+ 588 0004 97000000 		call	eclic_global_interrupt_disable
+ 588      E7800000 
+ 589              	.LVL45:
+ 286:testMain.c    **** 
+ 287:testMain.c    ****     m = ms_ticks; 
+ 590              		.loc 1 287 5 is_stmt 1
+ 591              		.loc 1 287 7 is_stmt 0
+ 592 000c B7070000 		lui	a5,%hi(.LANCHOR0)
+ 593 0010 03A50700 		lw	a0,%lo(.LANCHOR0)(a5)
+ 594 0014 2AC6     		sw	a0,12(sp)
+ 595              	.LVL46:
+ 288:testMain.c    **** 
+ 289:testMain.c    ****     eclic_global_interrupt_enable(); 
+ 596              		.loc 1 289 5 is_stmt 1
+ 597 0016 97000000 		call	eclic_global_interrupt_enable
+ 597      E7800000 
+ 598              	.LVL47:
+ 290:testMain.c    **** 
+ 291:testMain.c    ****     return m; 
+ 599              		.loc 1 291 5
+ 292:testMain.c    **** 
+ 293:testMain.c    **** } 
+ 600              		.loc 1 293 1 is_stmt 0
+ 601 001e F240     		lw	ra,28(sp)
+ 602              		.cfi_restore 1
+ 603 0020 3245     		lw	a0,12(sp)
+ 604 0022 0561     		addi	sp,sp,32
+ 605              	.LCFI15:
+ 606              		.cfi_def_cfa_offset 0
+ 607              	.LVL48:
+ 608 0024 8280     		jr	ra
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 18
+
+
+ 609              		.cfi_endproc
+ 610              	.LFE13:
+ 612              		.section	.text.hall_sensor_init,"ax",@progbits
+ 613              		.align	1
+ 614              		.globl	hall_sensor_init
+ 616              	hall_sensor_init:
+ 617              	.LFB14:
+ 294:testMain.c    **** 
+ 295:testMain.c    ****  
+ 296:testMain.c    **** 
+ 297:testMain.c    **** void hall_sensor_init(void) { 
+ 618              		.loc 1 297 29 is_stmt 1
+ 619              		.cfi_startproc
+ 298:testMain.c    **** 
+ 299:testMain.c    ****     rcu_periph_clock_enable(RCU_GPIOA); 
+ 620              		.loc 1 299 5
+ 297:testMain.c    **** 
+ 621              		.loc 1 297 29 is_stmt 0
+ 622 0000 4111     		addi	sp,sp,-16
+ 623              	.LCFI16:
+ 624              		.cfi_def_cfa_offset 16
+ 625              		.loc 1 299 5
+ 626 0002 13052060 		li	a0,1538
+ 297:testMain.c    **** 
+ 627              		.loc 1 297 29
+ 628 0006 06C6     		sw	ra,12(sp)
+ 629              		.cfi_offset 1, -4
+ 630              		.loc 1 299 5
+ 631 0008 97000000 		call	rcu_periph_clock_enable
+ 631      E7800000 
+ 632              	.LVL49:
+ 300:testMain.c    **** 
+ 301:testMain.c    ****     rcu_periph_clock_enable(RCU_AF); 
+ 633              		.loc 1 301 5 is_stmt 1
+ 634 0010 13050060 		li	a0,1536
+ 635 0014 97000000 		call	rcu_periph_clock_enable
+ 635      E7800000 
+ 636              	.LVL50:
+ 302:testMain.c    **** 
+ 303:testMain.c    ****  
+ 304:testMain.c    **** 
+ 305:testMain.c    ****     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1); 
+ 637              		.loc 1 305 5
+ 638 001c 37150140 		li	a0,1073811456
+ 639 0020 8946     		li	a3,2
+ 640 0022 0D46     		li	a2,3
+ 641 0024 93058004 		li	a1,72
+ 642 0028 13050580 		addi	a0,a0,-2048
+ 643 002c 97000000 		call	gpio_init
+ 643      E7800000 
+ 644              	.LVL51:
+ 306:testMain.c    **** 
+ 307:testMain.c    ****  
+ 308:testMain.c    **** 
+ 309:testMain.c    ****     eclic_irq_enable(EXTI1_IRQn, 1, 1); 
+ 645              		.loc 1 309 5
+ 646 0034 0546     		li	a2,1
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 19
+
+
+ 647 0036 8545     		li	a1,1
+ 648 0038 6945     		li	a0,26
+ 649 003a 97000000 		call	eclic_irq_enable
+ 649      E7800000 
+ 650              	.LVL52:
+ 310:testMain.c    **** 
+ 311:testMain.c    ****     gpio_exti_source_select(GPIO_PORT_SOURCE_GPIOA, GPIO_PIN_SOURCE_1); 
+ 651              		.loc 1 311 5
+ 652 0042 8545     		li	a1,1
+ 653 0044 0145     		li	a0,0
+ 654 0046 97000000 		call	gpio_exti_source_select
+ 654      E7800000 
+ 655              	.LVL53:
+ 312:testMain.c    **** 
+ 313:testMain.c    ****  
+ 314:testMain.c    **** 
+ 315:testMain.c    ****     // Reagerar på båda flanker för bipolär Hall-sensor 
+ 316:testMain.c    **** 
+ 317:testMain.c    ****     exti_init(EXTI_1, EXTI_INTERRUPT, EXTI_TRIG_BOTH); 
+ 656              		.loc 1 317 5
+ 657 004e 0945     		li	a0,2
+ 658 0050 0946     		li	a2,2
+ 659 0052 8145     		li	a1,0
+ 660 0054 97000000 		call	exti_init
+ 660      E7800000 
+ 661              	.LVL54:
+ 318:testMain.c    **** 
+ 319:testMain.c    ****     exti_interrupt_flag_clear(EXTI_1); 
+ 662              		.loc 1 319 5
+ 320:testMain.c    **** 
+ 321:testMain.c    **** } 
+ 663              		.loc 1 321 1 is_stmt 0
+ 664 005c B240     		lw	ra,12(sp)
+ 665              		.cfi_restore 1
+ 319:testMain.c    **** 
+ 666              		.loc 1 319 5
+ 667 005e 0945     		li	a0,2
+ 668              		.loc 1 321 1
+ 669 0060 4101     		addi	sp,sp,16
+ 670              	.LCFI17:
+ 671              		.cfi_def_cfa_offset 0
+ 319:testMain.c    **** 
+ 672              		.loc 1 319 5
+ 673 0062 17030000 		tail	exti_interrupt_flag_clear
+ 673      67000300 
+ 674              	.LVL55:
+ 675              		.cfi_endproc
+ 676              	.LFE14:
+ 678              		.section	.text.EXTI1_IRQHandler,"ax",@progbits
+ 679              		.align	1
+ 680              		.globl	EXTI1_IRQHandler
+ 682              	EXTI1_IRQHandler:
+ 683              	.LFB15:
+ 322:testMain.c    **** 
+ 323:testMain.c    ****  
+ 324:testMain.c    **** 
+ 325:testMain.c    **** void EXTI1_IRQHandler(void) { 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 20
+
+
+ 684              		.loc 1 325 29 is_stmt 1
+ 685              		.cfi_startproc
+ 326:testMain.c    **** 
+ 327:testMain.c    ****     if (RESET != exti_interrupt_flag_get(EXTI_1)) { 
+ 686              		.loc 1 327 5
+ 325:testMain.c    **** 
+ 687              		.loc 1 325 29 is_stmt 0
+ 688 0000 4111     		addi	sp,sp,-16
+ 689              	.LCFI18:
+ 690              		.cfi_def_cfa_offset 16
+ 691              		.loc 1 327 18
+ 692 0002 0945     		li	a0,2
+ 325:testMain.c    **** 
+ 693              		.loc 1 325 29
+ 694 0004 06C6     		sw	ra,12(sp)
+ 695              		.cfi_offset 1, -4
+ 696              		.loc 1 327 18
+ 697 0006 97000000 		call	exti_interrupt_flag_get
+ 697      E7800000 
+ 698              	.LVL56:
+ 699              		.loc 1 327 8
+ 700 000e 29C1     		beq	a0,zero,.L28
+ 701              	.LBB20:
+ 328:testMain.c    **** 
+ 329:testMain.c    ****         exti_interrupt_flag_clear(EXTI_1); 
+ 702              		.loc 1 329 9 is_stmt 1
+ 703 0010 0945     		li	a0,2
+ 704 0012 97000000 		call	exti_interrupt_flag_clear
+ 704      E7800000 
+ 705              	.LVL57:
+ 330:testMain.c    **** 
+ 331:testMain.c    ****  
+ 332:testMain.c    **** 
+ 333:testMain.c    ****         uint32_t now = ms_ticks; 
+ 706              		.loc 1 333 9
+ 334:testMain.c    **** 
+ 335:testMain.c    ****         uint32_t dt = now - last_pulse_time; 
+ 707              		.loc 1 335 27 is_stmt 0
+ 708 001a 37070000 		lui	a4,%hi(.LANCHOR1)
+ 333:testMain.c    **** 
+ 709              		.loc 1 333 18
+ 710 001e B7070000 		lui	a5,%hi(.LANCHOR0)
+ 711              		.loc 1 335 27
+ 712 0022 13070700 		addi	a4,a4,%lo(.LANCHOR1)
+ 333:testMain.c    **** 
+ 713              		.loc 1 333 18
+ 714 0026 83A50700 		lw	a1,%lo(.LANCHOR0)(a5)
+ 715              	.LVL58:
+ 716              		.loc 1 335 9 is_stmt 1
+ 717              		.loc 1 335 27 is_stmt 0
+ 718 002a 1043     		lw	a2,0(a4)
+ 336:testMain.c    **** 
+ 337:testMain.c    ****  
+ 338:testMain.c    **** 
+ 339:testMain.c    ****         if (dt > DEBOUNCE_MS) { 
+ 719              		.loc 1 339 12
+ 720 002c 9547     		li	a5,5
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 21
+
+
+ 335:testMain.c    **** 
+ 721              		.loc 1 335 18
+ 722 002e 3386C540 		sub	a2,a1,a2
+ 723              	.LVL59:
+ 724              		.loc 1 339 9 is_stmt 1
+ 725              		.loc 1 339 12 is_stmt 0
+ 726 0032 63FFC700 		bleu	a2,a5,.L28
+ 340:testMain.c    **** 
+ 341:testMain.c    ****             if (pulse_count == 0) { 
+ 727              		.loc 1 341 13 is_stmt 1
+ 728              		.loc 1 341 29 is_stmt 0
+ 729 0036 B7070000 		lui	a5,%hi(.LANCHOR2)
+ 730 003a 93870700 		addi	a5,a5,%lo(.LANCHOR2)
+ 731 003e 83C60700 		lbu	a3,0(a5)
+ 732 0042 93F6F60F 		andi	a3,a3,0xff
+ 733              		.loc 1 341 16
+ 734 0046 81EA     		bne	a3,zero,.L32
+ 342:testMain.c    **** 
+ 343:testMain.c    ****                 last_pulse_time = now; 
+ 735              		.loc 1 343 17 is_stmt 1
+ 736              		.loc 1 343 33 is_stmt 0
+ 737 0048 0CC3     		sw	a1,0(a4)
+ 344:testMain.c    **** 
+ 345:testMain.c    ****                 pulse_count = 1; 
+ 738              		.loc 1 345 17 is_stmt 1
+ 739              		.loc 1 345 29 is_stmt 0
+ 740 004a 0547     		li	a4,1
+ 741 004c 2380E700 		sb	a4,0(a5)
+ 742              	.LVL60:
+ 743              	.L28:
+ 744              	.LBE20:
+ 346:testMain.c    **** 
+ 347:testMain.c    ****             } else { 
+ 348:testMain.c    **** 
+ 349:testMain.c    ****                 previous_interval = current_interval; 
+ 350:testMain.c    **** 
+ 351:testMain.c    ****                 current_interval = dt; 
+ 352:testMain.c    **** 
+ 353:testMain.c    ****                 last_pulse_time = now; 
+ 354:testMain.c    **** 
+ 355:testMain.c    ****                 pulse_count++; 
+ 356:testMain.c    **** 
+ 357:testMain.c    ****                 new_pulse_flag = 1; 
+ 358:testMain.c    **** 
+ 359:testMain.c    ****             } 
+ 360:testMain.c    **** 
+ 361:testMain.c    ****         } 
+ 362:testMain.c    **** 
+ 363:testMain.c    ****     } 
+ 364:testMain.c    **** 
+ 365:testMain.c    **** } 
+ 745              		.loc 1 365 1
+ 746 0050 B240     		lw	ra,12(sp)
+ 747              		.cfi_remember_state
+ 748              		.cfi_restore 1
+ 749 0052 4101     		addi	sp,sp,16
+ 750              	.LCFI19:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 22
+
+
+ 751              		.cfi_def_cfa_offset 0
+ 752 0054 8280     		jr	ra
+ 753              	.LVL61:
+ 754              	.L32:
+ 755              	.LCFI20:
+ 756              		.cfi_restore_state
+ 757              	.LBB21:
+ 349:testMain.c    **** 
+ 758              		.loc 1 349 17 is_stmt 1
+ 349:testMain.c    **** 
+ 759              		.loc 1 349 35 is_stmt 0
+ 760 0056 B7060000 		lui	a3,%hi(.LANCHOR3)
+ 761 005a 93860600 		addi	a3,a3,%lo(.LANCHOR3)
+ 762 005e 03A80600 		lw	a6,0(a3)
+ 763 0062 37050000 		lui	a0,%hi(.LANCHOR4)
+ 764 0066 23200501 		sw	a6,%lo(.LANCHOR4)(a0)
+ 351:testMain.c    **** 
+ 765              		.loc 1 351 17 is_stmt 1
+ 351:testMain.c    **** 
+ 766              		.loc 1 351 34 is_stmt 0
+ 767 006a 90C2     		sw	a2,0(a3)
+ 353:testMain.c    **** 
+ 768              		.loc 1 353 17 is_stmt 1
+ 353:testMain.c    **** 
+ 769              		.loc 1 353 33 is_stmt 0
+ 770 006c 0CC3     		sw	a1,0(a4)
+ 355:testMain.c    **** 
+ 771              		.loc 1 355 17 is_stmt 1
+ 355:testMain.c    **** 
+ 772              		.loc 1 355 28 is_stmt 0
+ 773 006e 03C70700 		lbu	a4,0(a5)
+ 774 0072 0507     		addi	a4,a4,1
+ 775 0074 1377F70F 		andi	a4,a4,0xff
+ 776 0078 2380E700 		sb	a4,0(a5)
+ 357:testMain.c    **** 
+ 777              		.loc 1 357 17 is_stmt 1
+ 357:testMain.c    **** 
+ 778              		.loc 1 357 32 is_stmt 0
+ 779 007c B7070000 		lui	a5,%hi(.LANCHOR5)
+ 780 0080 0547     		li	a4,1
+ 781 0082 2380E700 		sb	a4,%lo(.LANCHOR5)(a5)
+ 782              	.LBE21:
+ 783              		.loc 1 365 1
+ 784 0086 E9B7     		j	.L28
+ 785              		.cfi_endproc
+ 786              	.LFE15:
+ 788              		.section	.text.startup.main,"ax",@progbits
+ 789              		.align	1
+ 790              		.globl	main
+ 792              	main:
+ 793              	.LFB16:
+ 366:testMain.c    **** 
+ 367:testMain.c    ****  
+ 368:testMain.c    **** 
+ 369:testMain.c    **** // ============================================================================ 
+ 370:testMain.c    **** 
+ 371:testMain.c    **** // 4. HUVUDPROGRAM (MAIN) 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 23
+
+
+ 372:testMain.c    **** 
+ 373:testMain.c    **** // ============================================================================ 
+ 374:testMain.c    **** 
+ 375:testMain.c    **** int main(void) { 
+ 794              		.loc 1 375 16 is_stmt 1
+ 795              		.cfi_startproc
+ 376:testMain.c    **** 
+ 377:testMain.c    ****     char text_buf[32]; 
+ 796              		.loc 1 377 5
+ 378:testMain.c    **** 
+ 379:testMain.c    ****  
+ 380:testMain.c    **** 
+ 381:testMain.c    ****     // Initiera all hårdvara 
+ 382:testMain.c    **** 
+ 383:testMain.c    ****     servo_pwm_init(); 
+ 797              		.loc 1 383 5
+ 375:testMain.c    **** 
+ 798              		.loc 1 375 16 is_stmt 0
+ 799 0000 5971     		addi	sp,sp,-112
+ 800              	.LCFI21:
+ 801              		.cfi_def_cfa_offset 112
+ 802 0002 86D6     		sw	ra,108(sp)
+ 803 0004 A2D4     		sw	s0,104(sp)
+ 804 0006 CAD0     		sw	s2,96(sp)
+ 805 0008 CECE     		sw	s3,92(sp)
+ 806 000a D2CC     		sw	s4,88(sp)
+ 807 000c D6CA     		sw	s5,84(sp)
+ 808 000e DAC8     		sw	s6,80(sp)
+ 809 0010 DEC6     		sw	s7,76(sp)
+ 810 0012 E2C4     		sw	s8,72(sp)
+ 811 0014 E6C2     		sw	s9,68(sp)
+ 812 0016 EAC0     		sw	s10,64(sp)
+ 813 0018 6EDE     		sw	s11,60(sp)
+ 814 001a A6D2     		sw	s1,100(sp)
+ 815              		.cfi_offset 1, -4
+ 816              		.cfi_offset 8, -8
+ 817              		.cfi_offset 18, -16
+ 818              		.cfi_offset 19, -20
+ 819              		.cfi_offset 20, -24
+ 820              		.cfi_offset 21, -28
+ 821              		.cfi_offset 22, -32
+ 822              		.cfi_offset 23, -36
+ 823              		.cfi_offset 24, -40
+ 824              		.cfi_offset 25, -44
+ 825              		.cfi_offset 26, -48
+ 826              		.cfi_offset 27, -52
+ 827              		.cfi_offset 9, -12
+ 828              		.loc 1 383 5
+ 829 001c 97000000 		call	servo_pwm_init
+ 829      E7800000 
+ 830              	.LVL62:
+ 384:testMain.c    **** 
+ 385:testMain.c    ****     timer_1ms_init(); 
+ 831              		.loc 1 385 5 is_stmt 1
+ 832 0024 97000000 		call	timer_1ms_init
+ 832      E7800000 
+ 833              	.LVL63:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 24
+
+
+ 386:testMain.c    **** 
+ 387:testMain.c    ****     hall_sensor_init(); 
+ 834              		.loc 1 387 5
+ 835 002c 97000000 		call	hall_sensor_init
+ 835      E7800000 
+ 836              	.LVL64:
+ 388:testMain.c    **** 
+ 389:testMain.c    ****     touch_sensor_init(); 
+ 837              		.loc 1 389 5
+ 838 0034 97000000 		call	touch_sensor_init
+ 838      E7800000 
+ 839              	.LVL65:
+ 390:testMain.c    **** 
+ 391:testMain.c    ****  
+ 392:testMain.c    **** 
+ 393:testMain.c    ****     // Initiera LCD 
+ 394:testMain.c    **** 
+ 395:testMain.c    ****     Lcd_Init(); 
+ 840              		.loc 1 395 5
+ 841 003c 97000000 		call	Lcd_Init
+ 841      E7800000 
+ 842              	.LVL66:
+ 396:testMain.c    **** 
+ 397:testMain.c    ****      
+ 398:testMain.c    **** 
+ 399:testMain.c    ****     // BAKGRUNDSFÄRGER 
+ 400:testMain.c    **** 
+ 401:testMain.c    ****     BACK_COLOR = BLACK; // Sätter bakgrundsfärgen BAKOM texten (stoppar flimmer) 
+ 843              		.loc 1 401 5
+ 844              		.loc 1 401 16 is_stmt 0
+ 845 0044 B7070000 		lui	a5,%hi(BACK_COLOR)
+ 402:testMain.c    **** 
+ 403:testMain.c    ****     LCD_Clear(BLACK);   // Sätter bakgrundsfärgen på HELA skärmen 
+ 846              		.loc 1 403 5
+ 847 0048 0145     		li	a0,0
+ 401:testMain.c    **** 
+ 848              		.loc 1 401 16
+ 849 004a 23A00700 		sw	zero,%lo(BACK_COLOR)(a5)
+ 850              		.loc 1 403 5 is_stmt 1
+ 851 004e 97000000 		call	LCD_Clear
+ 851      E7800000 
+ 852              	.LVL67:
+ 404:testMain.c    **** 
+ 405:testMain.c    ****      
+ 406:testMain.c    **** 
+ 407:testMain.c    ****     // Fast rubrik på rad 1 (y = 4) 
+ 408:testMain.c    **** 
+ 409:testMain.c    ****     LCD_ShowString(5, 4, (u8 *)"BRAKE SYSTEM", GREEN); 
+ 853              		.loc 1 409 5
+ 854 0056 37060000 		lui	a2,%hi(.LC0)
+ 855 005a 9306007E 		li	a3,2016
+ 856 005e 13060600 		addi	a2,a2,%lo(.LC0)
+ 857 0062 9145     		li	a1,4
+ 858 0064 1545     		li	a0,5
+ 859 0066 97000000 		call	LCD_ShowString
+ 859      E7800000 
+ 860              	.LVL68:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 25
+
+
+ 410:testMain.c    **** 
+ 411:testMain.c    ****  
+ 412:testMain.c    **** 
+ 413:testMain.c    ****     // Starta globala avbrott i RISC-V 
+ 414:testMain.c    **** 
+ 415:testMain.c    ****     eclic_global_interrupt_enable(); 
+ 861              		.loc 1 415 5
+ 416:testMain.c    **** 
+ 417:testMain.c    ****  
+ 418:testMain.c    **** 
+ 419:testMain.c    ****     // Start-tillstånd 
+ 420:testMain.c    **** 
+ 421:testMain.c    ****     SystemState current_state = STATE_HELD; 
+ 422:testMain.c    **** 
+ 423:testMain.c    ****     SystemState previous_state = (SystemState)-1; // Tvinga första servouppdateringen 
+ 424:testMain.c    **** 
+ 425:testMain.c    ****  
+ 426:testMain.c    **** 
+ 427:testMain.c    ****     uint32_t state_timer = 0; 
+ 428:testMain.c    **** 
+ 429:testMain.c    ****     uint32_t last_lcd_update = 0; 
+ 862              		.loc 1 429 14 is_stmt 0
+ 863 006e 0149     		li	s2,0
+ 415:testMain.c    **** 
+ 864              		.loc 1 415 5
+ 865 0070 97000000 		call	eclic_global_interrupt_enable
+ 865      E7800000 
+ 866              	.LVL69:
+ 421:testMain.c    **** 
+ 867              		.loc 1 421 5 is_stmt 1
+ 423:testMain.c    **** 
+ 868              		.loc 1 423 5
+ 427:testMain.c    **** 
+ 869              		.loc 1 427 5
+ 870              		.loc 1 429 5
+ 427:testMain.c    **** 
+ 871              		.loc 1 427 14 is_stmt 0
+ 872 0078 8149     		li	s3,0
+ 423:testMain.c    **** 
+ 873              		.loc 1 423 17
+ 874 007a FD5B     		li	s7,-1
+ 421:testMain.c    **** 
+ 875              		.loc 1 421 17
+ 876 007c 0144     		li	s0,0
+ 877              	.LBB22:
+ 430:testMain.c    **** 
+ 431:testMain.c    ****  
+ 432:testMain.c    **** 
+ 433:testMain.c    ****     while (1) { 
+ 434:testMain.c    **** 
+ 435:testMain.c    ****         uint32_t now = get_millis(); 
+ 436:testMain.c    **** 
+ 437:testMain.c    ****  
+ 438:testMain.c    **** 
+ 439:testMain.c    ****         // -------------------------------------------------------------------- 
+ 440:testMain.c    **** 
+ 441:testMain.c    ****         // A. LÄS TOUCH-SENSOR 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 26
+
+
+ 442:testMain.c    **** 
+ 443:testMain.c    ****         // -------------------------------------------------------------------- 
+ 444:testMain.c    **** 
+ 445:testMain.c    ****         uint32_t raw_touch = get_filtered_touch(); 
+ 446:testMain.c    **** 
+ 447:testMain.c    ****         bool is_held = (raw_touch > TOUCH_THRESHOLD); 
+ 448:testMain.c    **** 
+ 449:testMain.c    ****  
+ 450:testMain.c    **** 
+ 451:testMain.c    ****         // Säkerhet: Om någon greppar handtaget avbryts allt direkt! 
+ 452:testMain.c    **** 
+ 453:testMain.c    ****         if (is_held && current_state != STATE_HELD) { 
+ 454:testMain.c    **** 
+ 455:testMain.c    ****             current_state = STATE_HELD; 
+ 456:testMain.c    **** 
+ 457:testMain.c    ****         } 
+ 458:testMain.c    **** 
+ 459:testMain.c    ****  
+ 460:testMain.c    **** 
+ 461:testMain.c    ****         // -------------------------------------------------------------------- 
+ 462:testMain.c    **** 
+ 463:testMain.c    ****         // B. HANTERA SERVO ENBART VID TILLSTÅNDSÄNDRING 
+ 464:testMain.c    **** 
+ 465:testMain.c    ****         // -------------------------------------------------------------------- 
+ 466:testMain.c    **** 
+ 467:testMain.c    ****         if (current_state != previous_state) { 
+ 468:testMain.c    **** 
+ 469:testMain.c    ****             previous_state = current_state; 
+ 470:testMain.c    **** 
+ 471:testMain.c    ****  
+ 472:testMain.c    **** 
+ 473:testMain.c    ****             if (current_state == STATE_BRAKED) { 
+ 474:testMain.c    **** 
+ 475:testMain.c    ****                 set_servo_pulse(SERVO_180_DEG); // Aktivera broms 
+ 476:testMain.c    **** 
+ 477:testMain.c    ****             } else { 
+ 478:testMain.c    **** 
+ 479:testMain.c    ****                 set_servo_pulse(SERVO_0_DEG);   // Släpp broms 
+ 480:testMain.c    **** 
+ 481:testMain.c    ****             } 
+ 482:testMain.c    **** 
+ 483:testMain.c    ****         } 
+ 484:testMain.c    **** 
+ 485:testMain.c    ****  
+ 486:testMain.c    **** 
+ 487:testMain.c    ****         // -------------------------------------------------------------------- 
+ 488:testMain.c    **** 
+ 489:testMain.c    ****         // C. TILLSTÅNDSMASKIN (LOGIK) 
+ 490:testMain.c    **** 
+ 491:testMain.c    ****         // -------------------------------------------------------------------- 
+ 492:testMain.c    **** 
+ 493:testMain.c    ****         switch (current_state) { 
+ 494:testMain.c    **** 
+ 495:testMain.c    ****  
+ 496:testMain.c    **** 
+ 497:testMain.c    ****             case STATE_HELD: 
+ 498:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 27
+
+
+ 499:testMain.c    ****                 if (!is_held) { 
+ 500:testMain.c    **** 
+ 501:testMain.c    ****                     current_state = STATE_WAITING; 
+ 502:testMain.c    **** 
+ 503:testMain.c    ****                     state_timer = now; 
+ 504:testMain.c    **** 
+ 505:testMain.c    ****                 } 
+ 506:testMain.c    **** 
+ 507:testMain.c    ****                 break; 
+ 508:testMain.c    **** 
+ 509:testMain.c    ****  
+ 510:testMain.c    **** 
+ 511:testMain.c    ****             case STATE_WAITING: 
+ 512:testMain.c    **** 
+ 513:testMain.c    ****                 if ((now - state_timer) >= RELEASE_WAIT_MS) { 
+ 514:testMain.c    **** 
+ 515:testMain.c    ****                     current_state = STATE_ARMED; 
+ 516:testMain.c    **** 
+ 517:testMain.c    ****                     pulse_count = 0; 
+ 518:testMain.c    **** 
+ 519:testMain.c    ****                     new_pulse_flag = 0; 
+ 520:testMain.c    **** 
+ 521:testMain.c    ****                 } 
+ 522:testMain.c    **** 
+ 523:testMain.c    ****                 break; 
+ 524:testMain.c    **** 
+ 525:testMain.c    ****  
+ 526:testMain.c    **** 
+ 527:testMain.c    ****             case STATE_ARMED: 
+ 528:testMain.c    **** 
+ 529:testMain.c    ****                 if (new_pulse_flag) { 
+ 530:testMain.c    **** 
+ 531:testMain.c    ****                     new_pulse_flag = 0; 
+ 532:testMain.c    **** 
+ 533:testMain.c    ****  
+ 534:testMain.c    **** 
+ 535:testMain.c    ****                     // Kräver minst 3 magneter (2 intervall) för att jämföra acceleration 
+ 536:testMain.c    **** 
+ 537:testMain.c    ****                     if (pulse_count >= 3) { 
+ 538:testMain.c    **** 
+ 539:testMain.c    ****                         if (current_interval < previous_interval) { 
+ 540:testMain.c    **** 
+ 541:testMain.c    ****                             // ÖKANDE HASTIGHET -> AKTIVERA BROMS! 
+ 542:testMain.c    **** 
+ 543:testMain.c    ****                             current_state = STATE_BRAKED; 
+ 544:testMain.c    **** 
+ 545:testMain.c    ****                             state_timer = now; 
+ 546:testMain.c    **** 
+ 547:testMain.c    ****                         } 
+ 548:testMain.c    **** 
+ 549:testMain.c    ****                     } 
+ 550:testMain.c    **** 
+ 551:testMain.c    ****                 } 
+ 552:testMain.c    **** 
+ 553:testMain.c    ****  
+ 554:testMain.c    **** 
+ 555:testMain.c    ****                 // Timeout: Om vagnen stannar helt 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 28
+
+
+ 556:testMain.c    **** 
+ 557:testMain.c    ****                 if ((now - last_pulse_time) > HALL_TIMEOUT_MS) { 
+ 558:testMain.c    **** 
+ 559:testMain.c    ****                     pulse_count = 0; 
+ 560:testMain.c    **** 
+ 561:testMain.c    ****                 } 
+ 562:testMain.c    **** 
+ 563:testMain.c    ****                 break; 
+ 564:testMain.c    **** 
+ 565:testMain.c    ****  
+ 566:testMain.c    **** 
+ 567:testMain.c    ****             case STATE_BRAKED: 
+ 568:testMain.c    **** 
+ 569:testMain.c    ****                 // Efter 30 sekunder släpper bromsen och vi går tillbaka till WAITING 
+ 570:testMain.c    **** 
+ 571:testMain.c    ****                 if ((now - state_timer) >= BRAKE_DURATION_MS) { 
+ 878              		.loc 1 571 20
+ 879 007e 9D6A     		li	s5,28672
+ 572:testMain.c    **** 
+ 573:testMain.c    ****                     current_state = STATE_WAITING; 
+ 574:testMain.c    **** 
+ 575:testMain.c    ****                     state_timer = now; 
+ 576:testMain.c    **** 
+ 577:testMain.c    ****                     pulse_count = 0; 
+ 880              		.loc 1 577 33
+ 881 0080 370A0000 		lui	s4,%hi(.LANCHOR2)
+ 529:testMain.c    **** 
+ 882              		.loc 1 529 21
+ 883 0084 370B0000 		lui	s6,%hi(.LANCHOR5)
+ 557:testMain.c    **** 
+ 884              		.loc 1 557 26
+ 885 0088 370C0000 		lui	s8,%hi(.LANCHOR1)
+ 539:testMain.c    **** 
+ 886              		.loc 1 539 46
+ 887 008c B70C0000 		lui	s9,%hi(.LANCHOR3)
+ 888 0090 370D0000 		lui	s10,%hi(.LANCHOR4)
+ 578:testMain.c    **** 
+ 579:testMain.c    ****                 } 
+ 580:testMain.c    **** 
+ 581:testMain.c    ****                 break; 
+ 582:testMain.c    **** 
+ 583:testMain.c    ****         } 
+ 584:testMain.c    **** 
+ 585:testMain.c    ****  
+ 586:testMain.c    **** 
+ 587:testMain.c    ****         // -------------------------------------------------------------------- 
+ 588:testMain.c    **** 
+ 589:testMain.c    ****         // D. UPPDATERA LCD-SKÄRM (Icke-blockerande, var 200:e ms) 
+ 590:testMain.c    **** 
+ 591:testMain.c    ****         // -------------------------------------------------------------------- 
+ 592:testMain.c    **** 
+ 593:testMain.c    ****         if ((now - last_lcd_update) >= LCD_REFRESH_MS) { 
+ 594:testMain.c    **** 
+ 595:testMain.c    ****             last_lcd_update = now; 
+ 596:testMain.c    **** 
+ 597:testMain.c    ****  
+ 598:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 29
+
+
+ 599:testMain.c    ****             // Rad 2 (y = 22): Skriv ut råvärdet från touch-sensorn 
+ 600:testMain.c    **** 
+ 601:testMain.c    ****             snprintf(text_buf, sizeof(text_buf), "Touch: %-6u", (unsigned int)raw_touch); 
+ 889              		.loc 1 601 13
+ 890 0094 B70D0000 		lui	s11,%hi(.LC1)
+ 891              	.LVL70:
+ 892              	.L35:
+ 893              	.LBE22:
+ 433:testMain.c    **** 
+ 894              		.loc 1 433 5 is_stmt 1
+ 895              	.LBB26:
+ 435:testMain.c    **** 
+ 896              		.loc 1 435 9
+ 435:testMain.c    **** 
+ 897              		.loc 1 435 24 is_stmt 0
+ 898 0098 97000000 		call	get_millis
+ 898      E7800000 
+ 899              	.LVL71:
+ 900 00a0 AA84     		mv	s1,a0
+ 901              	.LVL72:
+ 445:testMain.c    **** 
+ 902              		.loc 1 445 9 is_stmt 1
+ 445:testMain.c    **** 
+ 903              		.loc 1 445 30 is_stmt 0
+ 904 00a2 97000000 		call	get_filtered_touch
+ 904      E7800000 
+ 905              	.LVL73:
+ 453:testMain.c    **** 
+ 906              		.loc 1 453 12
+ 907 00aa 13076004 		li	a4,70
+ 445:testMain.c    **** 
+ 908              		.loc 1 445 30
+ 909 00ae AA86     		mv	a3,a0
+ 910              	.LVL74:
+ 447:testMain.c    **** 
+ 911              		.loc 1 447 9 is_stmt 1
+ 453:testMain.c    **** 
+ 912              		.loc 1 453 9
+ 453:testMain.c    **** 
+ 913              		.loc 1 453 12 is_stmt 0
+ 914 00b0 6362A716 		bgtu	a0,a4,.L36
+ 467:testMain.c    **** 
+ 915              		.loc 1 467 9 is_stmt 1
+ 467:testMain.c    **** 
+ 916              		.loc 1 467 12 is_stmt 0
+ 917 00b4 63007423 		beq	s0,s7,.L37
+ 469:testMain.c    **** 
+ 918              		.loc 1 469 13 is_stmt 1
+ 919              	.LVL75:
+ 473:testMain.c    **** 
+ 920              		.loc 1 473 13
+ 473:testMain.c    **** 
+ 921              		.loc 1 473 16 is_stmt 0
+ 922 00b8 0D47     		li	a4,3
+ 923 00ba A28B     		mv	s7,s0
+ 924 00bc 6310E416 		bne	s0,a4,.L38
+ 925 00c0 2AC6     		sw	a0,12(sp)
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 30
+
+
+ 475:testMain.c    **** 
+ 926              		.loc 1 475 17 is_stmt 1
+ 927 00c2 0965     		li	a0,8192
+ 928              	.LVL76:
+ 929 00c4 1305C5D4 		addi	a0,a0,-692
+ 930 00c8 97000000 		call	set_servo_pulse
+ 930      E7800000 
+ 931              	.LVL77:
+ 493:testMain.c    **** 
+ 932              		.loc 1 493 9
+ 933 00d0 B246     		lw	a3,12(sp)
+ 934              	.LVL78:
+ 935              	.L39:
+ 571:testMain.c    **** 
+ 936              		.loc 1 571 17
+ 571:testMain.c    **** 
+ 937              		.loc 1 571 20 is_stmt 0
+ 938 00d2 1D67     		li	a4,28672
+ 571:testMain.c    **** 
+ 939              		.loc 1 571 26
+ 940 00d4 B3873441 		sub	a5,s1,s3
+ 571:testMain.c    **** 
+ 941              		.loc 1 571 20
+ 942 00d8 1307F752 		addi	a4,a4,1327
+ 943 00dc 6371F70A 		bleu	a5,a4,.L57
+ 573:testMain.c    **** 
+ 944              		.loc 1 573 21 is_stmt 1
+ 945              	.LVL79:
+ 575:testMain.c    **** 
+ 946              		.loc 1 575 21
+ 577:testMain.c    **** 
+ 947              		.loc 1 577 21
+ 577:testMain.c    **** 
+ 948              		.loc 1 577 33 is_stmt 0
+ 949 00e0 93070A00 		addi	a5,s4,%lo(.LANCHOR2)
+ 950 00e4 23800700 		sb	zero,0(a5)
+ 575:testMain.c    **** 
+ 951              		.loc 1 575 33
+ 952 00e8 A689     		mv	s3,s1
+ 577:testMain.c    **** 
+ 953              		.loc 1 577 33
+ 954 00ea 8D4B     		li	s7,3
+ 955              	.LVL80:
+ 956              	.L64:
+ 501:testMain.c    **** 
+ 957              		.loc 1 501 35
+ 958 00ec 0544     		li	s0,1
+ 959 00ee 99AA     		j	.L43
+ 960              	.LVL81:
+ 961              	.L58:
+ 602:testMain.c    **** 
+ 603:testMain.c    ****             LCD_ShowString(5, 22, (u8 *)text_buf, WHITE); 
+ 604:testMain.c    **** 
+ 605:testMain.c    ****  
+ 606:testMain.c    **** 
+ 607:testMain.c    ****             // Rad 3 & 4 (y = 40, y = 58): Visa aktuell status och ev. nedräkning 
+ 608:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 31
+
+
+ 609:testMain.c    ****             switch (current_state) { 
+ 610:testMain.c    **** 
+ 611:testMain.c    ****  
+ 612:testMain.c    **** 
+ 613:testMain.c    ****                 case STATE_HELD: 
+ 614:testMain.c    **** 
+ 615:testMain.c    ****                     LCD_ShowString(5, 40, (u8 *)"STATUS: HELD    ", WHITE); 
+ 616:testMain.c    **** 
+ 617:testMain.c    ****                     LCD_ShowString(5, 58, (u8 *)"Brake: OFF (0 deg) ", WHITE); 
+ 618:testMain.c    **** 
+ 619:testMain.c    ****                     break; 
+ 620:testMain.c    **** 
+ 621:testMain.c    ****  
+ 622:testMain.c    **** 
+ 623:testMain.c    ****                 case STATE_WAITING: { 
+ 624:testMain.c    **** 
+ 625:testMain.c    ****                     uint32_t remaining_sec = (RELEASE_WAIT_MS - (now - state_timer)) / 1000 + 1; 
+ 626:testMain.c    **** 
+ 627:testMain.c    ****                     snprintf(text_buf, sizeof(text_buf), "WAITING (%us)  ", (unsigned int)remaining
+ 628:testMain.c    **** 
+ 629:testMain.c    ****                     LCD_ShowString(5, 40, (u8 *)text_buf, WHITE); 
+ 630:testMain.c    **** 
+ 631:testMain.c    ****                     LCD_ShowString(5, 58, (u8 *)"Brake: OFF (0 deg) ", WHITE); 
+ 632:testMain.c    **** 
+ 633:testMain.c    ****                     break; 
+ 634:testMain.c    **** 
+ 635:testMain.c    ****                 } 
+ 636:testMain.c    **** 
+ 637:testMain.c    ****  
+ 638:testMain.c    **** 
+ 639:testMain.c    ****                 case STATE_ARMED: 
+ 640:testMain.c    **** 
+ 641:testMain.c    ****                     LCD_ShowString(5, 40, (u8 *)"STATUS: ARMED   ", WHITE); 
+ 642:testMain.c    **** 
+ 643:testMain.c    ****                     LCD_ShowString(5, 58, (u8 *)"Monitoring...     ", WHITE); 
+ 644:testMain.c    **** 
+ 645:testMain.c    ****                     break; 
+ 646:testMain.c    **** 
+ 647:testMain.c    ****  
+ 648:testMain.c    **** 
+ 649:testMain.c    ****                 case STATE_BRAKED: { 
+ 650:testMain.c    **** 
+ 651:testMain.c    ****                     uint32_t remaining_sec = (BRAKE_DURATION_MS - (now - state_timer)) / 1000 + 1; 
+ 652:testMain.c    **** 
+ 653:testMain.c    ****                     snprintf(text_buf, sizeof(text_buf), "BRAKED! (%us)  ", (unsigned int)remaining
+ 654:testMain.c    **** 
+ 655:testMain.c    ****                     LCD_ShowString(5, 40, (u8 *)text_buf, WHITE); 
+ 656:testMain.c    **** 
+ 657:testMain.c    ****                     LCD_ShowString(5, 58, (u8 *)"Brake: ON (180deg)", WHITE); 
+ 658:testMain.c    **** 
+ 659:testMain.c    ****                     break; 
+ 660:testMain.c    ****                 } 
+ 661:testMain.c    ****             } 
+ 662:testMain.c    ****         } 
+ 962              		.loc 1 662 9
+ 963 00f0 CA84     		mv	s1,s2
+ 964              	.LVL82:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 32
+
+
+ 965              	.L45:
+ 966 00f2 2689     		mv	s2,s1
+ 967 00f4 55B7     		j	.L35
+ 968              	.LVL83:
+ 969              	.L41:
+ 499:testMain.c    **** 
+ 970              		.loc 1 499 17 is_stmt 1
+ 499:testMain.c    **** 
+ 971              		.loc 1 499 20 is_stmt 0
+ 972 00f6 13076004 		li	a4,70
+ 973 00fa 0144     		li	s0,0
+ 974 00fc 6364D714 		bgtu	a3,a4,.L43
+ 975              	.LVL84:
+ 976              	.L60:
+ 503:testMain.c    **** 
+ 977              		.loc 1 503 33
+ 978 0100 A689     		mv	s3,s1
+ 979              	.LVL85:
+ 980 0102 EDB7     		j	.L64
+ 981              	.LVL86:
+ 982              	.L40:
+ 513:testMain.c    **** 
+ 983              		.loc 1 513 17 is_stmt 1
+ 513:testMain.c    **** 
+ 984              		.loc 1 513 20 is_stmt 0
+ 985 0104 8567     		li	a5,4096
+ 513:testMain.c    **** 
+ 986              		.loc 1 513 26
+ 987 0106 33873441 		sub	a4,s1,s3
+ 513:testMain.c    **** 
+ 988              		.loc 1 513 20
+ 989 010a 93877738 		addi	a5,a5,903
+ 990 010e 63F6E706 		bleu	a4,a5,.L52
+ 515:testMain.c    **** 
+ 991              		.loc 1 515 21 is_stmt 1
+ 992              	.LVL87:
+ 517:testMain.c    **** 
+ 993              		.loc 1 517 21
+ 517:testMain.c    **** 
+ 994              		.loc 1 517 33 is_stmt 0
+ 995 0112 93070A00 		addi	a5,s4,%lo(.LANCHOR2)
+ 996 0116 23800700 		sb	zero,0(a5)
+ 519:testMain.c    **** 
+ 997              		.loc 1 519 21 is_stmt 1
+ 519:testMain.c    **** 
+ 998              		.loc 1 519 36 is_stmt 0
+ 999 011a 93070B00 		addi	a5,s6,%lo(.LANCHOR5)
+ 1000 011e 23800700 		sb	zero,0(a5)
+ 1001 0122 854B     		li	s7,1
+ 515:testMain.c    **** 
+ 1002              		.loc 1 515 35
+ 1003 0124 0944     		li	s0,2
+ 1004 0126 39AA     		j	.L43
+ 1005              	.LVL88:
+ 1006              	.L42:
+ 529:testMain.c    **** 
+ 1007              		.loc 1 529 17 is_stmt 1
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 33
+
+
+ 529:testMain.c    **** 
+ 1008              		.loc 1 529 21 is_stmt 0
+ 1009 0128 13070B00 		addi	a4,s6,%lo(.LANCHOR5)
+ 1010 012c 83470700 		lbu	a5,0(a4)
+ 1011 0130 0944     		li	s0,2
+ 1012 0132 93F7F70F 		andi	a5,a5,0xff
+ 529:testMain.c    **** 
+ 1013              		.loc 1 529 20
+ 1014 0136 9DC3     		beq	a5,zero,.L44
+ 531:testMain.c    **** 
+ 1015              		.loc 1 531 21 is_stmt 1
+ 531:testMain.c    **** 
+ 1016              		.loc 1 531 36 is_stmt 0
+ 1017 0138 23000700 		sb	zero,0(a4)
+ 537:testMain.c    **** 
+ 1018              		.loc 1 537 21 is_stmt 1
+ 537:testMain.c    **** 
+ 1019              		.loc 1 537 37 is_stmt 0
+ 1020 013c 93070A00 		addi	a5,s4,%lo(.LANCHOR2)
+ 1021 0140 83C70700 		lbu	a5,0(a5)
+ 537:testMain.c    **** 
+ 1022              		.loc 1 537 24
+ 1023 0144 637CF400 		bgeu	s0,a5,.L44
+ 539:testMain.c    **** 
+ 1024              		.loc 1 539 25 is_stmt 1
+ 539:testMain.c    **** 
+ 1025              		.loc 1 539 46 is_stmt 0
+ 1026 0148 93870C00 		addi	a5,s9,%lo(.LANCHOR3)
+ 1027 014c 9843     		lw	a4,0(a5)
+ 1028 014e 93070D00 		addi	a5,s10,%lo(.LANCHOR4)
+ 1029 0152 9C43     		lw	a5,0(a5)
+ 539:testMain.c    **** 
+ 1030              		.loc 1 539 28
+ 1031 0154 6374F700 		bgeu	a4,a5,.L44
+ 545:testMain.c    **** 
+ 1032              		.loc 1 545 41
+ 1033 0158 A689     		mv	s3,s1
+ 1034              	.LVL89:
+ 543:testMain.c    **** 
+ 1035              		.loc 1 543 43
+ 1036 015a 0D44     		li	s0,3
+ 1037              	.L44:
+ 1038              	.LVL90:
+ 557:testMain.c    **** 
+ 1039              		.loc 1 557 17 is_stmt 1
+ 557:testMain.c    **** 
+ 1040              		.loc 1 557 26 is_stmt 0
+ 1041 015c 93070C00 		addi	a5,s8,%lo(.LANCHOR1)
+ 1042 0160 9843     		lw	a4,0(a5)
+ 557:testMain.c    **** 
+ 1043              		.loc 1 557 20
+ 1044 0162 1306C05D 		li	a2,1500
+ 1045 0166 894B     		li	s7,2
+ 557:testMain.c    **** 
+ 1046              		.loc 1 557 26
+ 1047 0168 3387E440 		sub	a4,s1,a4
+ 557:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 34
+
+
+ 1048              		.loc 1 557 20
+ 1049 016c 637CE60C 		bleu	a4,a2,.L43
+ 559:testMain.c    **** 
+ 1050              		.loc 1 559 21 is_stmt 1
+ 559:testMain.c    **** 
+ 1051              		.loc 1 559 33 is_stmt 0
+ 1052 0170 13070A00 		addi	a4,s4,%lo(.LANCHOR2)
+ 1053 0174 23000700 		sb	zero,0(a4)
+ 1054 0178 F1A0     		j	.L43
+ 1055              	.LVL91:
+ 1056              	.L52:
+ 1057 017a 854B     		li	s7,1
+ 1058 017c 85BF     		j	.L64
+ 1059              	.LVL92:
+ 1060              	.L57:
+ 1061 017e 8D4B     		li	s7,3
+ 1062 0180 0D44     		li	s0,3
+ 1063 0182 C9A0     		j	.L43
+ 1064              	.LVL93:
+ 1065              	.L47:
+ 615:testMain.c    **** 
+ 1066              		.loc 1 615 21 is_stmt 1
+ 1067 0184 37060000 		lui	a2,%hi(.LC2)
+ 1068 0188 9306F9FF 		addi	a3,s2,-1
+ 1069 018c 13060600 		addi	a2,a2,%lo(.LC2)
+ 1070              	.L65:
+ 1071              	.LBB23:
+ 629:testMain.c    **** 
+ 1072              		.loc 1 629 21 is_stmt 0
+ 1073 0190 93058002 		li	a1,40
+ 1074 0194 1545     		li	a0,5
+ 1075 0196 97000000 		call	LCD_ShowString
+ 1075      E7800000 
+ 1076              	.LVL94:
+ 631:testMain.c    **** 
+ 1077              		.loc 1 631 21 is_stmt 1
+ 1078 019e 37060000 		lui	a2,%hi(.LC3)
+ 1079 01a2 9306F9FF 		addi	a3,s2,-1
+ 1080 01a6 13060600 		addi	a2,a2,%lo(.LC3)
+ 1081              	.L63:
+ 1082              	.LBE23:
+ 643:testMain.c    **** 
+ 1083              		.loc 1 643 21 is_stmt 0
+ 1084 01aa 9305A003 		li	a1,58
+ 1085 01ae 1545     		li	a0,5
+ 1086 01b0 97000000 		call	LCD_ShowString
+ 1086      E7800000 
+ 1087              	.LVL95:
+ 645:testMain.c    **** 
+ 1088              		.loc 1 645 21 is_stmt 1
+ 1089 01b8 2DBF     		j	.L45
+ 1090              	.L46:
+ 1091              	.LBB24:
+ 625:testMain.c    **** 
+ 1092              		.loc 1 625 21
+ 1093              	.LVL96:
+ 627:testMain.c    **** 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 35
+
+
+ 1094              		.loc 1 627 21
+ 625:testMain.c    **** 
+ 1095              		.loc 1 625 63 is_stmt 0
+ 1096 01ba 8566     		li	a3,4096
+ 1097 01bc 93868638 		addi	a3,a3,904
+ 1098 01c0 858E     		sub	a3,a3,s1
+ 625:testMain.c    **** 
+ 1099              		.loc 1 625 86
+ 1100 01c2 1307803E 		li	a4,1000
+ 625:testMain.c    **** 
+ 1101              		.loc 1 625 63
+ 1102 01c6 CE96     		add	a3,a3,s3
+ 625:testMain.c    **** 
+ 1103              		.loc 1 625 86
+ 1104 01c8 B3D6E602 		divu	a3,a3,a4
+ 627:testMain.c    **** 
+ 1105              		.loc 1 627 21
+ 1106 01cc 37060000 		lui	a2,%hi(.LC4)
+ 1107 01d0 13060600 		addi	a2,a2,%lo(.LC4)
+ 1108 01d4 93050002 		li	a1,32
+ 1109 01d8 0808     		addi	a0,sp,16
+ 1110 01da 8506     		addi	a3,a3,1
+ 1111 01dc 97000000 		call	snprintf
+ 1111      E7800000 
+ 1112              	.LVL97:
+ 629:testMain.c    **** 
+ 1113              		.loc 1 629 21 is_stmt 1
+ 1114 01e4 9306F9FF 		addi	a3,s2,-1
+ 1115 01e8 1008     		addi	a2,sp,16
+ 1116 01ea 5DB7     		j	.L65
+ 1117              	.LVL98:
+ 1118              	.L48:
+ 1119              	.LBE24:
+ 641:testMain.c    **** 
+ 1120              		.loc 1 641 21
+ 1121 01ec 37060000 		lui	a2,%hi(.LC5)
+ 1122 01f0 9306F9FF 		addi	a3,s2,-1
+ 1123 01f4 13060600 		addi	a2,a2,%lo(.LC5)
+ 1124 01f8 93058002 		li	a1,40
+ 1125 01fc 1545     		li	a0,5
+ 1126 01fe 97000000 		call	LCD_ShowString
+ 1126      E7800000 
+ 1127              	.LVL99:
+ 643:testMain.c    **** 
+ 1128              		.loc 1 643 21
+ 1129 0206 37060000 		lui	a2,%hi(.LC6)
+ 1130 020a 9306F9FF 		addi	a3,s2,-1
+ 1131 020e 13060600 		addi	a2,a2,%lo(.LC6)
+ 1132 0212 61BF     		j	.L63
+ 1133              	.LVL100:
+ 1134              	.L36:
+ 467:testMain.c    **** 
+ 1135              		.loc 1 467 9
+ 467:testMain.c    **** 
+ 1136              		.loc 1 467 12 is_stmt 0
+ 1137 0214 0144     		li	s0,0
+ 1138 0216 63870B02 		beq	s7,zero,.L43
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 36
+
+
+ 455:testMain.c    **** 
+ 1139              		.loc 1 455 27
+ 1140 021a 814B     		li	s7,0
+ 1141              	.LVL101:
+ 1142              	.L38:
+ 479:testMain.c    **** 
+ 1143              		.loc 1 479 17
+ 1144 021c 1305007D 		li	a0,2000
+ 1145              	.LVL102:
+ 1146 0220 36C6     		sw	a3,12(sp)
+ 1147              	.LVL103:
+ 479:testMain.c    **** 
+ 1148              		.loc 1 479 17 is_stmt 1
+ 1149 0222 97000000 		call	set_servo_pulse
+ 1149      E7800000 
+ 1150              	.LVL104:
+ 493:testMain.c    **** 
+ 1151              		.loc 1 493 9
+ 1152 022a 0547     		li	a4,1
+ 1153 022c B246     		lw	a3,12(sp)
+ 1154 022e E38BEBEC 		beq	s7,a4,.L40
+ 1155 0232 E3820BEC 		beq	s7,zero,.L41
+ 1156 0236 0947     		li	a4,2
+ 1157 0238 E388EBEE 		beq	s7,a4,.L42
+ 1158 023c 0D47     		li	a4,3
+ 1159 023e 5E84     		mv	s0,s7
+ 1160 0240 E389EBE8 		beq	s7,a4,.L39
+ 1161              	.LVL105:
+ 1162              	.L43:
+ 593:testMain.c    **** 
+ 1163              		.loc 1 593 9
+ 593:testMain.c    **** 
+ 1164              		.loc 1 593 18 is_stmt 0
+ 1165 0244 33872441 		sub	a4,s1,s2
+ 593:testMain.c    **** 
+ 1166              		.loc 1 593 12
+ 1167 0248 1306700C 		li	a2,199
+ 1168 024c E372E6EA 		bleu	a4,a2,.L58
+ 595:testMain.c    **** 
+ 1169              		.loc 1 595 13 is_stmt 1
+ 1170              	.LVL106:
+ 601:testMain.c    **** 
+ 1171              		.loc 1 601 13
+ 1172 0250 13860D00 		addi	a2,s11,%lo(.LC1)
+ 1173 0254 93050002 		li	a1,32
+ 1174 0258 0808     		addi	a0,sp,16
+ 1175 025a 97000000 		call	snprintf
+ 1175      E7800000 
+ 1176              	.LVL107:
+ 603:testMain.c    **** 
+ 1177              		.loc 1 603 13
+ 1178 0262 4169     		li	s2,65536
+ 1179 0264 9306F9FF 		addi	a3,s2,-1
+ 1180 0268 1008     		addi	a2,sp,16
+ 1181 026a D945     		li	a1,22
+ 1182 026c 1545     		li	a0,5
+ 1183 026e 97000000 		call	LCD_ShowString
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 37
+
+
+ 1183      E7800000 
+ 1184              	.LVL108:
+ 609:testMain.c    **** 
+ 1185              		.loc 1 609 13
+ 1186 0276 0547     		li	a4,1
+ 1187 0278 E301E4F4 		beq	s0,a4,.L46
+ 1188 027c 01D4     		beq	s0,zero,.L47
+ 1189 027e 0947     		li	a4,2
+ 1190 0280 E306E4F6 		beq	s0,a4,.L48
+ 1191 0284 0D47     		li	a4,3
+ 1192 0286 E316E4E6 		bne	s0,a4,.L45
+ 1193              	.LBB25:
+ 651:testMain.c    **** 
+ 1194              		.loc 1 651 21
+ 1195              	.LVL109:
+ 653:testMain.c    **** 
+ 1196              		.loc 1 653 21
+ 651:testMain.c    **** 
+ 1197              		.loc 1 651 65 is_stmt 0
+ 1198 028a 93860A53 		addi	a3,s5,1328
+ 1199 028e 858E     		sub	a3,a3,s1
+ 651:testMain.c    **** 
+ 1200              		.loc 1 651 88
+ 1201 0290 1307803E 		li	a4,1000
+ 651:testMain.c    **** 
+ 1202              		.loc 1 651 65
+ 1203 0294 CE96     		add	a3,a3,s3
+ 651:testMain.c    **** 
+ 1204              		.loc 1 651 88
+ 1205 0296 B3D6E602 		divu	a3,a3,a4
+ 653:testMain.c    **** 
+ 1206              		.loc 1 653 21
+ 1207 029a 37060000 		lui	a2,%hi(.LC7)
+ 1208 029e 13060600 		addi	a2,a2,%lo(.LC7)
+ 1209 02a2 93050002 		li	a1,32
+ 1210 02a6 0808     		addi	a0,sp,16
+ 1211 02a8 8506     		addi	a3,a3,1
+ 1212 02aa 97000000 		call	snprintf
+ 1212      E7800000 
+ 1213              	.LVL110:
+ 655:testMain.c    **** 
+ 1214              		.loc 1 655 21 is_stmt 1
+ 1215 02b2 9306F9FF 		addi	a3,s2,-1
+ 1216 02b6 1008     		addi	a2,sp,16
+ 1217 02b8 93058002 		li	a1,40
+ 1218 02bc 1545     		li	a0,5
+ 1219 02be 97000000 		call	LCD_ShowString
+ 1219      E7800000 
+ 1220              	.LVL111:
+ 657:testMain.c    **** 
+ 1221              		.loc 1 657 21
+ 1222 02c6 37060000 		lui	a2,%hi(.LC8)
+ 1223 02ca 9306F9FF 		addi	a3,s2,-1
+ 1224 02ce 13060600 		addi	a2,a2,%lo(.LC8)
+ 1225 02d2 E1BD     		j	.L63
+ 1226              	.LVL112:
+ 1227              	.L37:
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 38
+
+
+ 1228              	.LBE25:
+ 493:testMain.c    **** 
+ 1229              		.loc 1 493 9
+ 1230 02d4 0547     		li	a4,1
+ 1231 02d6 E307E4E2 		beq	s0,a4,.L40
+ 1232 02da E30304E2 		beq	s0,zero,.L60
+ 1233 02de 0947     		li	a4,2
+ 1234 02e0 E304E4E4 		beq	s0,a4,.L42
+ 1235 02e4 0D47     		li	a4,3
+ 1236 02e6 E31FE4F4 		bne	s0,a4,.L43
+ 1237 02ea E5B3     		j	.L39
+ 1238              	.LBE26:
+ 1239              		.cfi_endproc
+ 1240              	.LFE16:
+ 1242              		.globl	pulse_count
+ 1243              		.globl	new_pulse_flag
+ 1244              		.globl	previous_interval
+ 1245              		.globl	current_interval
+ 1246              		.globl	last_pulse_time
+ 1247              		.globl	ms_ticks
+ 1248              		.section	.rodata.main.str1.4,"aMS",@progbits,1
+ 1249              		.align	2
+ 1250              	.LC0:
+ 1251 0000 4252414B 		.string	"BRAKE SYSTEM"
+ 1251      45205359 
+ 1251      5354454D 
+ 1251      00
+ 1252 000d 000000   		.zero	3
+ 1253              	.LC1:
+ 1254 0010 546F7563 		.string	"Touch: %-6u"
+ 1254      683A2025 
+ 1254      2D367500 
+ 1255              	.LC2:
+ 1256 001c 53544154 		.string	"STATUS: HELD    "
+ 1256      55533A20 
+ 1256      48454C44 
+ 1256      20202020 
+ 1256      00
+ 1257 002d 000000   		.zero	3
+ 1258              	.LC3:
+ 1259 0030 4272616B 		.string	"Brake: OFF (0 deg) "
+ 1259      653A204F 
+ 1259      46462028 
+ 1259      30206465 
+ 1259      67292000 
+ 1260              	.LC4:
+ 1261 0044 57414954 		.string	"WAITING (%us)  "
+ 1261      494E4720 
+ 1261      28257573 
+ 1261      29202000 
+ 1262              	.LC5:
+ 1263 0054 53544154 		.string	"STATUS: ARMED   "
+ 1263      55533A20 
+ 1263      41524D45 
+ 1263      44202020 
+ 1263      00
+ 1264 0065 000000   		.zero	3
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 39
+
+
+ 1265              	.LC6:
+ 1266 0068 4D6F6E69 		.string	"Monitoring...     "
+ 1266      746F7269 
+ 1266      6E672E2E 
+ 1266      2E202020 
+ 1266      202000
+ 1267 007b 00       		.zero	1
+ 1268              	.LC7:
+ 1269 007c 4252414B 		.string	"BRAKED! (%us)  "
+ 1269      45442120 
+ 1269      28257573 
+ 1269      29202000 
+ 1270              	.LC8:
+ 1271 008c 4272616B 		.string	"Brake: ON (180deg)"
+ 1271      653A204F 
+ 1271      4E202831 
+ 1271      38306465 
+ 1271      672900
+ 1272              		.section	.sbss.current_interval,"aw",@nobits
+ 1273              		.align	2
+ 1274              		.set	.LANCHOR3,. + 0
+ 1277              	current_interval:
+ 1278 0000 00000000 		.zero	4
+ 1279              		.section	.sbss.last_pulse_time,"aw",@nobits
+ 1280              		.align	2
+ 1281              		.set	.LANCHOR1,. + 0
+ 1284              	last_pulse_time:
+ 1285 0000 00000000 		.zero	4
+ 1286              		.section	.sbss.ms_ticks,"aw",@nobits
+ 1287              		.align	2
+ 1288              		.set	.LANCHOR0,. + 0
+ 1291              	ms_ticks:
+ 1292 0000 00000000 		.zero	4
+ 1293              		.section	.sbss.new_pulse_flag,"aw",@nobits
+ 1294              		.set	.LANCHOR5,. + 0
+ 1297              	new_pulse_flag:
+ 1298 0000 00       		.zero	1
+ 1299              		.section	.sbss.previous_interval,"aw",@nobits
+ 1300              		.align	2
+ 1301              		.set	.LANCHOR4,. + 0
+ 1304              	previous_interval:
+ 1305 0000 00000000 		.zero	4
+ 1306              		.section	.sbss.pulse_count,"aw",@nobits
+ 1307              		.set	.LANCHOR2,. + 0
+ 1310              	pulse_count:
+ 1311 0000 00       		.zero	1
+ 1312              		.text
+ 1313              	.Letext0:
+ 1314              		.file 2 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 1315              		.file 3 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 1316              		.file 4 "./../../firmware/GD32VF103_standard_peripheral/gd32vf103.h"
+ 1317              		.file 5 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_exti.h"
+ 1318              		.file 6 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_rcu.h"
+ 1319              		.file 7 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_timer.h"
+ 1320              		.file 8 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 1321              		.file 9 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\\
+ 1322              		.file 10 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 40
+
+
+ 1323              		.file 11 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\
+ 1324              		.file 12 "./../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+ 1325              		.file 13 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\
+ 1326              		.file 14 "lcd.h"
+ 1327              		.file 15 "c:\\users\\zerda\\documents\\toolchain-gd32v-v202-win - kopia\\toolchain-gd32v-v202-win\
+ 1328              		.file 16 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_eclic.h"
+ 1329              		.file 17 "./../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h"
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 41
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 testMain.c
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:13     .text.touch_sensor_init:0000000000000000 touch_sensor_init
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:17     .text.touch_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:18     .text.touch_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:19     .text.touch_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:20     .text.touch_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:22     .text.touch_sensor_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:24     .text.touch_sensor_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:26     .text.touch_sensor_init:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:28     .text.touch_sensor_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:29     .text.touch_sensor_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:31     .text.touch_sensor_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:34     .text.touch_sensor_init:0000000000000012 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:42     .text.touch_sensor_init:0000000000000028 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:47     .text.touch_sensor_init:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:49     .text.touch_sensor_init:000000000000003a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:50     .text.touch_sensor_init:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:52     .text.touch_sensor_init:000000000000003e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:54     .text.touch_sensor_init:000000000000003e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:56     .text.touch_sensor_init:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:58     .text.touch_sensor_init:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:60     .text.touch_sensor_init:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:62     .text.touch_sensor_init:000000000000004a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:69     .text.measure_charge_time:0000000000000000 measure_charge_time
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:72     .text.measure_charge_time:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:73     .text.measure_charge_time:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:75     .text.measure_charge_time:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:76     .text.measure_charge_time:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:77     .text.measure_charge_time:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:80     .text.measure_charge_time:0000000000000008 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:82     .text.measure_charge_time:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:85     .text.measure_charge_time:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:86     .text.measure_charge_time:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:88     .text.measure_charge_time:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:91     .text.measure_charge_time:0000000000000016 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:92     .text.measure_charge_time:0000000000000016 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:94     .text.measure_charge_time:000000000000001a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:97     .text.measure_charge_time:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:100    .text.measure_charge_time:0000000000000026 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:105    .text.measure_charge_time:000000000000002e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:106    .text.measure_charge_time:000000000000002e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:107    .text.measure_charge_time:000000000000002e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:112    .text.measure_charge_time:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:113    .text.measure_charge_time:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:117    .text.measure_charge_time:000000000000003e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:122    .text.measure_charge_time:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:123    .text.measure_charge_time:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:126    .text.measure_charge_time:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:129    .text.measure_charge_time:000000000000004e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:132    .text.measure_charge_time:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:133    .text.measure_charge_time:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:137    .text.measure_charge_time:000000000000005c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:140    .text.measure_charge_time:0000000000000064 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:141    .text.measure_charge_time:0000000000000064 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:143    .text.measure_charge_time:0000000000000068 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:145    .text.measure_charge_time:000000000000006c .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 42
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:149    .text.measure_charge_time:0000000000000070 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:151    .text.measure_charge_time:0000000000000074 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:153    .text.measure_charge_time:0000000000000076 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:155    .text.measure_charge_time:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:158    .text.measure_charge_time:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:160    .text.measure_charge_time:0000000000000080 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:161    .text.measure_charge_time:0000000000000080 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:163    .text.measure_charge_time:0000000000000082 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:167    .text.measure_charge_time:0000000000000084 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:172    .text.measure_charge_time:0000000000000086 .L0 
+          testMain.c:61     .text.measure_charge_time:0000000000000086 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:187    .text.measure_charge_time:000000000000008a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:188    .text.measure_charge_time:000000000000008a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:191    .text.measure_charge_time:000000000000008e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:198    .text.get_filtered_touch:0000000000000000 get_filtered_touch
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:201    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:202    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:204    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:206    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:208    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:209    .text.get_filtered_touch:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:211    .text.get_filtered_touch:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:216    .text.get_filtered_touch:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:217    .text.get_filtered_touch:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:218    .text.get_filtered_touch:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:219    .text.get_filtered_touch:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:221    .text.get_filtered_touch:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:223    .text.get_filtered_touch:000000000000000c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:228    .text.get_filtered_touch:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:234    .text.get_filtered_touch:0000000000000012 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:235    .text.get_filtered_touch:0000000000000012 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:238    .text.get_filtered_touch:000000000000001a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:243    .text.get_filtered_touch:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:244    .text.get_filtered_touch:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:245    .text.get_filtered_touch:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:248    .text.get_filtered_touch:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:249    .text.get_filtered_touch:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:253    .text.get_filtered_touch:0000000000000026 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:260    .text.get_filtered_touch:000000000000002a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:263    .text.get_filtered_touch:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:264    .text.get_filtered_touch:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:266    .text.get_filtered_touch:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:267    .text.get_filtered_touch:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:269    .text.get_filtered_touch:0000000000000034 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:272    .text.get_filtered_touch:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:275    .text.get_filtered_touch:0000000000000038 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:278    .text.get_filtered_touch:000000000000003a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:283    .text.get_filtered_touch:000000000000003c .L0 
+          testMain.c:61     .text.get_filtered_touch:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:297    .text.get_filtered_touch:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:304    .text.servo_pwm_init:0000000000000000 servo_pwm_init
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:307    .text.servo_pwm_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:308    .text.servo_pwm_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:309    .text.servo_pwm_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:310    .text.servo_pwm_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:312    .text.servo_pwm_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:314    .text.servo_pwm_init:0000000000000002 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 43
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:316    .text.servo_pwm_init:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:317    .text.servo_pwm_init:0000000000000008 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:319    .text.servo_pwm_init:0000000000000008 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:322    .text.servo_pwm_init:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:326    .text.servo_pwm_init:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:334    .text.servo_pwm_init:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:335    .text.servo_pwm_init:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:339    .text.servo_pwm_init:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:340    .text.servo_pwm_init:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:341    .text.servo_pwm_init:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:342    .text.servo_pwm_init:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:345    .text.servo_pwm_init:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:348    .text.servo_pwm_init:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:351    .text.servo_pwm_init:000000000000004e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:353    .text.servo_pwm_init:0000000000000050 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:355    .text.servo_pwm_init:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:356    .text.servo_pwm_init:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:357    .text.servo_pwm_init:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:359    .text.servo_pwm_init:0000000000000058 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:362    .text.servo_pwm_init:0000000000000060 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:363    .text.servo_pwm_init:0000000000000060 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:367    .text.servo_pwm_init:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:368    .text.servo_pwm_init:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:370    .text.servo_pwm_init:000000000000006c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:374    .text.servo_pwm_init:0000000000000074 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:376    .text.servo_pwm_init:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:377    .text.servo_pwm_init:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:379    .text.servo_pwm_init:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:382    .text.servo_pwm_init:0000000000000084 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:388    .text.servo_pwm_init:0000000000000096 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:394    .text.servo_pwm_init:00000000000000a6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:400    .text.servo_pwm_init:00000000000000b8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:404    .text.servo_pwm_init:00000000000000c4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:408    .text.servo_pwm_init:00000000000000d0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:409    .text.servo_pwm_init:00000000000000d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:412    .text.servo_pwm_init:00000000000000d4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:414    .text.servo_pwm_init:00000000000000d6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:421    .text.set_servo_pulse:0000000000000000 set_servo_pulse
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:424    .text.set_servo_pulse:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:426    .text.set_servo_pulse:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:427    .text.set_servo_pulse:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:433    .text.set_servo_pulse:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:440    .text.timer_1ms_init:0000000000000000 timer_1ms_init
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:443    .text.timer_1ms_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:444    .text.timer_1ms_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:445    .text.timer_1ms_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:446    .text.timer_1ms_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:448    .text.timer_1ms_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:450    .text.timer_1ms_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:452    .text.timer_1ms_init:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:454    .text.timer_1ms_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:455    .text.timer_1ms_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:457    .text.timer_1ms_init:000000000000000a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:460    .text.timer_1ms_init:0000000000000012 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:466    .text.timer_1ms_init:0000000000000022 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:467    .text.timer_1ms_init:0000000000000022 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:472    .text.timer_1ms_init:0000000000000032 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 44
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:473    .text.timer_1ms_init:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:474    .text.timer_1ms_init:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:475    .text.timer_1ms_init:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:478    .text.timer_1ms_init:0000000000000038 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:480    .text.timer_1ms_init:000000000000003a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:482    .text.timer_1ms_init:000000000000003e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:484    .text.timer_1ms_init:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:486    .text.timer_1ms_init:0000000000000044 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:488    .text.timer_1ms_init:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:489    .text.timer_1ms_init:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:490    .text.timer_1ms_init:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:492    .text.timer_1ms_init:000000000000004c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:493    .text.timer_1ms_init:000000000000004c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:495    .text.timer_1ms_init:0000000000000050 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:498    .text.timer_1ms_init:0000000000000058 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:503    .text.timer_1ms_init:0000000000000066 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:507    .text.timer_1ms_init:0000000000000072 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:508    .text.timer_1ms_init:0000000000000074 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:510    .text.timer_1ms_init:0000000000000076 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:513    .text.timer_1ms_init:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:515    .text.timer_1ms_init:000000000000007a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:522    .text.TIMER2_IRQHandler:0000000000000000 TIMER2_IRQHandler
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:525    .text.TIMER2_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:526    .text.TIMER2_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:527    .text.TIMER2_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:528    .text.TIMER2_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:530    .text.TIMER2_IRQHandler:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:532    .text.TIMER2_IRQHandler:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:534    .text.TIMER2_IRQHandler:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:538    .text.TIMER2_IRQHandler:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:539    .text.TIMER2_IRQHandler:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:541    .text.TIMER2_IRQHandler:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:544    .text.TIMER2_IRQHandler:0000000000000018 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:547    .text.TIMER2_IRQHandler:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:552    .text.TIMER2_IRQHandler:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:553    .text.TIMER2_IRQHandler:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:560    .text.TIMER2_IRQHandler:000000000000003a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:561    .text.TIMER2_IRQHandler:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:563    .text.TIMER2_IRQHandler:000000000000003e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:566    .text.TIMER2_IRQHandler:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:568    .text.TIMER2_IRQHandler:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:575    .text.get_millis:0000000000000000 get_millis
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:578    .text.get_millis:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:579    .text.get_millis:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:580    .text.get_millis:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:581    .text.get_millis:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:582    .text.get_millis:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:584    .text.get_millis:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:586    .text.get_millis:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:588    .text.get_millis:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:591    .text.get_millis:000000000000000c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:592    .text.get_millis:000000000000000c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:597    .text.get_millis:0000000000000016 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:600    .text.get_millis:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:601    .text.get_millis:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:602    .text.get_millis:0000000000000020 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:606    .text.get_millis:0000000000000024 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 45
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:609    .text.get_millis:0000000000000026 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:616    .text.hall_sensor_init:0000000000000000 hall_sensor_init
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:619    .text.hall_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:620    .text.hall_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:621    .text.hall_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:622    .text.hall_sensor_init:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:624    .text.hall_sensor_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:626    .text.hall_sensor_init:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:628    .text.hall_sensor_init:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:629    .text.hall_sensor_init:0000000000000008 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:631    .text.hall_sensor_init:0000000000000008 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:634    .text.hall_sensor_init:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:638    .text.hall_sensor_init:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:646    .text.hall_sensor_init:0000000000000034 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:652    .text.hall_sensor_init:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:657    .text.hall_sensor_init:000000000000004e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:663    .text.hall_sensor_init:000000000000005c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:664    .text.hall_sensor_init:000000000000005c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:665    .text.hall_sensor_init:000000000000005e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:667    .text.hall_sensor_init:000000000000005e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:669    .text.hall_sensor_init:0000000000000060 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:671    .text.hall_sensor_init:0000000000000062 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:673    .text.hall_sensor_init:0000000000000062 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:675    .text.hall_sensor_init:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:682    .text.EXTI1_IRQHandler:0000000000000000 EXTI1_IRQHandler
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:685    .text.EXTI1_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:686    .text.EXTI1_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:687    .text.EXTI1_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:688    .text.EXTI1_IRQHandler:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:690    .text.EXTI1_IRQHandler:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:692    .text.EXTI1_IRQHandler:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:694    .text.EXTI1_IRQHandler:0000000000000004 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:695    .text.EXTI1_IRQHandler:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:697    .text.EXTI1_IRQHandler:0000000000000006 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:700    .text.EXTI1_IRQHandler:000000000000000e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:703    .text.EXTI1_IRQHandler:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:707    .text.EXTI1_IRQHandler:000000000000001a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:708    .text.EXTI1_IRQHandler:000000000000001a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:710    .text.EXTI1_IRQHandler:000000000000001e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:712    .text.EXTI1_IRQHandler:0000000000000022 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:714    .text.EXTI1_IRQHandler:0000000000000026 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:717    .text.EXTI1_IRQHandler:000000000000002a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:718    .text.EXTI1_IRQHandler:000000000000002a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:720    .text.EXTI1_IRQHandler:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:722    .text.EXTI1_IRQHandler:000000000000002e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:725    .text.EXTI1_IRQHandler:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:726    .text.EXTI1_IRQHandler:0000000000000032 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:728    .text.EXTI1_IRQHandler:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:729    .text.EXTI1_IRQHandler:0000000000000036 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:734    .text.EXTI1_IRQHandler:0000000000000046 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:736    .text.EXTI1_IRQHandler:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:737    .text.EXTI1_IRQHandler:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:739    .text.EXTI1_IRQHandler:000000000000004a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:740    .text.EXTI1_IRQHandler:000000000000004a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:746    .text.EXTI1_IRQHandler:0000000000000050 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:747    .text.EXTI1_IRQHandler:0000000000000052 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:748    .text.EXTI1_IRQHandler:0000000000000052 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 46
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:751    .text.EXTI1_IRQHandler:0000000000000054 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:756    .text.EXTI1_IRQHandler:0000000000000056 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:759    .text.EXTI1_IRQHandler:0000000000000056 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:760    .text.EXTI1_IRQHandler:0000000000000056 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:766    .text.EXTI1_IRQHandler:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:767    .text.EXTI1_IRQHandler:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:769    .text.EXTI1_IRQHandler:000000000000006c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:770    .text.EXTI1_IRQHandler:000000000000006c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:772    .text.EXTI1_IRQHandler:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:773    .text.EXTI1_IRQHandler:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:778    .text.EXTI1_IRQHandler:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:779    .text.EXTI1_IRQHandler:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:784    .text.EXTI1_IRQHandler:0000000000000086 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:785    .text.EXTI1_IRQHandler:0000000000000088 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:792    .text.startup.main:0000000000000000 main
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:795    .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:796    .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:797    .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:798    .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:799    .text.startup.main:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:801    .text.startup.main:0000000000000002 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:815    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:816    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:817    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:818    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:819    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:820    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:821    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:822    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:823    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:824    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:825    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:826    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:827    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:829    .text.startup.main:000000000000001c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:832    .text.startup.main:0000000000000024 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:835    .text.startup.main:000000000000002c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:838    .text.startup.main:0000000000000034 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:841    .text.startup.main:000000000000003c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:844    .text.startup.main:0000000000000044 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:845    .text.startup.main:0000000000000044 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:847    .text.startup.main:0000000000000048 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:849    .text.startup.main:000000000000004a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:851    .text.startup.main:000000000000004e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:854    .text.startup.main:0000000000000056 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:862    .text.startup.main:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:863    .text.startup.main:000000000000006e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:865    .text.startup.main:0000000000000070 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:868    .text.startup.main:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:869    .text.startup.main:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:870    .text.startup.main:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:871    .text.startup.main:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:872    .text.startup.main:0000000000000078 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:874    .text.startup.main:000000000000007a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:876    .text.startup.main:000000000000007c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:879    .text.startup.main:000000000000007e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:881    .text.startup.main:0000000000000080 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 47
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:883    .text.startup.main:0000000000000084 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:885    .text.startup.main:0000000000000088 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:887    .text.startup.main:000000000000008c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:890    .text.startup.main:0000000000000094 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:896    .text.startup.main:0000000000000098 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:897    .text.startup.main:0000000000000098 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:898    .text.startup.main:0000000000000098 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:903    .text.startup.main:00000000000000a2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:904    .text.startup.main:00000000000000a2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:907    .text.startup.main:00000000000000aa .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:909    .text.startup.main:00000000000000ae .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:912    .text.startup.main:00000000000000b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:913    .text.startup.main:00000000000000b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:914    .text.startup.main:00000000000000b0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:916    .text.startup.main:00000000000000b4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:917    .text.startup.main:00000000000000b4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:920    .text.startup.main:00000000000000b8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:921    .text.startup.main:00000000000000b8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:922    .text.startup.main:00000000000000b8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:927    .text.startup.main:00000000000000c2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:933    .text.startup.main:00000000000000d0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:937    .text.startup.main:00000000000000d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:938    .text.startup.main:00000000000000d2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:940    .text.startup.main:00000000000000d4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:942    .text.startup.main:00000000000000d8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:946    .text.startup.main:00000000000000e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:947    .text.startup.main:00000000000000e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:948    .text.startup.main:00000000000000e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:949    .text.startup.main:00000000000000e0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:952    .text.startup.main:00000000000000e8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:954    .text.startup.main:00000000000000ea .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:958    .text.startup.main:00000000000000ec .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:963    .text.startup.main:00000000000000f0 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:971    .text.startup.main:00000000000000f6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:972    .text.startup.main:00000000000000f6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:978    .text.startup.main:0000000000000100 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:984    .text.startup.main:0000000000000104 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:985    .text.startup.main:0000000000000104 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:987    .text.startup.main:0000000000000106 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:989    .text.startup.main:000000000000010a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:993    .text.startup.main:0000000000000112 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:994    .text.startup.main:0000000000000112 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:995    .text.startup.main:0000000000000112 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:998    .text.startup.main:000000000000011a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:999    .text.startup.main:000000000000011a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1003   .text.startup.main:0000000000000124 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1008   .text.startup.main:0000000000000128 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1009   .text.startup.main:0000000000000128 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1014   .text.startup.main:0000000000000136 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1016   .text.startup.main:0000000000000138 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1017   .text.startup.main:0000000000000138 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1019   .text.startup.main:000000000000013c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1020   .text.startup.main:000000000000013c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1023   .text.startup.main:0000000000000144 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1025   .text.startup.main:0000000000000148 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1026   .text.startup.main:0000000000000148 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1031   .text.startup.main:0000000000000154 .L0 
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 48
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1033   .text.startup.main:0000000000000158 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1036   .text.startup.main:000000000000015a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1040   .text.startup.main:000000000000015c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1041   .text.startup.main:000000000000015c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1044   .text.startup.main:0000000000000162 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1047   .text.startup.main:0000000000000168 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1049   .text.startup.main:000000000000016c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1051   .text.startup.main:0000000000000170 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1052   .text.startup.main:0000000000000170 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1067   .text.startup.main:0000000000000184 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1073   .text.startup.main:0000000000000190 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1078   .text.startup.main:000000000000019e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1084   .text.startup.main:00000000000001aa .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1089   .text.startup.main:00000000000001b8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1094   .text.startup.main:00000000000001ba .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1095   .text.startup.main:00000000000001ba .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1096   .text.startup.main:00000000000001ba .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1100   .text.startup.main:00000000000001c2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1102   .text.startup.main:00000000000001c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1104   .text.startup.main:00000000000001c8 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1106   .text.startup.main:00000000000001cc .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1114   .text.startup.main:00000000000001e4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1121   .text.startup.main:00000000000001ec .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1129   .text.startup.main:0000000000000206 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1136   .text.startup.main:0000000000000214 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1137   .text.startup.main:0000000000000214 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1140   .text.startup.main:000000000000021a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1144   .text.startup.main:000000000000021c .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1149   .text.startup.main:0000000000000222 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1152   .text.startup.main:000000000000022a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1164   .text.startup.main:0000000000000244 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1165   .text.startup.main:0000000000000244 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1167   .text.startup.main:0000000000000248 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1171   .text.startup.main:0000000000000250 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1172   .text.startup.main:0000000000000250 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1178   .text.startup.main:0000000000000262 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1186   .text.startup.main:0000000000000276 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1196   .text.startup.main:000000000000028a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1197   .text.startup.main:000000000000028a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1198   .text.startup.main:000000000000028a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1201   .text.startup.main:0000000000000290 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1203   .text.startup.main:0000000000000294 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1205   .text.startup.main:0000000000000296 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1207   .text.startup.main:000000000000029a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1215   .text.startup.main:00000000000002b2 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1222   .text.startup.main:00000000000002c6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1230   .text.startup.main:00000000000002d4 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1239   .text.startup.main:00000000000002ec .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1310   .sbss.pulse_count:0000000000000000 pulse_count
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1297   .sbss.new_pulse_flag:0000000000000000 new_pulse_flag
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1304   .sbss.previous_interval:0000000000000000 previous_interval
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1277   .sbss.current_interval:0000000000000000 current_interval
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1284   .sbss.last_pulse_time:0000000000000000 last_pulse_time
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1291   .sbss.ms_ticks:0000000000000000 ms_ticks
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1274   .sbss.current_interval:0000000000000000 .LANCHOR3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1281   .sbss.last_pulse_time:0000000000000000 .LANCHOR1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1288   .sbss.ms_ticks:0000000000000000 .LANCHOR0
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 49
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1294   .sbss.new_pulse_flag:0000000000000000 .LANCHOR5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1301   .sbss.previous_interval:0000000000000000 .LANCHOR4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1307   .sbss.pulse_count:0000000000000000 .LANCHOR2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:65     .text.touch_sensor_init:000000000000004a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:194    .text.measure_charge_time:000000000000008e .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:300    .text.get_filtered_touch:0000000000000040 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:417    .text.servo_pwm_init:00000000000000d6 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:436    .text.set_servo_pulse:0000000000000010 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:518    .text.timer_1ms_init:000000000000007a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:571    .text.TIMER2_IRQHandler:0000000000000042 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:612    .text.get_millis:0000000000000026 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:678    .text.hall_sensor_init:000000000000006a .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:788    .text.EXTI1_IRQHandler:0000000000000088 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1248   .text.startup.main:00000000000002ec .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:170    .text.measure_charge_time:0000000000000086 .L5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:156    .text.measure_charge_time:000000000000007c .L3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:183    .text.measure_charge_time:000000000000008a .L8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:111    .text.measure_charge_time:0000000000000036 .L4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:147    .text.measure_charge_time:0000000000000070 .L6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:281    .text.get_filtered_touch:000000000000003c .L12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:230    .text.get_filtered_touch:0000000000000012 .L13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:247    .text.get_filtered_touch:000000000000001e .L11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:558    .text.TIMER2_IRQHandler:000000000000003a .L21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:743    .text.EXTI1_IRQHandler:0000000000000050 .L28
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:754    .text.EXTI1_IRQHandler:0000000000000056 .L32
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1250   .rodata.main.str1.4:0000000000000000 .LC0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1253   .rodata.main.str1.4:0000000000000010 .LC1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1255   .rodata.main.str1.4:000000000000001c .LC2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1258   .rodata.main.str1.4:0000000000000030 .LC3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1260   .rodata.main.str1.4:0000000000000044 .LC4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1262   .rodata.main.str1.4:0000000000000054 .LC5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1265   .rodata.main.str1.4:0000000000000068 .LC6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1268   .rodata.main.str1.4:000000000000007c .LC7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1270   .rodata.main.str1.4:000000000000008c .LC8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1134   .text.startup.main:0000000000000214 .L36
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1227   .text.startup.main:00000000000002d4 .L37
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1142   .text.startup.main:000000000000021c .L38
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1060   .text.startup.main:000000000000017e .L57
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1162   .text.startup.main:0000000000000244 .L43
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:892    .text.startup.main:0000000000000098 .L35
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:956    .text.startup.main:00000000000000ec .L64
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1056   .text.startup.main:000000000000017a .L52
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1037   .text.startup.main:000000000000015c .L44
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:965    .text.startup.main:00000000000000f2 .L45
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1070   .text.startup.main:0000000000000190 .L65
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1081   .text.startup.main:00000000000001aa .L63
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:982    .text.startup.main:0000000000000104 .L40
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:969    .text.startup.main:00000000000000f6 .L41
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1006   .text.startup.main:0000000000000128 .L42
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:935    .text.startup.main:00000000000000d2 .L39
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:961    .text.startup.main:00000000000000f0 .L58
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1090   .text.startup.main:00000000000001ba .L46
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1065   .text.startup.main:0000000000000184 .L47
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1118   .text.startup.main:00000000000001ec .L48
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:976    .text.startup.main:0000000000000100 .L60
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:4962   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 50
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6864   .debug_str:00000000000001f5 .LASF291
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7332   .debug_str:0000000000000d9d .LASF292
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7360   .debug_str:0000000000000e5d .LASF293
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6710   .debug_ranges:0000000000000000 .Ldebug_ranges0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6776   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7184   .debug_str:0000000000000a29 .LASF66
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6916   .debug_str:000000000000039e .LASF337
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7178   .debug_str:0000000000000a06 .LASF0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7454   .debug_str:00000000000010af .LASF1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7058   .debug_str:000000000000071a .LASF2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6924   .debug_str:00000000000003cc .LASF3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7232   .debug_str:0000000000000b53 .LASF4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7324   .debug_str:0000000000000d6d .LASF5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7380   .debug_str:0000000000000f3e .LASF6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6908   .debug_str:0000000000000373 .LASF7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7456   .debug_str:00000000000010bc .LASF8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7256   .debug_str:0000000000000bdb .LASF9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7328   .debug_str:0000000000000d81 .LASF10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7322   .debug_str:0000000000000d62 .LASF11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7040   .debug_str:0000000000000698 .LASF12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6780   .debug_str:0000000000000009 .LASF13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7436   .debug_str:0000000000001032 .LASF14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7176   .debug_str:00000000000009fb .LASF15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6884   .debug_str:00000000000002ef .LASF16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6852   .debug_str:00000000000001ac .LASF17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7252   .debug_str:0000000000000bba .LASF18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6992   .debug_str:000000000000056f .LASF19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6944   .debug_str:0000000000000445 .LASF20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7358   .debug_str:0000000000000e4a .LASF21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7088   .debug_str:00000000000007db .LASF22
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6974   .debug_str:0000000000000510 .LASF23
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6914   .debug_str:0000000000000391 .LASF24
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7100   .debug_str:000000000000082b .LASF25
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6866   .debug_str:000000000000027d .LASF26
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7346   .debug_str:0000000000000e06 .LASF27
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6906   .debug_str:0000000000000366 .LASF28
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6798   .debug_str:0000000000000079 .LASF29
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7348   .debug_str:0000000000000e15 .LASF30
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7370   .debug_str:0000000000000f0b .LASF31
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7116   .debug_str:00000000000008a2 .LASF32
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7120   .debug_str:00000000000008c1 .LASF33
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6872   .debug_str:00000000000002a3 .LASF34
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7278   .debug_str:0000000000000c68 .LASF35
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6888   .debug_str:000000000000030c .LASF36
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6800   .debug_str:0000000000000089 .LASF37
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7008   .debug_str:000000000000060a .LASF38
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6950   .debug_str:000000000000047a .LASF39
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7382   .debug_str:0000000000000f47 .LASF40
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7144   .debug_str:000000000000093f .LASF41
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7214   .debug_str:0000000000000abe .LASF42
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7272   .debug_str:0000000000000c49 .LASF43
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7000   .debug_str:00000000000005b7 .LASF44
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6998   .debug_str:00000000000005a8 .LASF45
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7314   .debug_str:0000000000000d38 .LASF46
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7148   .debug_str:0000000000000951 .LASF47
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6826   .debug_str:0000000000000128 .LASF48
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7238   .debug_str:0000000000000b70 .LASF49
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 51
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6886   .debug_str:0000000000000302 .LASF50
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7426   .debug_str:0000000000000ffd .LASF51
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7166   .debug_str:00000000000009b7 .LASF52
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6984   .debug_str:0000000000000538 .LASF53
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7384   .debug_str:0000000000000f51 .LASF54
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7218   .debug_str:0000000000000ad7 .LASF55
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6958   .debug_str:00000000000004b0 .LASF56
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7368   .debug_str:0000000000000ef8 .LASF57
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7334   .debug_str:0000000000000da8 .LASF58
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7062   .debug_str:0000000000000736 .LASF59
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7042   .debug_str:00000000000006a3 .LASF60
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6990   .debug_str:0000000000000561 .LASF61
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7400   .debug_str:0000000000000f96 .LASF62
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6878   .debug_str:00000000000002c9 .LASF63
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7460   .debug_str:00000000000010d4 .LASF64
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7154   .debug_str:0000000000000979 .LASF65
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6934   .debug_str:0000000000000402 .LASF67
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6882   .debug_str:00000000000002e5 .LASF70
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6942   .debug_str:0000000000000437 .LASF68
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7344   .debug_str:0000000000000dfc .LASF69
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6988   .debug_str:0000000000000556 .LASF71
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7430   .debug_str:000000000000100d .LASF72
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6898   .debug_str:0000000000000341 .LASF73
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7118   .debug_str:00000000000008b6 .LASF74
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7056   .debug_str:0000000000000708 .LASF75
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7128   .debug_str:00000000000008f0 .LASF76
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7260   .debug_str:0000000000000bfe .LASF77
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6936   .debug_str:000000000000040e .LASF78
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7262   .debug_str:0000000000000c15 .LASF79
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7390   .debug_str:0000000000000f6d .LASF80
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7068   .debug_str:000000000000075c .LASF267
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7300   .debug_str:0000000000000cff .LASF81
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7404   .debug_str:0000000000000fb0 .LASF82
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7406   .debug_str:0000000000000fb7 .LASF83
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7408   .debug_str:0000000000000fbe .LASF84
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7410   .debug_str:0000000000000fc5 .LASF85
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7412   .debug_str:0000000000000fcc .LASF86
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7414   .debug_str:0000000000000fd3 .LASF87
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7416   .debug_str:0000000000000fda .LASF88
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7418   .debug_str:0000000000000fe1 .LASF89
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7420   .debug_str:0000000000000fe8 .LASF90
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7422   .debug_str:0000000000000fef .LASF91
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7018   .debug_str:000000000000063c .LASF92
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7020   .debug_str:0000000000000644 .LASF93
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7022   .debug_str:000000000000064c .LASF94
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7024   .debug_str:0000000000000654 .LASF95
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7026   .debug_str:000000000000065c .LASF96
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7028   .debug_str:0000000000000664 .LASF97
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7030   .debug_str:000000000000066c .LASF98
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7032   .debug_str:0000000000000674 .LASF99
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7034   .debug_str:000000000000067c .LASF100
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7320   .debug_str:0000000000000d53 .LASF101
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6874   .debug_str:00000000000002af .LASF102
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7126   .debug_str:00000000000008df .LASF103
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7002   .debug_str:00000000000005c3 .LASF104
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6956   .debug_str:00000000000004a1 .LASF105
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6876   .debug_str:00000000000002ba .LASF106
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 52
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7306   .debug_str:0000000000000d15 .LASF107
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7308   .debug_str:0000000000000d1e .LASF108
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7180   .debug_str:0000000000000a18 .LASF109
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7376   .debug_str:0000000000000f2e .LASF110
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7098   .debug_str:0000000000000821 .LASF111
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6840   .debug_str:000000000000016a .LASF112
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6842   .debug_str:0000000000000175 .LASF113
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6844   .debug_str:0000000000000180 .LASF114
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6846   .debug_str:000000000000018b .LASF115
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6848   .debug_str:0000000000000196 .LASF116
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6850   .debug_str:00000000000001a1 .LASF117
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7208   .debug_str:0000000000000a9f .LASF118
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6928   .debug_str:00000000000003e3 .LASF119
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6930   .debug_str:00000000000003ec .LASF120
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6858   .debug_str:00000000000001d9 .LASF121
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6860   .debug_str:00000000000001e4 .LASF122
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6820   .debug_str:00000000000000ee .LASF123
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6822   .debug_str:00000000000000f8 .LASF124
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7392   .debug_str:0000000000000f76 .LASF125
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7394   .debug_str:0000000000000f7f .LASF126
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6964   .debug_str:00000000000004e1 .LASF127
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6966   .debug_str:00000000000004ea .LASF128
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7356   .debug_str:0000000000000e41 .LASF129
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6806   .debug_str:00000000000000a6 .LASF130
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6938   .debug_str:0000000000000416 .LASF131
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7234   .debug_str:0000000000000b62 .LASF132
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7072   .debug_str:000000000000077b .LASF133
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7132   .debug_str:0000000000000906 .LASF134
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7134   .debug_str:0000000000000910 .LASF135
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7136   .debug_str:000000000000091a .LASF136
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7138   .debug_str:0000000000000924 .LASF137
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7140   .debug_str:000000000000092e .LASF138
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7122   .debug_str:00000000000008cd .LASF139
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7124   .debug_str:00000000000008d6 .LASF140
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6838   .debug_str:000000000000015f .LASF141
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6926   .debug_str:00000000000003da .LASF142
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6856   .debug_str:00000000000001ce .LASF143
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7052   .debug_str:00000000000006f9 .LASF144
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7108   .debug_str:0000000000000855 .LASF145
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7090   .debug_str:00000000000007ee .LASF146
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7296   .debug_str:0000000000000cf1 .LASF147
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6972   .debug_str:0000000000000502 .LASF148
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6870   .debug_str:0000000000000291 .LASF149
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7170   .debug_str:00000000000009c8 .LASF150
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7094   .debug_str:000000000000080d .LASF151
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7164   .debug_str:00000000000009aa .LASF152
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6982   .debug_str:000000000000052d .LASF153
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7402   .debug_str:0000000000000fa4 .LASF154
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6796   .debug_str:000000000000006d .LASF155
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6880   .debug_str:00000000000002d8 .LASF156
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7050   .debug_str:00000000000006df .LASF157
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7228   .debug_str:0000000000000b3d .LASF158
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7312   .debug_str:0000000000000d31 .LASF159
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7424   .debug_str:0000000000000ff6 .LASF160
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7246   .debug_str:0000000000000ba1 .LASF161
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6788   .debug_str:000000000000004c .LASF162
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6892   .debug_str:0000000000000327 .LASF163
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 53
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7248   .debug_str:0000000000000ba9 .LASF164
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7210   .debug_str:0000000000000aa9 .LASF165
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6792   .debug_str:0000000000000060 .LASF166
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7302   .debug_str:0000000000000d05 .LASF167
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7388   .debug_str:0000000000000f65 .LASF168
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7074   .debug_str:0000000000000782 .LASF169
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7294   .debug_str:0000000000000ce8 .LASF170
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7086   .debug_str:00000000000007d3 .LASF175
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7316   .debug_str:0000000000000d47 .LASF171
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7096   .debug_str:0000000000000819 .LASF172
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7162   .debug_str:00000000000009a4 .LASF173
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7012   .debug_str:000000000000061f .LASF174
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6830   .debug_str:000000000000013a .LASF176
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6836   .debug_str:0000000000000156 .LASF177
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7448   .debug_str:000000000000108a .LASF178
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7432   .debug_str:0000000000001020 .LASF179
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7188   .debug_str:0000000000000a45 .LASF180
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6922   .debug_str:00000000000003c3 .LASF181
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7354   .debug_str:0000000000000e37 .LASF182
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7222   .debug_str:0000000000000b12 .LASF183
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7230   .debug_str:0000000000000b49 .LASF184
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7444   .debug_str:000000000000106e .LASF185
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6890   .debug_str:0000000000000319 .LASF186
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7442   .debug_str:0000000000001066 .LASF187
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7264   .debug_str:0000000000000c1e .LASF188
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7352   .debug_str:0000000000000e2e .LASF189
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7374   .debug_str:0000000000000f26 .LASF190
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7206   .debug_str:0000000000000a97 .LASF191
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6970   .debug_str:00000000000004fd .LASF192
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6978   .debug_str:0000000000000521 .LASF193
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7372   .debug_str:0000000000000f1f .LASF194
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7280   .debug_str:0000000000000c74 .LASF195
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6904   .debug_str:0000000000000360 .LASF196
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7434   .debug_str:000000000000102a .LASF197
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7202   .debug_str:0000000000000a84 .LASF198
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6894   .debug_str:000000000000032d .LASF199
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7364   .debug_str:0000000000000eea .LASF200
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7010   .debug_str:0000000000000617 .LASF201
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6802   .debug_str:0000000000000096 .LASF202
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6808   .debug_str:00000000000000ae .LASF203
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7240   .debug_str:0000000000000b7c .LASF204
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6980   .debug_str:0000000000000526 .LASF205
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7192   .debug_str:0000000000000a54 .LASF206
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6834   .debug_str:0000000000000150 .LASF207
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7274   .debug_str:0000000000000c55 .LASF208
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7244   .debug_str:0000000000000b99 .LASF209
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7318   .debug_str:0000000000000d4d .LASF210
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6862   .debug_str:00000000000001ef .LASF211
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7198   .debug_str:0000000000000a70 .LASF212
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7066   .debug_str:0000000000000754 .LASF213
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6952   .debug_str:0000000000000487 .LASF214
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7078   .debug_str:00000000000007a4 .LASF215
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6994   .debug_str:0000000000000582 .LASF216
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7270   .debug_str:0000000000000c41 .LASF217
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7194   .debug_str:0000000000000a5a .LASF218
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7366   .debug_str:0000000000000ef3 .LASF219
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7174   .debug_str:00000000000009f0 .LASF220
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 54
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6948   .debug_str:0000000000000461 .LASF221
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7386   .debug_str:0000000000000f5d .LASF222
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7064   .debug_str:0000000000000749 .LASF223
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7102   .debug_str:0000000000000839 .LASF224
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7398   .debug_str:0000000000000f8e .LASF225
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6902   .debug_str:0000000000000356 .LASF226
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7054   .debug_str:0000000000000703 .LASF227
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7156   .debug_str:000000000000098e .LASF228
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6816   .debug_str:00000000000000db .LASF229
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7036   .debug_str:0000000000000684 .LASF230
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7190   .debug_str:0000000000000a4f .LASF231
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7104   .debug_str:0000000000000843 .LASF232
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7016   .debug_str:0000000000000632 .LASF233
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7146   .debug_str:0000000000000949 .LASF234
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6794   .debug_str:0000000000000068 .LASF235
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6976   .debug_str:000000000000051c .LASF236
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7298   .debug_str:0000000000000cf8 .LASF237
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7160   .debug_str:000000000000099e .LASF238
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7142   .debug_str:0000000000000938 .LASF239
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7158   .debug_str:0000000000000998 .LASF240
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7268   .debug_str:0000000000000c39 .LASF241
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7236   .debug_str:0000000000000b6a .LASF242
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6868   .debug_str:000000000000028b .LASF243
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7428   .debug_str:0000000000001008 .LASF244
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6932   .debug_str:00000000000003f5 .LASF245
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7282   .debug_str:0000000000000c7a .LASF246
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6814   .debug_str:00000000000000ce .LASF247
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6918   .debug_str:00000000000003a3 .LASF248
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7152   .debug_str:000000000000096a .LASF249
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7200   .debug_str:0000000000000a79 .LASF250
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7304   .debug_str:0000000000000d10 .LASF251
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7340   .debug_str:0000000000000ddf .LASF252
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7254   .debug_str:0000000000000bcd .LASF253
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7196   .debug_str:0000000000000a62 .LASF254
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7250   .debug_str:0000000000000bb0 .LASF255
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7080   .debug_str:00000000000007ab .LASF256
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7450   .debug_str:0000000000001093 .LASF257
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6896   .debug_str:0000000000000333 .LASF258
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7288   .debug_str:0000000000000cb7 .LASF259
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7438   .debug_str:000000000000103d .LASF260
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7186   .debug_str:0000000000000a36 .LASF261
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6832   .debug_str:000000000000013f .LASF262
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7182   .debug_str:0000000000000a20 .LASF263
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7378   .debug_str:0000000000000f37 .LASF264
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7150   .debug_str:0000000000000961 .LASF265
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6828   .debug_str:0000000000000132 .LASF266
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6790   .debug_str:0000000000000055 .LASF338
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6900   .debug_str:000000000000034a .LASF268
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6954   .debug_str:000000000000048e .LASF269
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7350   .debug_str:0000000000000e24 .LASF270
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7290   .debug_str:0000000000000cc6 .LASF271
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6782   .debug_str:0000000000000014 .LASF272
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7076   .debug_str:0000000000000794 .LASF273
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7172   .debug_str:00000000000009df .LASF274
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6986   .debug_str:0000000000000544 .LASF275
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6854   .debug_str:00000000000001bf .LASF276
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7038   .debug_str:000000000000068c .LASF277
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 55
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6810   .debug_str:00000000000000b5 .LASF278
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7092   .debug_str:00000000000007ff .LASF279
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7046   .debug_str:00000000000006c8 .LASF280
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7216   .debug_str:0000000000000aca .LASF281
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7204   .debug_str:0000000000000a8b .LASF282
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6912   .debug_str:000000000000038c .LASF297
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:793    .text.startup.main:0000000000000000 .LFB16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1240   .text.startup.main:00000000000002ec .LFE16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:5964   .debug_loc:0000000000000000 .LLST18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6778   .debug_str:0000000000000000 .LASF283
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7014   .debug_str:0000000000000624 .LASF284
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:5977   .debug_loc:0000000000000021 .LLST19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7458   .debug_str:00000000000010c5 .LASF285
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6020   .debug_loc:0000000000000090 .LLST20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7084   .debug_str:00000000000007c7 .LASF286
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6063   .debug_loc:00000000000000ff .LLST21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7342   .debug_str:0000000000000dec .LASF287
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6091   .debug_loc:000000000000014a .LLST22
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6127   .debug_loc:00000000000001ab .LLST23
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7276   .debug_str:0000000000000c5e .LASF288
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6138   .debug_loc:00000000000001c9 .LLST24
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7112   .debug_str:000000000000087f .LASF289
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6176   .debug_loc:000000000000022f .LLST25
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6812   .debug_str:00000000000000c0 .LASF290
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6286   .debug_loc:00000000000002f5 .LLST26
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1076   .text.startup.main:000000000000019e .LVL94
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1112   .text.startup.main:00000000000001e4 .LVL97
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1193   .text.startup.main:000000000000028a .LBB25
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1228   .text.startup.main:00000000000002d4 .LBE25
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6311   .debug_loc:000000000000031c .LLST27
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1213   .text.startup.main:00000000000002b2 .LVL110
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1220   .text.startup.main:00000000000002c6 .LVL111
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:899    .text.startup.main:00000000000000a0 .LVL71
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:905    .text.startup.main:00000000000000aa .LVL73
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:931    .text.startup.main:00000000000000d0 .LVL77
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1087   .text.startup.main:00000000000001b8 .LVL95
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1127   .text.startup.main:0000000000000206 .LVL99
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1150   .text.startup.main:000000000000022a .LVL104
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1176   .text.startup.main:0000000000000262 .LVL107
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1184   .text.startup.main:0000000000000276 .LVL108
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:830    .text.startup.main:0000000000000024 .LVL62
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:833    .text.startup.main:000000000000002c .LVL63
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:836    .text.startup.main:0000000000000034 .LVL64
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:839    .text.startup.main:000000000000003c .LVL65
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:842    .text.startup.main:0000000000000044 .LVL66
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:852    .text.startup.main:0000000000000056 .LVL67
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:860    .text.startup.main:000000000000006e .LVL68
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:866    .text.startup.main:0000000000000078 .LVL69
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6960   .debug_str:00000000000004c3 .LASF294
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7446   .debug_str:0000000000001079 .LASF295
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:683    .text.EXTI1_IRQHandler:0000000000000000 .LFB15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:786    .text.EXTI1_IRQHandler:0000000000000088 .LFE15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6336   .debug_loc:0000000000000344 .LLST15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6359   .debug_loc:000000000000037c .LLST16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6370   .debug_loc:000000000000039a .LLST17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:705    .text.EXTI1_IRQHandler:000000000000001a .LVL57
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:698    .text.EXTI1_IRQHandler:000000000000000e .LVL56
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 56
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7224   .debug_str:0000000000000b1c .LASF296
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:617    .text.hall_sensor_init:0000000000000000 .LFB14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:676    .text.hall_sensor_init:000000000000006a .LFE14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6381   .debug_loc:00000000000003b8 .LLST14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:632    .text.hall_sensor_init:0000000000000010 .LVL49
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:636    .text.hall_sensor_init:000000000000001c .LVL50
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:644    .text.hall_sensor_init:0000000000000034 .LVL51
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:650    .text.hall_sensor_init:0000000000000042 .LVL52
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:655    .text.hall_sensor_init:000000000000004e .LVL53
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:661    .text.hall_sensor_init:000000000000005c .LVL54
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:674    .text.hall_sensor_init:000000000000006a .LVL55
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6818   .debug_str:00000000000000e3 .LASF298
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:576    .text.get_millis:0000000000000000 .LFB13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:610    .text.get_millis:0000000000000026 .LFE13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6399   .debug_loc:00000000000003e4 .LLST12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6417   .debug_loc:0000000000000410 .LLST13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:589    .text.get_millis:000000000000000c .LVL45
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:598    .text.get_millis:000000000000001e .LVL47
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7338   .debug_str:0000000000000dcd .LASF299
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:523    .text.TIMER2_IRQHandler:0000000000000000 .LFB12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:569    .text.TIMER2_IRQHandler:0000000000000042 .LFE12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6434   .debug_loc:000000000000043b .LLST11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:542    .text.TIMER2_IRQHandler:0000000000000018 .LVL43
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:550    .text.TIMER2_IRQHandler:000000000000002c .LVL44
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7452   .debug_str:00000000000010a0 .LASF300
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:441    .text.timer_1ms_init:0000000000000000 .LFB11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:516    .text.timer_1ms_init:000000000000007a .LFE11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6452   .debug_loc:0000000000000467 .LLST10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7070   .debug_str:000000000000076c .LASF301
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:458    .text.timer_1ms_init:0000000000000012 .LVL37
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:464    .text.timer_1ms_init:0000000000000022 .LVL38
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:470    .text.timer_1ms_init:0000000000000032 .LVL39
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:496    .text.timer_1ms_init:0000000000000058 .LVL40
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:501    .text.timer_1ms_init:0000000000000066 .LVL41
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:505    .text.timer_1ms_init:0000000000000072 .LVL42
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7082   .debug_str:00000000000007b7 .LASF302
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:422    .text.set_servo_pulse:0000000000000000 .LFB10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:434    .text.set_servo_pulse:0000000000000010 .LFE10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7396   .debug_str:0000000000000f88 .LASF339
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6470   .debug_loc:0000000000000493 .LLST9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:432    .text.set_servo_pulse:0000000000000010 .LVL36
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7266   .debug_str:0000000000000c2a .LASF303
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:305    .text.servo_pwm_init:0000000000000000 .LFB9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:415    .text.servo_pwm_init:00000000000000d6 .LFE9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6484   .debug_loc:00000000000004b4 .LLST8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7226   .debug_str:0000000000000b2d .LASF304
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:320    .text.servo_pwm_init:0000000000000010 .LVL22
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:324    .text.servo_pwm_init:000000000000001c .LVL23
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:332    .text.servo_pwm_init:0000000000000032 .LVL24
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:337    .text.servo_pwm_init:000000000000003c .LVL25
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:360    .text.servo_pwm_init:0000000000000060 .LVL26
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:365    .text.servo_pwm_init:000000000000006a .LVL27
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:380    .text.servo_pwm_init:0000000000000084 .LVL28
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:386    .text.servo_pwm_init:0000000000000096 .LVL29
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:392    .text.servo_pwm_init:00000000000000a6 .LVL30
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:398    .text.servo_pwm_init:00000000000000b8 .LVL31
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:402    .text.servo_pwm_init:00000000000000c4 .LVL32
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 57
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:406    .text.servo_pwm_init:00000000000000d0 .LVL33
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6786   .debug_str:0000000000000039 .LASF305
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:199    .text.get_filtered_touch:0000000000000000 .LFB8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:298    .text.get_filtered_touch:0000000000000040 .LFE8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6502   .debug_loc:00000000000004e0 .LLST4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6525   .debug_loc:0000000000000518 .LLST5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6541   .debug_loc:0000000000000542 .LLST6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:225    .text.get_filtered_touch:000000000000000e .LBB12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6581   .debug_loc:0000000000000592 .LLST7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:236    .text.get_filtered_touch:000000000000001a .LVL15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7006   .debug_str:00000000000005f6 .LASF306
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:70     .text.measure_charge_time:0000000000000000 .LFB7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:192    .text.measure_charge_time:000000000000008e .LFE7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6596   .debug_loc:00000000000005b4 .LLST1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7130   .debug_str:00000000000008fe .LASF307
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6619   .debug_loc:00000000000005ec .LLST2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:103    .text.measure_charge_time:000000000000002e .LBB4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6644   .debug_loc:000000000000062d .LLST3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:101    .text.measure_charge_time:000000000000002e .LVL5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:138    .text.measure_charge_time:0000000000000064 .LVL7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7336   .debug_str:0000000000000dbb .LASF308
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:14     .text.touch_sensor_init:0000000000000000 .LFB6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:63     .text.touch_sensor_init:000000000000004a .LFE6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6659   .debug_loc:0000000000000651 .LLST0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:32     .text.touch_sensor_init:0000000000000012 .LVL0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:40     .text.touch_sensor_init:0000000000000028 .LVL1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:45     .text.touch_sensor_init:0000000000000036 .LVL2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:61     .text.touch_sensor_init:000000000000004a .LVL3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7326   .debug_str:0000000000000d78 .LASF340
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7168   .debug_str:00000000000009c2 .LASF341
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7330   .debug_str:0000000000000d8e .LASF309
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7106   .debug_str:000000000000084c .LASF310
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6946   .debug_str:0000000000000458 .LASF311
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6804   .debug_str:000000000000009c .LASF312
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7110   .debug_str:0000000000000861 .LASF313
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7258   .debug_str:0000000000000be4 .LASF314
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6962   .debug_str:00000000000004c9 .LASF315
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7440   .debug_str:000000000000104e .LASF316
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7310   .debug_str:0000000000000d27 .LASF317
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6920   .debug_str:00000000000003b2 .LASF318
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7044   .debug_str:00000000000006b0 .LASF319
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6968   .debug_str:00000000000004f3 .LASF320
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6996   .debug_str:0000000000000589 .LASF321
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6940   .debug_str:000000000000041e .LASF322
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7114   .debug_str:0000000000000887 .LASF323
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7212   .debug_str:0000000000000ab1 .LASF324
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7048   .debug_str:00000000000006d4 .LASF325
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7242   .debug_str:0000000000000b82 .LASF326
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6910   .debug_str:000000000000037f .LASF327
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7220   .debug_str:0000000000000aea .LASF328
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7292   .debug_str:0000000000000cd1 .LASF329
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6824   .debug_str:0000000000000102 .LASF330
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:6784   .debug_str:000000000000001d .LASF331
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7004   .debug_str:00000000000005d5 .LASF332
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7286   .debug_str:0000000000000c94 .LASF333
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7362   .debug_str:0000000000000eca .LASF334
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7060   .debug_str:0000000000000727 .LASF335
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 58
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:7284   .debug_str:0000000000000c87 .LASF336
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:800    .text.startup.main:0000000000000002 .LCFI21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:891    .text.startup.main:0000000000000098 .LVL70
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:934    .text.startup.main:00000000000000d2 .LVL78
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:945    .text.startup.main:00000000000000e0 .LVL79
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:955    .text.startup.main:00000000000000ec .LVL80
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:960    .text.startup.main:00000000000000f0 .LVL81
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:968    .text.startup.main:00000000000000f6 .LVL83
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:992    .text.startup.main:0000000000000112 .LVL87
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1005   .text.startup.main:0000000000000128 .LVL88
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1038   .text.startup.main:000000000000015c .LVL90
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1055   .text.startup.main:000000000000017a .LVL91
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1064   .text.startup.main:0000000000000184 .LVL93
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1133   .text.startup.main:0000000000000214 .LVL100
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1141   .text.startup.main:000000000000021c .LVL101
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1161   .text.startup.main:0000000000000244 .LVL105
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:919    .text.startup.main:00000000000000b8 .LVL75
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:975    .text.startup.main:0000000000000100 .LVL84
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1059   .text.startup.main:000000000000017e .LVL92
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1147   .text.startup.main:0000000000000222 .LVL103
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1226   .text.startup.main:00000000000002d4 .LVL112
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:979    .text.startup.main:0000000000000102 .LVL85
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:981    .text.startup.main:0000000000000104 .LVL86
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1034   .text.startup.main:000000000000015a .LVL89
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:964    .text.startup.main:00000000000000f2 .LVL82
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1170   .text.startup.main:0000000000000250 .LVL106
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:901    .text.startup.main:00000000000000a2 .LVL72
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:910    .text.startup.main:00000000000000b0 .LVL74
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:928    .text.startup.main:00000000000000c4 .LVL76
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1145   .text.startup.main:0000000000000220 .LVL102
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1093   .text.startup.main:00000000000001ba .LVL96
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1117   .text.startup.main:00000000000001ec .LVL98
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1195   .text.startup.main:000000000000028a .LVL109
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:689    .text.EXTI1_IRQHandler:0000000000000002 .LCFI18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:750    .text.EXTI1_IRQHandler:0000000000000054 .LCFI19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:755    .text.EXTI1_IRQHandler:0000000000000056 .LCFI20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:715    .text.EXTI1_IRQHandler:000000000000002a .LVL58
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:742    .text.EXTI1_IRQHandler:0000000000000050 .LVL60
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:753    .text.EXTI1_IRQHandler:0000000000000056 .LVL61
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:723    .text.EXTI1_IRQHandler:0000000000000032 .LVL59
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:623    .text.hall_sensor_init:0000000000000002 .LCFI16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:670    .text.hall_sensor_init:0000000000000062 .LCFI17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:583    .text.get_millis:0000000000000002 .LCFI14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:605    .text.get_millis:0000000000000024 .LCFI15
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:595    .text.get_millis:0000000000000016 .LVL46
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:607    .text.get_millis:0000000000000024 .LVL48
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:529    .text.TIMER2_IRQHandler:0000000000000002 .LCFI12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:565    .text.TIMER2_IRQHandler:0000000000000040 .LCFI13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:447    .text.timer_1ms_init:0000000000000002 .LCFI10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:512    .text.timer_1ms_init:0000000000000078 .LCFI11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:425    .text.set_servo_pulse:0000000000000000 .LVL34
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:430    .text.set_servo_pulse:0000000000000008 .LVL35
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:311    .text.servo_pwm_init:0000000000000002 .LCFI8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:411    .text.servo_pwm_init:00000000000000d4 .LCFI9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:210    .text.get_filtered_touch:0000000000000002 .LCFI5
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:277    .text.get_filtered_touch:000000000000003a .LCFI6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:282    .text.get_filtered_touch:000000000000003c .LCFI7
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 59
+
+
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:203    .text.get_filtered_touch:0000000000000000 .LVL13
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:229    .text.get_filtered_touch:0000000000000012 .LVL14
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:270    .text.get_filtered_touch:0000000000000034 .LVL19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:280    .text.get_filtered_touch:000000000000003c .LVL21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:254    .text.get_filtered_touch:0000000000000028 .LVL17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:256    .text.get_filtered_touch:000000000000002a .LVL18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:273    .text.get_filtered_touch:0000000000000036 .LVL20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:239    .text.get_filtered_touch:000000000000001c .LVL16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:81     .text.measure_charge_time:000000000000000a .LCFI2
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:166    .text.measure_charge_time:0000000000000084 .LCFI3
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:171    .text.measure_charge_time:0000000000000086 .LCFI4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:74     .text.measure_charge_time:0000000000000000 .LVL4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:146    .text.measure_charge_time:0000000000000070 .LVL8
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:164    .text.measure_charge_time:0000000000000082 .LVL9
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:169    .text.measure_charge_time:0000000000000086 .LVL10
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:182    .text.measure_charge_time:000000000000008a .LVL11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:118    .text.measure_charge_time:0000000000000040 .LVL6
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:21     .text.touch_sensor_init:0000000000000002 .LCFI0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:57     .text.touch_sensor_init:0000000000000042 .LCFI1
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1331   .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:120    .text.measure_charge_time:0000000000000040 .LBE4
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:173    .text.measure_charge_time:0000000000000086 .LBB7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:185    .text.measure_charge_time:000000000000008a .LBE7
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:205    .text.get_filtered_touch:0000000000000000 .LBB11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:207    .text.get_filtered_touch:0000000000000000 .LBE11
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:224    .text.get_filtered_touch:000000000000000e .LBB18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:261    .text.get_filtered_touch:000000000000002c .LBE18
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:284    .text.get_filtered_touch:000000000000003c .LBB19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:296    .text.get_filtered_touch:0000000000000040 .LBE19
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:232    .text.get_filtered_touch:0000000000000012 .LBE12
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:241    .text.get_filtered_touch:000000000000001c .LBB16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:258    .text.get_filtered_touch:000000000000002a .LBE16
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:285    .text.get_filtered_touch:000000000000003c .LBB17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:295    .text.get_filtered_touch:0000000000000040 .LBE17
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:701    .text.EXTI1_IRQHandler:0000000000000010 .LBB20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:744    .text.EXTI1_IRQHandler:0000000000000050 .LBE20
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:757    .text.EXTI1_IRQHandler:0000000000000056 .LBB21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:782    .text.EXTI1_IRQHandler:0000000000000086 .LBE21
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:877    .text.startup.main:000000000000007e .LBB22
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:893    .text.startup.main:0000000000000098 .LBE22
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:895    .text.startup.main:0000000000000098 .LBB26
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1238   .text.startup.main:00000000000002ec .LBE26
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1071   .text.startup.main:0000000000000190 .LBB23
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1082   .text.startup.main:00000000000001aa .LBE23
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1091   .text.startup.main:00000000000001ba .LBB24
+C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s:1119   .text.startup.main:00000000000001ec .LBE24
+
+UNDEFINED SYMBOLS
+rcu_periph_clock_enable
+gpio_init
+gpio_bit_reset
+gpio_bit_set
+timer_struct_para_init
+timer_init
+timer_channel_output_struct_para_init
+timer_channel_output_config
+timer_channel_output_mode_config
+GAS LISTING C:\Users\zerda\AppData\Local\Temp\cchOKxt5.s 			page 60
+
+
+timer_channel_output_shadow_config
+timer_channel_output_pulse_value_config
+timer_auto_reload_shadow_enable
+timer_enable
+eclic_irq_enable
+timer_deinit
+timer_interrupt_enable
+timer_interrupt_flag_get
+timer_interrupt_flag_clear
+eclic_global_interrupt_disable
+eclic_global_interrupt_enable
+gpio_exti_source_select
+exti_init
+exti_interrupt_flag_clear
+exti_interrupt_flag_get
+Lcd_Init
+BACK_COLOR
+LCD_Clear
+LCD_ShowString
+snprintf
