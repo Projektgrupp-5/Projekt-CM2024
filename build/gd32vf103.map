@@ -1701,9 +1701,9 @@ END GROUP
  .text._fini    0x00000000080009fe        0x2 build/init.o
                 0x00000000080009fe                _fini
  .text.setup_pwm
-                0x0000000008000a00       0xd8 build/main.o
+                0x0000000008000a00       0xd6 build/main.o
                 0x0000000008000a00                setup_pwm
- *fill*         0x0000000008000ad8       0x28 
+ *fill*         0x0000000008000ad6       0x2a 
  .text.trap     0x0000000008000b00       0x82 build/entry.o
                 0x0000000008000b00                trap_entry
  *fill*         0x0000000008000b82        0x2 
@@ -1943,7 +1943,7 @@ OUTPUT(build/gd32vf103.elf elf32-littleriscv)
  .debug_ranges  0x0000000000000718       0x18 build/main.o
  .debug_ranges  0x0000000000000730       0x20 build/entry.o
 
-.debug_line     0x0000000000000000     0x7506
+.debug_line     0x0000000000000000     0x7505
  .debug_line    0x0000000000000000      0xb52 build/gd32vf103_gpio.o
  .debug_line    0x0000000000000b52     0x1545 build/gd32vf103_rcu.o
  .debug_line    0x0000000000002097     0x2b31 build/gd32vf103_timer.o
@@ -1953,9 +1953,9 @@ OUTPUT(build/gd32vf103.elf elf32-littleriscv)
  .debug_line    0x000000000000567f     0x1329 build/n200_func.o
  .debug_line    0x00000000000069a8      0x2b4 build/handlers.o
  .debug_line    0x0000000000006c5c      0x2f7 build/init.o
- .debug_line    0x0000000000006f53      0x345 build/main.o
- .debug_line    0x0000000000007298      0x189 build/start.o
- .debug_line    0x0000000000007421       0xe5 build/entry.o
+ .debug_line    0x0000000000006f53      0x344 build/main.o
+ .debug_line    0x0000000000007297      0x189 build/start.o
+ .debug_line    0x0000000000007420       0xe5 build/entry.o
 
 .debug_str      0x0000000000000000     0x2879
  .debug_str     0x0000000000000000      0x566 build/gd32vf103_gpio.o
