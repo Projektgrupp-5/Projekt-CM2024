@@ -1,0 +1,644 @@
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 1
+
+
+   1              		.file	"delay.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.globl	__floatundidf
+  10              		.globl	__floatunsidf
+  11              		.globl	__divdf3
+  12              		.globl	__muldf3
+  13              		.globl	__ltdf2
+  14              		.section	.text.delay_1ms,"ax",@progbits
+  15              		.align	1
+  16              		.globl	delay_1ms
+  18              	delay_1ms:
+  19              	.LFB2:
+  20              		.file 1 "delay.c"
+   1:delay.c       **** /*!
+   2:delay.c       ****     \file  systick.c
+   3:delay.c       ****     \brief the systick configuration file
+   4:delay.c       **** 
+   5:delay.c       ****     \version 2019-6-5, V1.0.0, firmware for GD32VF103
+   6:delay.c       **** */
+   7:delay.c       **** 
+   8:delay.c       **** /*
+   9:delay.c       ****     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+  10:delay.c       **** 
+  11:delay.c       ****     Redistribution and use in source and binary forms, with or without modification, 
+  12:delay.c       **** are permitted provided that the following conditions are met:
+  13:delay.c       **** 
+  14:delay.c       ****     1. Redistributions of source code must retain the above copyright notice, this 
+  15:delay.c       ****        list of conditions and the following disclaimer.
+  16:delay.c       ****     2. Redistributions in binary form must reproduce the above copyright notice, 
+  17:delay.c       ****        this list of conditions and the following disclaimer in the documentation 
+  18:delay.c       ****        and/or other materials provided with the distribution.
+  19:delay.c       ****     3. Neither the name of the copyright holder nor the names of its contributors 
+  20:delay.c       ****        may be used to endorse or promote products derived from this software without 
+  21:delay.c       ****        specific prior written permission.
+  22:delay.c       **** 
+  23:delay.c       ****     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+  24:delay.c       **** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+  25:delay.c       **** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+  26:delay.c       **** IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+  27:delay.c       **** INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  28:delay.c       **** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+  29:delay.c       **** PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+  30:delay.c       **** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  31:delay.c       **** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+  32:delay.c       **** OF SUCH DAMAGE.
+  33:delay.c       **** */
+  34:delay.c       **** 
+  35:delay.c       **** #include "gd32vf103.h"
+  36:delay.c       **** #include "delay.h"
+  37:delay.c       **** 
+  38:delay.c       **** /*!
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 2
+
+
+  39:delay.c       ****     \brief      delay a time in milliseconds
+  40:delay.c       ****     \param[in]  count: count in milliseconds
+  41:delay.c       ****     \param[out] none
+  42:delay.c       ****     \retval     none
+  43:delay.c       **** */
+  44:delay.c       **** void delay_1ms(uint32_t count)
+  45:delay.c       **** {
+  21              		.loc 1 45 1
+  22              		.cfi_startproc
+  23              	.LVL0:
+  46:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+  24              		.loc 1 46 2
+  47:delay.c       **** 
+  48:delay.c       **** 	// Don't start measuruing until we see an mtime tick
+  49:delay.c       **** 	uint64_t tmp = get_timer_value();
+  25              		.loc 1 49 2
+  45:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+  26              		.loc 1 45 1 is_stmt 0
+  27 0000 7971     		addi	sp,sp,-48
+  28              	.LCFI0:
+  29              		.cfi_def_cfa_offset 48
+  30 0002 4AD0     		sw	s2,32(sp)
+  31 0004 4ECE     		sw	s3,28(sp)
+  32 0006 5AC8     		sw	s6,16(sp)
+  33 0008 06D6     		sw	ra,44(sp)
+  34 000a 22D4     		sw	s0,40(sp)
+  35 000c 26D2     		sw	s1,36(sp)
+  36 000e 52CC     		sw	s4,24(sp)
+  37 0010 56CA     		sw	s5,20(sp)
+  38 0012 5EC6     		sw	s7,12(sp)
+  39 0014 62C4     		sw	s8,8(sp)
+  40 0016 66C2     		sw	s9,4(sp)
+  41              		.cfi_offset 18, -16
+  42              		.cfi_offset 19, -20
+  43              		.cfi_offset 22, -32
+  44              		.cfi_offset 1, -4
+  45              		.cfi_offset 8, -8
+  46              		.cfi_offset 9, -12
+  47              		.cfi_offset 20, -24
+  48              		.cfi_offset 21, -28
+  49              		.cfi_offset 23, -36
+  50              		.cfi_offset 24, -40
+  51              		.cfi_offset 25, -44
+  45:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+  52              		.loc 1 45 1
+  53 0018 2A8B     		mv	s6,a0
+  54              		.loc 1 49 17
+  55 001a 97000000 		call	get_timer_value
+  55      E7800000 
+  56              	.LVL1:
+  57 0022 AA89     		mv	s3,a0
+  58 0024 2E89     		mv	s2,a1
+  59              	.LVL2:
+  60              	.L2:
+  50:delay.c       **** 	do {
+  61              		.loc 1 50 2 is_stmt 1 discriminator 1
+  51:delay.c       **** 	start_mtime = get_timer_value();
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 3
+
+
+  62              		.loc 1 51 2 discriminator 1
+  63              		.loc 1 51 16 is_stmt 0 discriminator 1
+  64 0026 97000000 		call	get_timer_value
+  64      E7800000 
+  65              	.LVL3:
+  66 002e AA84     		mv	s1,a0
+  67 0030 2E84     		mv	s0,a1
+  68              	.LVL4:
+  52:delay.c       **** 	} while (start_mtime == tmp);
+  69              		.loc 1 52 2 discriminator 1
+  70 0032 6394A900 		bne	s3,a0,.L3
+  71 0036 E308B9FE 		beq	s2,a1,.L2
+  72              	.L3:
+  53:delay.c       **** 
+  54:delay.c       **** 	do {
+  55:delay.c       **** 	delta_mtime = get_timer_value() - start_mtime;
+  56:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000.0 *count ));
+  73              		.loc 1 56 38 discriminator 1
+  74 003a B7070000 		lui	a5,%hi(.LC0)
+  75 003e 03A90700 		lw	s2,%lo(.LC0)(a5)
+  76              	.LVL5:
+  77 0042 83A94700 		lw	s3,%lo(.LC0+4)(a5)
+  78 0046 B70B0000 		lui	s7,%hi(SystemCoreClock)
+  79              	.L4:
+  54:delay.c       **** 	delta_mtime = get_timer_value() - start_mtime;
+  80              		.loc 1 54 2 is_stmt 1 discriminator 1
+  55:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000.0 *count ));
+  81              		.loc 1 55 2 discriminator 1
+  55:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000.0 *count ));
+  82              		.loc 1 55 16 is_stmt 0 discriminator 1
+  83 004a 97000000 		call	get_timer_value
+  83      E7800000 
+  84              	.LVL6:
+  85 0052 AA87     		mv	a5,a0
+  55:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000.0 *count ));
+  86              		.loc 1 55 14 discriminator 1
+  87 0054 058D     		sub	a0,a0,s1
+  88              	.LVL7:
+  89 0056 B3B7A700 		sgtu	a5,a0,a5
+  90              	.LVL8:
+  91 005a 818D     		sub	a1,a1,s0
+  92              		.loc 1 56 21 discriminator 1
+  93 005c 9D8D     		sub	a1,a1,a5
+  94 005e 97000000 		call	__floatundidf
+  94      E7800000 
+  95              	.LVL9:
+  96 0066 2A8A     		mv	s4,a0
+  97              		.loc 1 56 38 discriminator 1
+  98 0068 03A50B00 		lw	a0,%lo(SystemCoreClock)(s7)
+  99              		.loc 1 56 21 discriminator 1
+ 100 006c AE8A     		mv	s5,a1
+ 101              		.loc 1 56 38 discriminator 1
+ 102 006e 97000000 		call	__floatunsidf
+ 102      E7800000 
+ 103              	.LVL10:
+ 104 0076 4A86     		mv	a2,s2
+ 105 0078 CE86     		mv	a3,s3
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 4
+
+
+ 106 007a 97000000 		call	__divdf3
+ 106      E7800000 
+ 107              	.LVL11:
+ 108 0082 2A8C     		mv	s8,a0
+ 109              		.loc 1 56 46 discriminator 1
+ 110 0084 5A85     		mv	a0,s6
+ 111              		.loc 1 56 38 discriminator 1
+ 112 0086 AE8C     		mv	s9,a1
+ 113              		.loc 1 56 46 discriminator 1
+ 114 0088 97000000 		call	__floatunsidf
+ 114      E7800000 
+ 115              	.LVL12:
+ 116 0090 2A86     		mv	a2,a0
+ 117 0092 AE86     		mv	a3,a1
+ 118 0094 6285     		mv	a0,s8
+ 119 0096 E685     		mv	a1,s9
+ 120 0098 97000000 		call	__muldf3
+ 120      E7800000 
+ 121              	.LVL13:
+ 122              		.loc 1 56 2 discriminator 1
+ 123 00a0 2A86     		mv	a2,a0
+ 124 00a2 AE86     		mv	a3,a1
+ 125 00a4 5285     		mv	a0,s4
+ 126 00a6 D685     		mv	a1,s5
+ 127 00a8 97000000 		call	__ltdf2
+ 127      E7800000 
+ 128              	.LVL14:
+ 129 00b0 E34D05F8 		blt	a0,zero,.L4
+  57:delay.c       **** }
+ 130              		.loc 1 57 1
+ 131 00b4 B250     		lw	ra,44(sp)
+ 132              		.cfi_restore 1
+ 133 00b6 2254     		lw	s0,40(sp)
+ 134              		.cfi_restore 8
+ 135              	.LVL15:
+ 136 00b8 9254     		lw	s1,36(sp)
+ 137              		.cfi_restore 9
+ 138 00ba 0259     		lw	s2,32(sp)
+ 139              		.cfi_restore 18
+ 140 00bc F249     		lw	s3,28(sp)
+ 141              		.cfi_restore 19
+ 142 00be 624A     		lw	s4,24(sp)
+ 143              		.cfi_restore 20
+ 144 00c0 D24A     		lw	s5,20(sp)
+ 145              		.cfi_restore 21
+ 146 00c2 424B     		lw	s6,16(sp)
+ 147              		.cfi_restore 22
+ 148              	.LVL16:
+ 149 00c4 B24B     		lw	s7,12(sp)
+ 150              		.cfi_restore 23
+ 151 00c6 224C     		lw	s8,8(sp)
+ 152              		.cfi_restore 24
+ 153 00c8 924C     		lw	s9,4(sp)
+ 154              		.cfi_restore 25
+ 155 00ca 4561     		addi	sp,sp,48
+ 156              	.LCFI1:
+ 157              		.cfi_def_cfa_offset 0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 5
+
+
+ 158 00cc 8280     		jr	ra
+ 159              		.cfi_endproc
+ 160              	.LFE2:
+ 162              		.section	.text.delay_1us,"ax",@progbits
+ 163              		.align	1
+ 164              		.globl	delay_1us
+ 166              	delay_1us:
+ 167              	.LFB3:
+  58:delay.c       **** 
+  59:delay.c       **** void delay_1us(uint32_t count)
+  60:delay.c       **** {
+ 168              		.loc 1 60 1 is_stmt 1
+ 169              		.cfi_startproc
+ 170              	.LVL17:
+  61:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+ 171              		.loc 1 61 2
+  62:delay.c       **** 
+  63:delay.c       **** 	// Don't start measuruing until we see an mtime tick
+  64:delay.c       **** 	uint64_t tmp = get_timer_value();
+ 172              		.loc 1 64 2
+  60:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+ 173              		.loc 1 60 1 is_stmt 0
+ 174 0000 7971     		addi	sp,sp,-48
+ 175              	.LCFI2:
+ 176              		.cfi_def_cfa_offset 48
+ 177 0002 4AD0     		sw	s2,32(sp)
+ 178 0004 4ECE     		sw	s3,28(sp)
+ 179 0006 5AC8     		sw	s6,16(sp)
+ 180 0008 06D6     		sw	ra,44(sp)
+ 181 000a 22D4     		sw	s0,40(sp)
+ 182 000c 26D2     		sw	s1,36(sp)
+ 183 000e 52CC     		sw	s4,24(sp)
+ 184 0010 56CA     		sw	s5,20(sp)
+ 185 0012 5EC6     		sw	s7,12(sp)
+ 186 0014 62C4     		sw	s8,8(sp)
+ 187 0016 66C2     		sw	s9,4(sp)
+ 188              		.cfi_offset 18, -16
+ 189              		.cfi_offset 19, -20
+ 190              		.cfi_offset 22, -32
+ 191              		.cfi_offset 1, -4
+ 192              		.cfi_offset 8, -8
+ 193              		.cfi_offset 9, -12
+ 194              		.cfi_offset 20, -24
+ 195              		.cfi_offset 21, -28
+ 196              		.cfi_offset 23, -36
+ 197              		.cfi_offset 24, -40
+ 198              		.cfi_offset 25, -44
+  60:delay.c       **** 	uint64_t start_mtime, delta_mtime;
+ 199              		.loc 1 60 1
+ 200 0018 2A8B     		mv	s6,a0
+ 201              		.loc 1 64 17
+ 202 001a 97000000 		call	get_timer_value
+ 202      E7800000 
+ 203              	.LVL18:
+ 204 0022 AA89     		mv	s3,a0
+ 205 0024 2E89     		mv	s2,a1
+ 206              	.LVL19:
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 6
+
+
+ 207              	.L8:
+  65:delay.c       **** 	do {
+ 208              		.loc 1 65 2 is_stmt 1 discriminator 1
+  66:delay.c       **** 	start_mtime = get_timer_value();
+ 209              		.loc 1 66 2 discriminator 1
+ 210              		.loc 1 66 16 is_stmt 0 discriminator 1
+ 211 0026 97000000 		call	get_timer_value
+ 211      E7800000 
+ 212              	.LVL20:
+ 213 002e AA84     		mv	s1,a0
+ 214 0030 2E84     		mv	s0,a1
+ 215              	.LVL21:
+  67:delay.c       **** 	} while (start_mtime == tmp);
+ 216              		.loc 1 67 2 discriminator 1
+ 217 0032 6394A900 		bne	s3,a0,.L9
+ 218 0036 E308B9FE 		beq	s2,a1,.L8
+ 219              	.L9:
+  68:delay.c       **** 
+  69:delay.c       **** 	do {
+  70:delay.c       **** 	delta_mtime = get_timer_value() - start_mtime;
+  71:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000000.0 *count ));
+ 220              		.loc 1 71 38 discriminator 1
+ 221 003a B7070000 		lui	a5,%hi(.LC1)
+ 222 003e 03A90700 		lw	s2,%lo(.LC1)(a5)
+ 223              	.LVL22:
+ 224 0042 83A94700 		lw	s3,%lo(.LC1+4)(a5)
+ 225 0046 B70B0000 		lui	s7,%hi(SystemCoreClock)
+ 226              	.L10:
+  69:delay.c       **** 	delta_mtime = get_timer_value() - start_mtime;
+ 227              		.loc 1 69 2 is_stmt 1 discriminator 1
+  70:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000000.0 *count ));
+ 228              		.loc 1 70 2 discriminator 1
+  70:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000000.0 *count ));
+ 229              		.loc 1 70 16 is_stmt 0 discriminator 1
+ 230 004a 97000000 		call	get_timer_value
+ 230      E7800000 
+ 231              	.LVL23:
+ 232 0052 AA87     		mv	a5,a0
+  70:delay.c       **** 	}while(delta_mtime <(SystemCoreClock/4000000.0 *count ));
+ 233              		.loc 1 70 14 discriminator 1
+ 234 0054 058D     		sub	a0,a0,s1
+ 235              	.LVL24:
+ 236 0056 B3B7A700 		sgtu	a5,a0,a5
+ 237              	.LVL25:
+ 238 005a 818D     		sub	a1,a1,s0
+ 239              		.loc 1 71 21 discriminator 1
+ 240 005c 9D8D     		sub	a1,a1,a5
+ 241 005e 97000000 		call	__floatundidf
+ 241      E7800000 
+ 242              	.LVL26:
+ 243 0066 2A8A     		mv	s4,a0
+ 244              		.loc 1 71 38 discriminator 1
+ 245 0068 03A50B00 		lw	a0,%lo(SystemCoreClock)(s7)
+ 246              		.loc 1 71 21 discriminator 1
+ 247 006c AE8A     		mv	s5,a1
+ 248              		.loc 1 71 38 discriminator 1
+ 249 006e 97000000 		call	__floatunsidf
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 7
+
+
+ 249      E7800000 
+ 250              	.LVL27:
+ 251 0076 4A86     		mv	a2,s2
+ 252 0078 CE86     		mv	a3,s3
+ 253 007a 97000000 		call	__divdf3
+ 253      E7800000 
+ 254              	.LVL28:
+ 255 0082 2A8C     		mv	s8,a0
+ 256              		.loc 1 71 49 discriminator 1
+ 257 0084 5A85     		mv	a0,s6
+ 258              		.loc 1 71 38 discriminator 1
+ 259 0086 AE8C     		mv	s9,a1
+ 260              		.loc 1 71 49 discriminator 1
+ 261 0088 97000000 		call	__floatunsidf
+ 261      E7800000 
+ 262              	.LVL29:
+ 263 0090 2A86     		mv	a2,a0
+ 264 0092 AE86     		mv	a3,a1
+ 265 0094 6285     		mv	a0,s8
+ 266 0096 E685     		mv	a1,s9
+ 267 0098 97000000 		call	__muldf3
+ 267      E7800000 
+ 268              	.LVL30:
+ 269              		.loc 1 71 2 discriminator 1
+ 270 00a0 2A86     		mv	a2,a0
+ 271 00a2 AE86     		mv	a3,a1
+ 272 00a4 5285     		mv	a0,s4
+ 273 00a6 D685     		mv	a1,s5
+ 274 00a8 97000000 		call	__ltdf2
+ 274      E7800000 
+ 275              	.LVL31:
+ 276 00b0 E34D05F8 		blt	a0,zero,.L10
+  72:delay.c       **** }...
+ 277              		.loc 1 72 1
+ 278 00b4 B250     		lw	ra,44(sp)
+ 279              		.cfi_restore 1
+ 280 00b6 2254     		lw	s0,40(sp)
+ 281              		.cfi_restore 8
+ 282              	.LVL32:
+ 283 00b8 9254     		lw	s1,36(sp)
+ 284              		.cfi_restore 9
+ 285 00ba 0259     		lw	s2,32(sp)
+ 286              		.cfi_restore 18
+ 287 00bc F249     		lw	s3,28(sp)
+ 288              		.cfi_restore 19
+ 289 00be 624A     		lw	s4,24(sp)
+ 290              		.cfi_restore 20
+ 291 00c0 D24A     		lw	s5,20(sp)
+ 292              		.cfi_restore 21
+ 293 00c2 424B     		lw	s6,16(sp)
+ 294              		.cfi_restore 22
+ 295              	.LVL33:
+ 296 00c4 B24B     		lw	s7,12(sp)
+ 297              		.cfi_restore 23
+ 298 00c6 224C     		lw	s8,8(sp)
+ 299              		.cfi_restore 24
+ 300 00c8 924C     		lw	s9,4(sp)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 8
+
+
+ 301              		.cfi_restore 25
+ 302 00ca 4561     		addi	sp,sp,48
+ 303              	.LCFI3:
+ 304              		.cfi_def_cfa_offset 0
+ 305 00cc 8280     		jr	ra
+ 306              		.cfi_endproc
+ 307              	.LFE3:
+ 309              		.section	.rodata.delay_1ms.cst8,"aM",@progbits,8
+ 310              		.align	3
+ 311              	.LC0:
+ 312 0000 00000000 		.word	0
+ 313 0004 0040AF40 		.word	1085227008
+ 314              		.section	.rodata.delay_1us.cst8,"aM",@progbits,8
+ 315              		.align	3
+ 316              	.LC1:
+ 317 0000 00000000 		.word	0
+ 318 0004 80844E41 		.word	1095664768
+ 319              		.text
+ 320              	.Letext0:
+ 321              		.file 2 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 322              		.file 3 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 323              		.file 4 "../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+ 324              		.file 5 "../../firmware/RISCV/drivers/n200_func.h"
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 9
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 delay.c
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:18     .text.delay_1ms:0000000000000000 delay_1ms
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:22     .text.delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:24     .text.delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:25     .text.delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:26     .text.delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:27     .text.delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:29     .text.delay_1ms:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:41     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:42     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:43     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:44     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:45     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:46     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:47     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:48     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:49     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:50     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:51     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:53     .text.delay_1ms:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:55     .text.delay_1ms:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:62     .text.delay_1ms:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:63     .text.delay_1ms:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:64     .text.delay_1ms:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:70     .text.delay_1ms:0000000000000032 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:74     .text.delay_1ms:000000000000003a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:81     .text.delay_1ms:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:82     .text.delay_1ms:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:83     .text.delay_1ms:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:87     .text.delay_1ms:0000000000000054 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:93     .text.delay_1ms:000000000000005c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:98     .text.delay_1ms:0000000000000068 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:100    .text.delay_1ms:000000000000006c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:102    .text.delay_1ms:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:110    .text.delay_1ms:0000000000000084 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:112    .text.delay_1ms:0000000000000086 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:114    .text.delay_1ms:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:123    .text.delay_1ms:00000000000000a0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:131    .text.delay_1ms:00000000000000b4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:132    .text.delay_1ms:00000000000000b6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:134    .text.delay_1ms:00000000000000b8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:137    .text.delay_1ms:00000000000000ba .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:139    .text.delay_1ms:00000000000000bc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:141    .text.delay_1ms:00000000000000be .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:143    .text.delay_1ms:00000000000000c0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:145    .text.delay_1ms:00000000000000c2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:147    .text.delay_1ms:00000000000000c4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:150    .text.delay_1ms:00000000000000c6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:152    .text.delay_1ms:00000000000000c8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:154    .text.delay_1ms:00000000000000ca .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:157    .text.delay_1ms:00000000000000cc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:159    .text.delay_1ms:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:166    .text.delay_1us:0000000000000000 delay_1us
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:169    .text.delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:171    .text.delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:172    .text.delay_1us:0000000000000000 .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 10
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:173    .text.delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:174    .text.delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:176    .text.delay_1us:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:188    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:189    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:190    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:191    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:192    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:193    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:194    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:195    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:196    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:197    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:198    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:200    .text.delay_1us:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:202    .text.delay_1us:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:209    .text.delay_1us:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:210    .text.delay_1us:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:211    .text.delay_1us:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:217    .text.delay_1us:0000000000000032 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:221    .text.delay_1us:000000000000003a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:228    .text.delay_1us:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:229    .text.delay_1us:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:230    .text.delay_1us:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:234    .text.delay_1us:0000000000000054 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:240    .text.delay_1us:000000000000005c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:245    .text.delay_1us:0000000000000068 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:247    .text.delay_1us:000000000000006c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:249    .text.delay_1us:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:257    .text.delay_1us:0000000000000084 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:259    .text.delay_1us:0000000000000086 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:261    .text.delay_1us:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:270    .text.delay_1us:00000000000000a0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:278    .text.delay_1us:00000000000000b4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:279    .text.delay_1us:00000000000000b6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:281    .text.delay_1us:00000000000000b8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:284    .text.delay_1us:00000000000000ba .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:286    .text.delay_1us:00000000000000bc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:288    .text.delay_1us:00000000000000be .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:290    .text.delay_1us:00000000000000c0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:292    .text.delay_1us:00000000000000c2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:294    .text.delay_1us:00000000000000c4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:297    .text.delay_1us:00000000000000c6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:299    .text.delay_1us:00000000000000c8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:301    .text.delay_1us:00000000000000ca .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:304    .text.delay_1us:00000000000000cc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:306    .text.delay_1us:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:162    .text.delay_1ms:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:309    .text.delay_1us:00000000000000ce .L0 
+                     .debug_frame:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:311    .rodata.delay_1ms.cst8:0000000000000000 .LC0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:72     .text.delay_1ms:000000000000003a .L3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:60     .text.delay_1ms:0000000000000026 .L2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:79     .text.delay_1ms:000000000000004a .L4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:316    .rodata.delay_1us.cst8:0000000000000000 .LC1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:219    .text.delay_1us:000000000000003a .L9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:207    .text.delay_1us:0000000000000026 .L8
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 11
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:226    .text.delay_1us:000000000000004a .L10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:524    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:913    .debug_str:000000000000014e .LASF19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:893    .debug_str:00000000000000d3 .LASF20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:889    .debug_str:0000000000000072 .LASF21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:861    .debug_ranges:0000000000000000 .Ldebug_ranges0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:869    .debug_line:0000000000000000 .Ldebug_line0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:873    .debug_str:000000000000000e .LASF0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:905    .debug_str:000000000000011c .LASF1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:891    .debug_str:00000000000000c5 .LASF2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:911    .debug_str:0000000000000144 .LASF3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:903    .debug_str:0000000000000109 .LASF4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:899    .debug_str:00000000000000f4 .LASF5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:877    .debug_str:0000000000000021 .LASF8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:881    .debug_str:0000000000000036 .LASF6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:871    .debug_str:0000000000000000 .LASF7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:917    .debug_str:00000000000001e2 .LASF9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:883    .debug_str:0000000000000048 .LASF10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:895    .debug_str:00000000000000db .LASF11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:887    .debug_str:0000000000000069 .LASF12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:897    .debug_str:00000000000000e4 .LASF22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:909    .debug_str:0000000000000138 .LASF13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:885    .debug_str:000000000000005f .LASF15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:167    .text.delay_1us:0000000000000000 .LFB3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:307    .text.delay_1us:00000000000000ce .LFE3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:726    .debug_loc:0000000000000000 .LLST4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:875    .debug_str:000000000000001b .LASF17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:744    .debug_loc:000000000000002c .LLST5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:901    .debug_str:00000000000000fd .LASF14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:762    .debug_loc:0000000000000058 .LLST6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:915    .debug_str:00000000000001d6 .LASF18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:774    .debug_loc:0000000000000070 .LLST7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:203    .text.delay_1us:0000000000000022 .LVL18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:212    .text.delay_1us:000000000000002e .LVL20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:231    .text.delay_1us:0000000000000052 .LVL23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:879    .debug_str:000000000000002c .LASF16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:19     .text.delay_1ms:0000000000000000 .LFB2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:160    .text.delay_1ms:00000000000000ce .LFE2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:786    .debug_loc:0000000000000088 .LLST0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:804    .debug_loc:00000000000000b4 .LLST1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:822    .debug_loc:00000000000000e0 .LLST2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:834    .debug_loc:00000000000000f8 .LLST3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:56     .text.delay_1ms:0000000000000022 .LVL1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:65     .text.delay_1ms:000000000000002e .LVL3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:84     .text.delay_1ms:0000000000000052 .LVL6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:907    .debug_str:0000000000000128 .LASF23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:175    .text.delay_1us:0000000000000002 .LCFI2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:303    .text.delay_1us:00000000000000cc .LCFI3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:170    .text.delay_1us:0000000000000000 .LVL17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:295    .text.delay_1us:00000000000000c4 .LVL33
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:215    .text.delay_1us:0000000000000032 .LVL21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:282    .text.delay_1us:00000000000000b8 .LVL32
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:206    .text.delay_1us:0000000000000026 .LVL19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:223    .text.delay_1us:0000000000000042 .LVL22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:28     .text.delay_1ms:0000000000000002 .LCFI0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:156    .text.delay_1ms:00000000000000cc .LCFI1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:23     .text.delay_1ms:0000000000000000 .LVL0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s 			page 12
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:148    .text.delay_1ms:00000000000000c4 .LVL16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:68     .text.delay_1ms:0000000000000032 .LVL4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:135    .text.delay_1ms:00000000000000b8 .LVL15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:59     .text.delay_1ms:0000000000000026 .LVL2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:76     .text.delay_1ms:0000000000000042 .LVL5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccvmlccG.s:326    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+__floatundidf
+__floatunsidf
+__divdf3
+__muldf3
+__ltdf2
+get_timer_value
+SystemCoreClock

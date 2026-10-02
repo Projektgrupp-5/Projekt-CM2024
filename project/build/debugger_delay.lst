@@ -1,0 +1,483 @@
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 1
+
+
+   1              		.file	"debugger_delay.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text.dbg_delay_1ms,"ax",@progbits
+  10              		.align	1
+  11              		.globl	dbg_delay_1ms
+  13              	dbg_delay_1ms:
+  14              	.LFB2:
+  15              		.file 1 "../../firmware/debugger/debugger_delay.c"
+   1:../../firmware/debugger/debugger_delay.c **** /*!
+   2:../../firmware/debugger/debugger_delay.c ****     \file  systick.c
+   3:../../firmware/debugger/debugger_delay.c ****     \brief the systick configuration file
+   4:../../firmware/debugger/debugger_delay.c **** 
+   5:../../firmware/debugger/debugger_delay.c ****     \version 2019-6-5, V1.0.0, firmware for GD32VF103
+   6:../../firmware/debugger/debugger_delay.c **** */
+   7:../../firmware/debugger/debugger_delay.c **** 
+   8:../../firmware/debugger/debugger_delay.c **** /*
+   9:../../firmware/debugger/debugger_delay.c ****     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+  10:../../firmware/debugger/debugger_delay.c **** 
+  11:../../firmware/debugger/debugger_delay.c ****     Redistribution and use in source and binary forms, with or without modification, 
+  12:../../firmware/debugger/debugger_delay.c **** are permitted provided that the following conditions are met:
+  13:../../firmware/debugger/debugger_delay.c **** 
+  14:../../firmware/debugger/debugger_delay.c ****     1. Redistributions of source code must retain the above copyright notice, this 
+  15:../../firmware/debugger/debugger_delay.c ****        list of conditions and the following disclaimer.
+  16:../../firmware/debugger/debugger_delay.c ****     2. Redistributions in binary form must reproduce the above copyright notice, 
+  17:../../firmware/debugger/debugger_delay.c ****        this list of conditions and the following disclaimer in the documentation 
+  18:../../firmware/debugger/debugger_delay.c ****        and/or other materials provided with the distribution.
+  19:../../firmware/debugger/debugger_delay.c ****     3. Neither the name of the copyright holder nor the names of its contributors 
+  20:../../firmware/debugger/debugger_delay.c ****        may be used to endorse or promote products derived from this software without 
+  21:../../firmware/debugger/debugger_delay.c ****        specific prior written permission.
+  22:../../firmware/debugger/debugger_delay.c **** 
+  23:../../firmware/debugger/debugger_delay.c ****     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+  24:../../firmware/debugger/debugger_delay.c **** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+  25:../../firmware/debugger/debugger_delay.c **** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+  26:../../firmware/debugger/debugger_delay.c **** IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+  27:../../firmware/debugger/debugger_delay.c **** INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  28:../../firmware/debugger/debugger_delay.c **** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+  29:../../firmware/debugger/debugger_delay.c **** PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+  30:../../firmware/debugger/debugger_delay.c **** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  31:../../firmware/debugger/debugger_delay.c **** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+  32:../../firmware/debugger/debugger_delay.c **** OF SUCH DAMAGE.
+  33:../../firmware/debugger/debugger_delay.c **** */
+  34:../../firmware/debugger/debugger_delay.c **** 
+  35:../../firmware/debugger/debugger_delay.c **** #include "gd32vf103.h"
+  36:../../firmware/debugger/debugger_delay.c **** #include "debugger_delay.h"
+  37:../../firmware/debugger/debugger_delay.c **** 
+  38:../../firmware/debugger/debugger_delay.c **** /*!
+  39:../../firmware/debugger/debugger_delay.c ****     \brief      delay a time in milliseconds
+  40:../../firmware/debugger/debugger_delay.c ****     \param[in]  count: count in milliseconds
+  41:../../firmware/debugger/debugger_delay.c ****     \param[out] none
+  42:../../firmware/debugger/debugger_delay.c ****     \retval     none
+  43:../../firmware/debugger/debugger_delay.c **** */
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 2
+
+
+  44:../../firmware/debugger/debugger_delay.c **** void dbg_delay_1ms(uint32_t count)
+  45:../../firmware/debugger/debugger_delay.c **** {
+  16              		.loc 1 45 1
+  17              		.cfi_startproc
+  18              	.LVL0:
+  46:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+  19              		.loc 1 46 2
+  47:../../firmware/debugger/debugger_delay.c **** 
+  48:../../firmware/debugger/debugger_delay.c **** 	// Don't start measuruing until we see an mtime tick
+  49:../../firmware/debugger/debugger_delay.c **** 	uint64_t tmp = get_timer_value();
+  20              		.loc 1 49 2
+  45:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+  21              		.loc 1 45 1 is_stmt 0
+  22 0000 0111     		addi	sp,sp,-32
+  23              	.LCFI0:
+  24              		.cfi_def_cfa_offset 32
+  25 0002 22CC     		sw	s0,24(sp)
+  26 0004 4EC6     		sw	s3,12(sp)
+  27 0006 52C4     		sw	s4,8(sp)
+  28 0008 06CE     		sw	ra,28(sp)
+  29 000a 26CA     		sw	s1,20(sp)
+  30 000c 4AC8     		sw	s2,16(sp)
+  31              		.cfi_offset 8, -8
+  32              		.cfi_offset 19, -20
+  33              		.cfi_offset 20, -24
+  34              		.cfi_offset 1, -4
+  35              		.cfi_offset 9, -12
+  36              		.cfi_offset 18, -16
+  45:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+  37              		.loc 1 45 1
+  38 000e AA89     		mv	s3,a0
+  39              		.loc 1 49 17
+  40 0010 97000000 		call	get_timer_value
+  40      E7800000 
+  41              	.LVL1:
+  42 0018 2A8A     		mv	s4,a0
+  43 001a 2E84     		mv	s0,a1
+  44              	.LVL2:
+  45              	.L2:
+  50:../../firmware/debugger/debugger_delay.c **** 	do {
+  46              		.loc 1 50 2 is_stmt 1 discriminator 1
+  51:../../firmware/debugger/debugger_delay.c **** 	start_mtime = get_timer_value();
+  47              		.loc 1 51 2 discriminator 1
+  48              		.loc 1 51 16 is_stmt 0 discriminator 1
+  49 001c 97000000 		call	get_timer_value
+  49      E7800000 
+  50              	.LVL3:
+  51 0024 AA84     		mv	s1,a0
+  52 0026 2E89     		mv	s2,a1
+  53              	.LVL4:
+  52:../../firmware/debugger/debugger_delay.c **** 	} while (start_mtime == tmp);
+  54              		.loc 1 52 2 discriminator 1
+  55 0028 6314AA00 		bne	s4,a0,.L3
+  56 002c E308B4FE 		beq	s0,a1,.L2
+  57              	.L3:
+  53:../../firmware/debugger/debugger_delay.c **** 
+  54:../../firmware/debugger/debugger_delay.c **** 	do {
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 3
+
+
+  55:../../firmware/debugger/debugger_delay.c **** 	delta_mtime = get_timer_value() - start_mtime;
+  56:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000 *count ));
+  58              		.loc 1 56 38 discriminator 1
+  59 0030 0564     		li	s0,4096
+  60              	.LVL5:
+  61 0032 370A0000 		lui	s4,%hi(SystemCoreClock)
+  62 0036 130404FA 		addi	s0,s0,-96
+  63              	.LVL6:
+  64              	.L4:
+  54:../../firmware/debugger/debugger_delay.c **** 	delta_mtime = get_timer_value() - start_mtime;
+  65              		.loc 1 54 2 is_stmt 1 discriminator 1
+  55:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000 *count ));
+  66              		.loc 1 55 2 discriminator 1
+  55:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000 *count ));
+  67              		.loc 1 55 16 is_stmt 0 discriminator 1
+  68 003a 97000000 		call	get_timer_value
+  68      E7800000 
+  69              	.LVL7:
+  70              		.loc 1 56 38 discriminator 1
+  71 0042 83270A00 		lw	a5,%lo(SystemCoreClock)(s4)
+  55:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000 *count ));
+  72              		.loc 1 55 14 discriminator 1
+  73 0046 33079540 		sub	a4,a0,s1
+  74 004a 3335E500 		sgtu	a0,a4,a0
+  75              	.LVL8:
+  76              		.loc 1 56 38 discriminator 1
+  77 004e B3D78702 		divu	a5,a5,s0
+  55:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000 *count ));
+  78              		.loc 1 55 14 discriminator 1
+  79 0052 B3852541 		sub	a1,a1,s2
+  80              		.loc 1 56 44 discriminator 1
+  81 0056 B3873703 		mul	a5,a5,s3
+  82              		.loc 1 56 2 discriminator 1
+  83 005a 6394A500 		bne	a1,a0,.L1
+  84 005e E36EF7FC 		bgtu	a5,a4,.L4
+  85              	.L1:
+  57:../../firmware/debugger/debugger_delay.c **** }
+  86              		.loc 1 57 1
+  87 0062 F240     		lw	ra,28(sp)
+  88              		.cfi_restore 1
+  89 0064 6244     		lw	s0,24(sp)
+  90              		.cfi_restore 8
+  91 0066 D244     		lw	s1,20(sp)
+  92              		.cfi_restore 9
+  93              	.LVL9:
+  94 0068 4249     		lw	s2,16(sp)
+  95              		.cfi_restore 18
+  96 006a B249     		lw	s3,12(sp)
+  97              		.cfi_restore 19
+  98              	.LVL10:
+  99 006c 224A     		lw	s4,8(sp)
+ 100              		.cfi_restore 20
+ 101 006e 0561     		addi	sp,sp,32
+ 102              	.LCFI1:
+ 103              		.cfi_def_cfa_offset 0
+ 104 0070 8280     		jr	ra
+ 105              		.cfi_endproc
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 4
+
+
+ 106              	.LFE2:
+ 108              		.section	.text.dbg_delay_1us,"ax",@progbits
+ 109              		.align	1
+ 110              		.globl	dbg_delay_1us
+ 112              	dbg_delay_1us:
+ 113              	.LFB3:
+  58:../../firmware/debugger/debugger_delay.c **** 
+  59:../../firmware/debugger/debugger_delay.c **** void dbg_delay_1us(uint32_t count)
+  60:../../firmware/debugger/debugger_delay.c **** {
+ 114              		.loc 1 60 1 is_stmt 1
+ 115              		.cfi_startproc
+ 116              	.LVL11:
+  61:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+ 117              		.loc 1 61 2
+  62:../../firmware/debugger/debugger_delay.c **** 
+  63:../../firmware/debugger/debugger_delay.c **** 	// Don't start measuruing until we see an mtime tick
+  64:../../firmware/debugger/debugger_delay.c **** 	uint64_t tmp = get_timer_value();
+ 118              		.loc 1 64 2
+  60:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+ 119              		.loc 1 60 1 is_stmt 0
+ 120 0000 0111     		addi	sp,sp,-32
+ 121              	.LCFI2:
+ 122              		.cfi_def_cfa_offset 32
+ 123 0002 22CC     		sw	s0,24(sp)
+ 124 0004 4EC6     		sw	s3,12(sp)
+ 125 0006 52C4     		sw	s4,8(sp)
+ 126 0008 06CE     		sw	ra,28(sp)
+ 127 000a 26CA     		sw	s1,20(sp)
+ 128 000c 4AC8     		sw	s2,16(sp)
+ 129              		.cfi_offset 8, -8
+ 130              		.cfi_offset 19, -20
+ 131              		.cfi_offset 20, -24
+ 132              		.cfi_offset 1, -4
+ 133              		.cfi_offset 9, -12
+ 134              		.cfi_offset 18, -16
+  60:../../firmware/debugger/debugger_delay.c **** 	uint64_t start_mtime, delta_mtime;
+ 135              		.loc 1 60 1
+ 136 000e AA89     		mv	s3,a0
+ 137              		.loc 1 64 17
+ 138 0010 97000000 		call	get_timer_value
+ 138      E7800000 
+ 139              	.LVL12:
+ 140 0018 2A8A     		mv	s4,a0
+ 141 001a 2E84     		mv	s0,a1
+ 142              	.LVL13:
+ 143              	.L9:
+  65:../../firmware/debugger/debugger_delay.c **** 	do {
+ 144              		.loc 1 65 2 is_stmt 1 discriminator 1
+  66:../../firmware/debugger/debugger_delay.c **** 	start_mtime = get_timer_value();
+ 145              		.loc 1 66 2 discriminator 1
+ 146              		.loc 1 66 16 is_stmt 0 discriminator 1
+ 147 001c 97000000 		call	get_timer_value
+ 147      E7800000 
+ 148              	.LVL14:
+ 149 0024 AA84     		mv	s1,a0
+ 150 0026 2E89     		mv	s2,a1
+ 151              	.LVL15:
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 5
+
+
+  67:../../firmware/debugger/debugger_delay.c **** 	} while (start_mtime == tmp);
+ 152              		.loc 1 67 2 discriminator 1
+ 153 0028 6314AA00 		bne	s4,a0,.L10
+ 154 002c E308B4FE 		beq	s0,a1,.L9
+ 155              	.L10:
+  68:../../firmware/debugger/debugger_delay.c **** 
+  69:../../firmware/debugger/debugger_delay.c **** 	do {
+  70:../../firmware/debugger/debugger_delay.c **** 	delta_mtime = get_timer_value() - start_mtime;
+  71:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000000 *count ));
+ 156              		.loc 1 71 38 discriminator 1
+ 157 0030 37143D00 		li	s0,4001792
+ 158              	.LVL16:
+ 159 0034 370A0000 		lui	s4,%hi(SystemCoreClock)
+ 160 0038 13040490 		addi	s0,s0,-1792
+ 161              	.LVL17:
+ 162              	.L11:
+  69:../../firmware/debugger/debugger_delay.c **** 	delta_mtime = get_timer_value() - start_mtime;
+ 163              		.loc 1 69 2 is_stmt 1 discriminator 1
+  70:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000000 *count ));
+ 164              		.loc 1 70 2 discriminator 1
+  70:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000000 *count ));
+ 165              		.loc 1 70 16 is_stmt 0 discriminator 1
+ 166 003c 97000000 		call	get_timer_value
+ 166      E7800000 
+ 167              	.LVL18:
+ 168              		.loc 1 71 38 discriminator 1
+ 169 0044 83270A00 		lw	a5,%lo(SystemCoreClock)(s4)
+  70:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000000 *count ));
+ 170              		.loc 1 70 14 discriminator 1
+ 171 0048 33079540 		sub	a4,a0,s1
+ 172 004c 3335E500 		sgtu	a0,a4,a0
+ 173              	.LVL19:
+ 174              		.loc 1 71 38 discriminator 1
+ 175 0050 B3D78702 		divu	a5,a5,s0
+  70:../../firmware/debugger/debugger_delay.c **** 	}while(delta_mtime <(SystemCoreClock/4000000 *count ));
+ 176              		.loc 1 70 14 discriminator 1
+ 177 0054 B3852541 		sub	a1,a1,s2
+ 178              		.loc 1 71 47 discriminator 1
+ 179 0058 B3873703 		mul	a5,a5,s3
+ 180              		.loc 1 71 2 discriminator 1
+ 181 005c 6394A500 		bne	a1,a0,.L8
+ 182 0060 E36EF7FC 		bgtu	a5,a4,.L11
+ 183              	.L8:
+  72:../../firmware/debugger/debugger_delay.c **** }...
+ 184              		.loc 1 72 1
+ 185 0064 F240     		lw	ra,28(sp)
+ 186              		.cfi_restore 1
+ 187 0066 6244     		lw	s0,24(sp)
+ 188              		.cfi_restore 8
+ 189 0068 D244     		lw	s1,20(sp)
+ 190              		.cfi_restore 9
+ 191              	.LVL20:
+ 192 006a 4249     		lw	s2,16(sp)
+ 193              		.cfi_restore 18
+ 194 006c B249     		lw	s3,12(sp)
+ 195              		.cfi_restore 19
+ 196              	.LVL21:
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 6
+
+
+ 197 006e 224A     		lw	s4,8(sp)
+ 198              		.cfi_restore 20
+ 199 0070 0561     		addi	sp,sp,32
+ 200              	.LCFI3:
+ 201              		.cfi_def_cfa_offset 0
+ 202 0072 8280     		jr	ra
+ 203              		.cfi_endproc
+ 204              	.LFE3:
+ 206              		.text
+ 207              	.Letext0:
+ 208              		.file 2 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 209              		.file 3 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 210              		.file 4 "../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+ 211              		.file 5 "../../firmware/RISCV/drivers/n200_func.h"
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 debugger_delay.c
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:13     .text.dbg_delay_1ms:0000000000000000 dbg_delay_1ms
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:17     .text.dbg_delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:19     .text.dbg_delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:20     .text.dbg_delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:21     .text.dbg_delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:22     .text.dbg_delay_1ms:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:24     .text.dbg_delay_1ms:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:31     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:32     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:33     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:34     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:35     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:36     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:38     .text.dbg_delay_1ms:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:40     .text.dbg_delay_1ms:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:47     .text.dbg_delay_1ms:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:48     .text.dbg_delay_1ms:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:49     .text.dbg_delay_1ms:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:55     .text.dbg_delay_1ms:0000000000000028 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:59     .text.dbg_delay_1ms:0000000000000030 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:66     .text.dbg_delay_1ms:000000000000003a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:67     .text.dbg_delay_1ms:000000000000003a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:68     .text.dbg_delay_1ms:000000000000003a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:71     .text.dbg_delay_1ms:0000000000000042 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:73     .text.dbg_delay_1ms:0000000000000046 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:77     .text.dbg_delay_1ms:000000000000004e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:79     .text.dbg_delay_1ms:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:81     .text.dbg_delay_1ms:0000000000000056 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:83     .text.dbg_delay_1ms:000000000000005a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:87     .text.dbg_delay_1ms:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:88     .text.dbg_delay_1ms:0000000000000064 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:90     .text.dbg_delay_1ms:0000000000000066 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:92     .text.dbg_delay_1ms:0000000000000068 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:95     .text.dbg_delay_1ms:000000000000006a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:97     .text.dbg_delay_1ms:000000000000006c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:100    .text.dbg_delay_1ms:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:103    .text.dbg_delay_1ms:0000000000000070 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:105    .text.dbg_delay_1ms:0000000000000072 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:112    .text.dbg_delay_1us:0000000000000000 dbg_delay_1us
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:115    .text.dbg_delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:117    .text.dbg_delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:118    .text.dbg_delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:119    .text.dbg_delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:120    .text.dbg_delay_1us:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:122    .text.dbg_delay_1us:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:129    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:130    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:131    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:132    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:133    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:134    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:136    .text.dbg_delay_1us:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:138    .text.dbg_delay_1us:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:145    .text.dbg_delay_1us:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:146    .text.dbg_delay_1us:000000000000001c .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 8
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:147    .text.dbg_delay_1us:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:153    .text.dbg_delay_1us:0000000000000028 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:157    .text.dbg_delay_1us:0000000000000030 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:164    .text.dbg_delay_1us:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:165    .text.dbg_delay_1us:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:166    .text.dbg_delay_1us:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:169    .text.dbg_delay_1us:0000000000000044 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:171    .text.dbg_delay_1us:0000000000000048 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:175    .text.dbg_delay_1us:0000000000000050 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:177    .text.dbg_delay_1us:0000000000000054 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:179    .text.dbg_delay_1us:0000000000000058 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:181    .text.dbg_delay_1us:000000000000005c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:185    .text.dbg_delay_1us:0000000000000064 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:186    .text.dbg_delay_1us:0000000000000066 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:188    .text.dbg_delay_1us:0000000000000068 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:190    .text.dbg_delay_1us:000000000000006a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:193    .text.dbg_delay_1us:000000000000006c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:195    .text.dbg_delay_1us:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:198    .text.dbg_delay_1us:0000000000000070 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:201    .text.dbg_delay_1us:0000000000000072 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:203    .text.dbg_delay_1us:0000000000000074 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:108    .text.dbg_delay_1ms:0000000000000072 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:206    .text.dbg_delay_1us:0000000000000074 .L0 
+                     .debug_frame:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:57     .text.dbg_delay_1ms:0000000000000030 .L3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:45     .text.dbg_delay_1ms:000000000000001c .L2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:85     .text.dbg_delay_1ms:0000000000000062 .L1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:64     .text.dbg_delay_1ms:000000000000003a .L4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:155    .text.dbg_delay_1us:0000000000000030 .L10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:143    .text.dbg_delay_1us:000000000000001c .L9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:183    .text.dbg_delay_1us:0000000000000064 .L8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:162    .text.dbg_delay_1us:000000000000003c .L11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:411    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:818    .debug_str:0000000000000177 .LASF19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:792    .debug_str:0000000000000071 .LASF20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:794    .debug_str:000000000000009a .LASF21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:766    .debug_ranges:0000000000000000 .Ldebug_ranges0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:774    .debug_line:0000000000000000 .Ldebug_line0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:780    .debug_str:000000000000001c .LASF0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:808    .debug_str:000000000000013c .LASF1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:796    .debug_str:00000000000000ed .LASF2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:816    .debug_str:000000000000016d .LASF3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:806    .debug_str:0000000000000129 .LASF4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:802    .debug_str:0000000000000114 .LASF5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:784    .debug_str:000000000000002f .LASF8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:788    .debug_str:0000000000000048 .LASF6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:776    .debug_str:0000000000000000 .LASF7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:822    .debug_str:000000000000020b .LASF9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:790    .debug_str:000000000000005a .LASF10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:798    .debug_str:00000000000000fb .LASF11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:814    .debug_str:0000000000000164 .LASF12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:800    .debug_str:0000000000000104 .LASF22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:812    .debug_str:0000000000000158 .LASF13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:786    .debug_str:000000000000003a .LASF15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:113    .text.dbg_delay_1us:0000000000000000 .LFB3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:204    .text.dbg_delay_1us:0000000000000074 .LFE3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:613    .debug_loc:0000000000000000 .LLST4
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s 			page 9
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:782    .debug_str:0000000000000029 .LASF17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:631    .debug_loc:000000000000002c .LLST5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:804    .debug_str:000000000000011d .LASF14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:649    .debug_loc:0000000000000058 .LLST6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:820    .debug_str:00000000000001ff .LASF18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:670    .debug_loc:0000000000000080 .LLST7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:139    .text.dbg_delay_1us:0000000000000018 .LVL12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:148    .text.dbg_delay_1us:0000000000000024 .LVL14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:167    .text.dbg_delay_1us:0000000000000044 .LVL18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:778    .debug_str:000000000000000e .LASF16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:14     .text.dbg_delay_1ms:0000000000000000 .LFB2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:106    .text.dbg_delay_1ms:0000000000000072 .LFE2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:682    .debug_loc:0000000000000098 .LLST0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:700    .debug_loc:00000000000000c4 .LLST1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:718    .debug_loc:00000000000000f0 .LLST2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:739    .debug_loc:0000000000000118 .LLST3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:41     .text.dbg_delay_1ms:0000000000000018 .LVL1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:50     .text.dbg_delay_1ms:0000000000000024 .LVL3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:69     .text.dbg_delay_1ms:0000000000000042 .LVL7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:810    .debug_str:0000000000000148 .LASF23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:121    .text.dbg_delay_1us:0000000000000002 .LCFI2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:200    .text.dbg_delay_1us:0000000000000072 .LCFI3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:116    .text.dbg_delay_1us:0000000000000000 .LVL11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:196    .text.dbg_delay_1us:000000000000006e .LVL21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:151    .text.dbg_delay_1us:0000000000000028 .LVL15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:161    .text.dbg_delay_1us:000000000000003c .LVL17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:191    .text.dbg_delay_1us:000000000000006a .LVL20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:142    .text.dbg_delay_1us:000000000000001c .LVL13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:158    .text.dbg_delay_1us:0000000000000034 .LVL16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:23     .text.dbg_delay_1ms:0000000000000002 .LCFI0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:102    .text.dbg_delay_1ms:0000000000000070 .LCFI1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:18     .text.dbg_delay_1ms:0000000000000000 .LVL0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:98     .text.dbg_delay_1ms:000000000000006c .LVL10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:53     .text.dbg_delay_1ms:0000000000000028 .LVL4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:63     .text.dbg_delay_1ms:000000000000003a .LVL6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:93     .text.dbg_delay_1ms:0000000000000068 .LVL9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:44     .text.dbg_delay_1ms:000000000000001c .LVL2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:60     .text.dbg_delay_1ms:0000000000000032 .LVL5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccGIxLPE.s:213    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+get_timer_value
+SystemCoreClock

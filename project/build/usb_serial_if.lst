@@ -1,0 +1,1837 @@
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 1
+
+
+   1              		.file	"usb_serial_if.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.globl	USB_OTG_dev
+  10              		.globl	usb_buffer
+  11              		.globl	tx_buffer
+  12              		.section	.text.usb_serial_connected,"ax",@progbits
+  13              		.align	1
+  14              		.globl	usb_serial_connected
+  16              	usb_serial_connected:
+  17              	.LFB6:
+  18              		.file 1 "../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c"
+   1:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #include "usb_serial_if.h"
+   2:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #include "gd32vf103.h"
+   3:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #include "drv_usb_hw.h"
+   4:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #include "debugger_delay.h"
+   5:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #include "system_gd32vf103.h"
+   6:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+   7:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #define USB_BUFFER_SIZE 512
+   8:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** #define TIMEOUT_PRINTF 100000
+   9:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** typedef struct{
+  10:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     uint8_t buffer[USB_BUFFER_SIZE];
+  11:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     uint32_t max_size;
+  12:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     uint32_t index;
+  13:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }USB_serial_buffer_t;
+  14:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  15:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** USB_serial_buffer_t usb_buffer = { .buffer = "", .max_size = USB_BUFFER_SIZE, .index = 0};
+  16:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  17:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** uint8_t tx_buffer[512] = "";
+  18:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  19:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** usb_core_driver USB_OTG_dev = 
+  20:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** {
+  21:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     .dev = {
+  22:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         .desc = {
+  23:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             .dev_desc       = (uint8_t *)&device_descriptor,
+  24:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             .config_desc    = (uint8_t *)&configuration_descriptor,
+  25:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             .strings        = usbd_strings,
+  26:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         }
+  27:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+  28:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** };
+  29:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  30:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** uint32_t usb_serial_connected(){
+  19              		.loc 1 30 32
+  20              		.cfi_startproc
+  31:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     if(cdc_acm_get_line_state()) return 1;
+  21              		.loc 1 31 5
+  30:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     if(cdc_acm_get_line_state()) return 1;
+  22              		.loc 1 30 32 is_stmt 0
+  23 0000 4111     		addi	sp,sp,-16
+  24              	.LCFI0:
+  25              		.cfi_def_cfa_offset 16
+  26 0002 06C6     		sw	ra,12(sp)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 2
+
+
+  27              		.cfi_offset 1, -4
+  28              		.loc 1 31 8
+  29 0004 97000000 		call	cdc_acm_get_line_state
+  29      E7800000 
+  30              	.LVL0:
+  32:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     return 0;
+  33:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }
+  31              		.loc 1 33 1
+  32 000c B240     		lw	ra,12(sp)
+  33              		.cfi_restore 1
+  34 000e 3335A000 		snez	a0,a0
+  35 0012 4101     		addi	sp,sp,16
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 0
+  38 0014 8280     		jr	ra
+  39              		.cfi_endproc
+  40              	.LFE6:
+  42              		.section	.text.read_usb_serial,"ax",@progbits
+  43              		.align	1
+  44              		.globl	read_usb_serial
+  46              	read_usb_serial:
+  47              	.LFB7:
+  34:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  35:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** size_t read_usb_serial(uint8_t* data){
+  48              		.loc 1 35 38 is_stmt 1
+  49              		.cfi_startproc
+  50              	.LVL1:
+  36:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     size_t ret = 0;
+  51              		.loc 1 36 5
+  37:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     static uint8_t receive_buffer[64] = {'\0'};
+  52              		.loc 1 37 5
+  38:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usb_buffer.index = 0;
+  53              		.loc 1 38 5
+  35:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     size_t ret = 0;
+  54              		.loc 1 35 38 is_stmt 0
+  55 0000 0111     		addi	sp,sp,-32
+  56              	.LCFI2:
+  57              		.cfi_def_cfa_offset 32
+  58 0002 22CC     		sw	s0,24(sp)
+  59              		.cfi_offset 8, -8
+  60              		.loc 1 38 22
+  61 0004 37040000 		lui	s0,%hi(.LANCHOR0)
+  62 0008 93070400 		addi	a5,s0,%lo(.LANCHOR0)
+  35:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     size_t ret = 0;
+  63              		.loc 1 35 38
+  64 000c 06CE     		sw	ra,28(sp)
+  65 000e 26CA     		sw	s1,20(sp)
+  66 0010 4AC8     		sw	s2,16(sp)
+  67 0012 4EC6     		sw	s3,12(sp)
+  68 0014 52C4     		sw	s4,8(sp)
+  69 0016 56C2     		sw	s5,4(sp)
+  70 0018 5AC0     		sw	s6,0(sp)
+  71              		.cfi_offset 1, -4
+  72              		.cfi_offset 9, -12
+  73              		.cfi_offset 18, -16
+  74              		.cfi_offset 19, -20
+  75              		.cfi_offset 20, -24
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 3
+
+
+  76              		.cfi_offset 21, -28
+  77              		.cfi_offset 22, -32
+  78              		.loc 1 38 22
+  79 001a 23A20720 		sw	zero,516(a5)
+  39:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     if (USBD_CONFIGURED == USB_OTG_dev.dev.cur_status){
+  80              		.loc 1 39 5 is_stmt 1
+  81              		.loc 1 39 43 is_stmt 0
+  82 001e B7070000 		lui	a5,%hi(.LANCHOR1)
+  83 0022 13870700 		addi	a4,a5,%lo(.LANCHOR1)
+  84 0026 0347670C 		lbu	a4,198(a4)
+  85              		.loc 1 39 8
+  86 002a 8D46     		li	a3,3
+  87 002c 13040400 		addi	s0,s0,%lo(.LANCHOR0)
+  88 0030 639FE602 		bne	a3,a4,.L10
+  89 0034 37090000 		lui	s2,%hi(.LANCHOR2)
+  90 0038 BE84     		mv	s1,a5
+  91 003a AA89     		mv	s3,a0
+  40:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         while(packet_receive == 1){
+  92              		.loc 1 40 30
+  93 003c 370A0000 		lui	s4,%hi(packet_receive)
+  94              		.loc 1 40 14
+  95 0040 054B     		li	s6,1
+  41:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             if(receive_length > 0){
+  96              		.loc 1 41 31
+  97 0042 B70A0000 		lui	s5,%hi(receive_length)
+  98              	.LBB2:
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 for(int i = 0; i < receive_length; i++) usb_buffer.buffer[usb_buffer.index + i] = r
+  99              		.loc 1 42 113
+ 100 0046 13090900 		addi	s2,s2,%lo(.LANCHOR2)
+ 101              	.LVL2:
+ 102              	.L4:
+ 103              	.LBE2:
+  40:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         while(packet_receive == 1){
+ 104              		.loc 1 40 14
+ 105 004a 83470A00 		lbu	a5,%lo(packet_receive)(s4)
+ 106 004e 638D6703 		beq	a5,s6,.L7
+  43:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+  44:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 usb_buffer.index += receive_length;
+  45:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 ret += receive_length;
+  46:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             }
+  47:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             packet_receive = 0;
+  48:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             receive_length = 0;
+  49:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usbd_ep_recev (&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, receive_buffer, 64);
+  50:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usb_mdelay(1);
+  51:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         }
+  52:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         usb_buffer.buffer[usb_buffer.index++] = '\0';
+ 107              		.loc 1 52 9 is_stmt 1
+ 108              		.loc 1 52 37 is_stmt 0
+ 109 0052 83274420 		lw	a5,516(s0)
+ 110              		.loc 1 52 43
+ 111 0056 13871700 		addi	a4,a5,1
+ 112              		.loc 1 52 47
+ 113 005a A297     		add	a5,s0,a5
+ 114 005c 23800700 		sb	zero,0(a5)
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         for(int i = 0; i < usb_buffer.index; i++) data[i] = usb_buffer.buffer[i];
+ 115              		.loc 1 53 9 is_stmt 1
+ 116              	.LBB3:
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 4
+
+
+ 117              		.loc 1 53 13
+ 118              	.LVL3:
+ 119              	.LBE3:
+  52:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         for(int i = 0; i < usb_buffer.index; i++) data[i] = usb_buffer.buffer[i];
+ 120              		.loc 1 52 43 is_stmt 0
+ 121 0060 2322E420 		sw	a4,516(s0)
+ 122              	.LBB4:
+ 123              		.loc 1 53 17
+ 124 0064 8147     		li	a5,0
+ 125              	.LVL4:
+ 126              	.L8:
+ 127              		.loc 1 53 9 discriminator 1
+ 128 0066 03274420 		lw	a4,516(s0)
+ 129 006a 63E8E706 		bgtu	a4,a5,.L9
+ 130              	.LVL5:
+ 131              	.L10:
+ 132              	.LBE4:
+  54:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+  55:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+  56:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     return usb_buffer.index -1;  
+ 133              		.loc 1 56 5 is_stmt 1
+ 134              		.loc 1 56 29 is_stmt 0
+ 135 006e 03254420 		lw	a0,516(s0)
+  57:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }
+ 136              		.loc 1 57 1
+ 137 0072 F240     		lw	ra,28(sp)
+ 138              		.cfi_remember_state
+ 139              		.cfi_restore 1
+ 140 0074 6244     		lw	s0,24(sp)
+ 141              		.cfi_restore 8
+ 142 0076 D244     		lw	s1,20(sp)
+ 143              		.cfi_restore 9
+ 144 0078 4249     		lw	s2,16(sp)
+ 145              		.cfi_restore 18
+ 146 007a B249     		lw	s3,12(sp)
+ 147              		.cfi_restore 19
+ 148 007c 224A     		lw	s4,8(sp)
+ 149              		.cfi_restore 20
+ 150 007e 924A     		lw	s5,4(sp)
+ 151              		.cfi_restore 21
+ 152 0080 024B     		lw	s6,0(sp)
+ 153              		.cfi_restore 22
+  56:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }
+ 154              		.loc 1 56 29
+ 155 0082 7D15     		addi	a0,a0,-1
+ 156              		.loc 1 57 1
+ 157 0084 0561     		addi	sp,sp,32
+ 158              	.LCFI3:
+ 159              		.cfi_def_cfa_offset 0
+ 160 0086 8280     		jr	ra
+ 161              	.LVL6:
+ 162              	.L7:
+ 163              	.LCFI4:
+ 164              		.cfi_restore_state
+  41:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 for(int i = 0; i < receive_length; i++) usb_buffer.buffer[usb_buffer.index + i] = r
+ 165              		.loc 1 41 13 is_stmt 1
+  41:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 for(int i = 0; i < receive_length; i++) usb_buffer.buffer[usb_buffer.index + i] = r
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 5
+
+
+ 166              		.loc 1 41 31 is_stmt 0
+ 167 0088 03A60A00 		lw	a2,%lo(receive_length)(s5)
+  41:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 for(int i = 0; i < receive_length; i++) usb_buffer.buffer[usb_buffer.index + i] = r
+ 168              		.loc 1 41 15
+ 169 008c 1DC2     		beq	a2,zero,.L5
+ 170              	.LBB5:
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 171              		.loc 1 42 85
+ 172 008e 83264420 		lw	a3,516(s0)
+ 173              	.LVL7:
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 174              		.loc 1 42 25
+ 175 0092 8147     		li	a5,0
+ 176              	.LVL8:
+ 177              	.L6:
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 178              		.loc 1 42 57 is_stmt 1 discriminator 3
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 179              		.loc 1 42 113 is_stmt 0 discriminator 3
+ 180 0094 B305F900 		add	a1,s2,a5
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 181              		.loc 1 42 97 discriminator 3
+ 182 0098 83C50500 		lbu	a1,0(a1)
+ 183 009c 3387F600 		add	a4,a3,a5
+ 184 00a0 2297     		add	a4,s0,a4
+ 185 00a2 2300B700 		sb	a1,0(a4)
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 186              		.loc 1 42 53 discriminator 3
+ 187 00a6 8507     		addi	a5,a5,1
+ 188              	.LVL9:
+  42:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 //memcpy(&usb_buffer.buffer[usb_buffer.index], receive_buffer, receive_length);
+ 189              		.loc 1 42 17 discriminator 3
+ 190 00a8 E396C7FE 		bne	a5,a2,.L6
+ 191              	.LBE5:
+  44:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 ret += receive_length;
+ 192              		.loc 1 44 17 is_stmt 1
+  44:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                 ret += receive_length;
+ 193              		.loc 1 44 34 is_stmt 0
+ 194 00ac B697     		add	a5,a5,a3
+ 195              	.LVL10:
+ 196 00ae 2322F420 		sw	a5,516(s0)
+  45:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             }
+ 197              		.loc 1 45 17 is_stmt 1
+ 198              	.L5:
+  47:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             receive_length = 0;
+ 199              		.loc 1 47 13
+  49:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usb_mdelay(1);
+ 200              		.loc 1 49 13 is_stmt 0
+ 201 00b2 93060004 		li	a3,64
+ 202 00b6 4A86     		mv	a2,s2
+ 203 00b8 8D45     		li	a1,3
+ 204 00ba 13850400 		addi	a0,s1,%lo(.LANCHOR1)
+  47:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             receive_length = 0;
+ 205              		.loc 1 47 28
+ 206 00be 23000A00 		sb	zero,%lo(packet_receive)(s4)
+  48:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usbd_ep_recev (&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, receive_buffer, 64);
+ 207              		.loc 1 48 13 is_stmt 1
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 6
+
+
+  48:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usbd_ep_recev (&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, receive_buffer, 64);
+ 208              		.loc 1 48 28 is_stmt 0
+ 209 00c2 23A00A00 		sw	zero,%lo(receive_length)(s5)
+  49:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****             usb_mdelay(1);
+ 210              		.loc 1 49 13 is_stmt 1
+ 211 00c6 97000000 		call	usbd_ep_recev
+ 211      E7800000 
+ 212              	.LVL11:
+  50:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         }
+ 213              		.loc 1 50 13
+ 214 00ce 0545     		li	a0,1
+ 215 00d0 97000000 		call	usb_mdelay
+ 215      E7800000 
+ 216              	.LVL12:
+ 217 00d8 8DBF     		j	.L4
+ 218              	.LVL13:
+ 219              	.L9:
+ 220              	.LBB6:
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+ 221              		.loc 1 53 51 discriminator 3
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+ 222              		.loc 1 53 78 is_stmt 0 discriminator 3
+ 223 00da 3307F400 		add	a4,s0,a5
+ 224 00de 83460700 		lbu	a3,0(a4)
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+ 225              		.loc 1 53 59 discriminator 3
+ 226 00e2 3387F900 		add	a4,s3,a5
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+ 227              		.loc 1 53 47 discriminator 3
+ 228 00e6 8507     		addi	a5,a5,1
+ 229              	.LVL14:
+  53:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         //memcpy(data, usb_buffer.buffer, usb_buffer.index);
+ 230              		.loc 1 53 59 discriminator 3
+ 231 00e8 2300D700 		sb	a3,0(a4)
+ 232 00ec ADBF     		j	.L8
+ 233              	.LBE6:
+ 234              		.cfi_endproc
+ 235              	.LFE7:
+ 237              		.section	.text.configure_usb_serial,"ax",@progbits
+ 238              		.align	1
+ 239              		.globl	configure_usb_serial
+ 241              	configure_usb_serial:
+ 242              	.LFB8:
+  58:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  59:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  60:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** //TODO move to USB library
+  61:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** void configure_usb_serial(){
+ 243              		.loc 1 61 28 is_stmt 1
+ 244              		.cfi_startproc
+  62:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     set_usb_clock_96m_hxtal();
+ 245              		.loc 1 62 5
+  61:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     set_usb_clock_96m_hxtal();
+ 246              		.loc 1 61 28 is_stmt 0
+ 247 0000 4111     		addi	sp,sp,-16
+ 248              	.LCFI5:
+ 249              		.cfi_def_cfa_offset 16
+ 250 0002 06C6     		sw	ra,12(sp)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 7
+
+
+ 251              		.cfi_offset 1, -4
+ 252              		.loc 1 62 5
+ 253 0004 97000000 		call	set_usb_clock_96m_hxtal
+ 253      E7800000 
+ 254              	.LVL15:
+  63:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     eclic_global_interrupt_enable();
+ 255              		.loc 1 63 5 is_stmt 1
+ 256 000c 97000000 		call	eclic_global_interrupt_enable
+ 256      E7800000 
+ 257              	.LVL16:
+  64:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
+ 258              		.loc 1 64 5
+ 259 0014 0945     		li	a0,2
+ 260 0016 97000000 		call	eclic_priority_group_set
+ 260      E7800000 
+ 261              	.LVL17:
+  65:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usb_rcu_config();
+ 262              		.loc 1 65 5
+ 263 001e 97000000 		call	usb_rcu_config
+ 263      E7800000 
+ 264              	.LVL18:
+  66:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usb_timer_init();
+ 265              		.loc 1 66 5
+ 266 0026 97000000 		call	usb_timer_init
+ 266      E7800000 
+ 267              	.LVL19:
+  67:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usb_intr_config();
+ 268              		.loc 1 67 5
+ 269 002e 97000000 		call	usb_intr_config
+ 269      E7800000 
+ 270              	.LVL20:
+  68:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+ 271              		.loc 1 68 5
+  69:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }
+ 272              		.loc 1 69 1 is_stmt 0
+ 273 0036 B240     		lw	ra,12(sp)
+ 274              		.cfi_restore 1
+  68:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+ 275              		.loc 1 68 5
+ 276 0038 37060000 		lui	a2,%hi(usbd_cdc_cb)
+ 277 003c 37050000 		lui	a0,%hi(.LANCHOR1)
+ 278              		.loc 1 69 1
+  68:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+ 279              		.loc 1 68 5
+ 280 0040 13060600 		addi	a2,a2,%lo(usbd_cdc_cb)
+ 281 0044 8545     		li	a1,1
+ 282 0046 13050500 		addi	a0,a0,%lo(.LANCHOR1)
+ 283              		.loc 1 69 1
+ 284 004a 4101     		addi	sp,sp,16
+ 285              	.LCFI6:
+ 286              		.cfi_def_cfa_offset 0
+  68:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+ 287              		.loc 1 68 5
+ 288 004c 17030000 		tail	usbd_init
+ 288      67000300 
+ 289              	.LVL21:
+ 290              		.cfi_endproc
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 8
+
+
+ 291              	.LFE8:
+ 293              		.section	.text.usb_serial_available,"ax",@progbits
+ 294              		.align	1
+ 295              		.globl	usb_serial_available
+ 297              	usb_serial_available:
+ 298              	.LFB9:
+  70:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  71:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** int usb_serial_available(){return USBD_CONFIGURED == USB_OTG_dev.dev.cur_status;}
+ 299              		.loc 1 71 27 is_stmt 1
+ 300              		.cfi_startproc
+ 301              		.loc 1 71 28
+ 302              		.loc 1 71 69 is_stmt 0
+ 303 0000 B7070000 		lui	a5,%hi(.LANCHOR1)
+ 304 0004 93870700 		addi	a5,a5,%lo(.LANCHOR1)
+ 305 0008 03C5670C 		lbu	a0,198(a5)
+ 306              		.loc 1 71 51
+ 307 000c 7515     		addi	a0,a0,-3
+ 308              		.loc 1 71 1
+ 309 000e 13351500 		seqz	a0,a0
+ 310 0012 8280     		ret
+ 311              		.cfi_endproc
+ 312              	.LFE9:
+ 314              		.section	.text._write,"ax",@progbits
+ 315              		.align	1
+ 316              		.globl	_write
+ 318              	_write:
+ 319              	.LFB10:
+  72:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  73:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  74:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** //TODO Risk of overflow when printing large amounts of text, should probably do some length checkin
+  75:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  76:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** ssize_t _write(int fd, const void* ptr, size_t len){
+ 320              		.loc 1 76 52 is_stmt 1
+ 321              		.cfi_startproc
+ 322              	.LVL22:
+  77:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     int64_t temp = get_timer_value();
+ 323              		.loc 1 77 5
+  76:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     int64_t temp = get_timer_value();
+ 324              		.loc 1 76 52 is_stmt 0
+ 325 0000 0111     		addi	sp,sp,-32
+ 326              	.LCFI7:
+ 327              		.cfi_def_cfa_offset 32
+ 328 0002 4AC8     		sw	s2,16(sp)
+ 329 0004 4EC6     		sw	s3,12(sp)
+ 330 0006 06CE     		sw	ra,28(sp)
+ 331 0008 22CC     		sw	s0,24(sp)
+ 332 000a 26CA     		sw	s1,20(sp)
+ 333 000c 52C4     		sw	s4,8(sp)
+ 334 000e 56C2     		sw	s5,4(sp)
+ 335              		.cfi_offset 18, -16
+ 336              		.cfi_offset 19, -20
+ 337              		.cfi_offset 1, -4
+ 338              		.cfi_offset 8, -8
+ 339              		.cfi_offset 9, -12
+ 340              		.cfi_offset 20, -24
+ 341              		.cfi_offset 21, -28
+  76:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     int64_t temp = get_timer_value();
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 9
+
+
+ 342              		.loc 1 76 52
+ 343 0010 AE89     		mv	s3,a1
+ 344 0012 3289     		mv	s2,a2
+ 345              		.loc 1 77 20
+ 346 0014 97000000 		call	get_timer_value
+ 346      E7800000 
+ 347              	.LVL23:
+  78:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     len = len > sizeof(tx_buffer) ? sizeof(tx_buffer) : len;
+ 348              		.loc 1 78 5 is_stmt 1
+ 349              		.loc 1 78 9 is_stmt 0
+ 350 001c 93070020 		li	a5,512
+ 351 0020 63F42701 		bleu	s2,a5,.L22
+ 352 0024 13090020 		li	s2,512
+ 353              	.LVL24:
+ 354              	.L22:
+  79:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     size_t temp_len = len;
+ 355              		.loc 1 79 5 is_stmt 1
+  80:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     while((packet_sent == 0) && ((temp + TIMEOUT_PRINTF) > get_timer_value()));
+ 356              		.loc 1 80 5
+ 357              		.loc 1 80 40 is_stmt 0
+ 358 0028 E164     		li	s1,98304
+ 359 002a 9384046A 		addi	s1,s1,1696
+ 360 002e AA94     		add	s1,a0,s1
+ 361              		.loc 1 80 24
+ 362 0030 370A0000 		lui	s4,%hi(packet_sent)
+ 363              		.loc 1 80 40
+ 364 0034 33B5A400 		sltu	a0,s1,a0
+ 365              	.LVL25:
+ 366 0038 D28A     		mv	s5,s4
+ 367 003a 3304B500 		add	s0,a0,a1
+ 368              	.LVL26:
+ 369              	.L28:
+ 370              		.loc 1 80 79 is_stmt 1 discriminator 2
+ 371              		.loc 1 80 10 is_stmt 0 discriminator 2
+ 372 003e 83470A00 		lbu	a5,%lo(packet_sent)(s4)
+ 373 0042 99EB     		bne	a5,zero,.L23
+ 374              		.loc 1 80 60 discriminator 1
+ 375 0044 97000000 		call	get_timer_value
+ 375      E7800000 
+ 376              	.LVL27:
+ 377              		.loc 1 80 30 discriminator 1
+ 378 004c E3E985FE 		bgtu	s0,a1,.L28
+ 379 0050 6314B400 		bne	s0,a1,.L23
+ 380 0054 E36595FE 		bgtu	s1,a0,.L28
+ 381              	.L23:
+  81:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     packet_sent = 0;
+ 382              		.loc 1 81 5 is_stmt 1
+ 383 0058 37060000 		lui	a2,%hi(.LANCHOR3)
+ 384              		.loc 1 81 17 is_stmt 0
+ 385 005c 23800A00 		sb	zero,%lo(packet_sent)(s5)
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     for(int i = 0; i < len; i++) tx_buffer[i] = ((uint8_t*)ptr)[i];
+ 386              		.loc 1 82 5 is_stmt 1
+ 387              	.LBB7:
+ 388              		.loc 1 82 9
+ 389              	.LVL28:
+ 390              		.loc 1 82 13 is_stmt 0
+ 391 0060 0144     		li	s0,0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 10
+
+
+ 392              		.loc 1 82 47
+ 393 0062 93070600 		addi	a5,a2,%lo(.LANCHOR3)
+ 394              	.LVL29:
+ 395              	.L26:
+ 396              		.loc 1 82 5 discriminator 1
+ 397 0066 631B2403 		bne	s0,s2,.L27
+ 398              	.LBE7:
+  83:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+  84:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, tx_buffer, len);
+ 399              		.loc 1 84 5 is_stmt 1
+ 400 006a 93160401 		slli	a3,s0,16
+ 401 006e 37050000 		lui	a0,%hi(.LANCHOR1)
+ 402 0072 C182     		srli	a3,a3,16
+ 403 0074 13060600 		addi	a2,a2,%lo(.LANCHOR3)
+ 404 0078 93051008 		li	a1,129
+ 405 007c 13050500 		addi	a0,a0,%lo(.LANCHOR1)
+ 406 0080 97000000 		call	usbd_ep_send
+ 406      E7800000 
+ 407              	.LVL30:
+  85:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     return len;
+ 408              		.loc 1 85 5
+  86:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** }
+ 409              		.loc 1 86 1 is_stmt 0
+ 410 0088 2285     		mv	a0,s0
+ 411 008a F240     		lw	ra,28(sp)
+ 412              		.cfi_remember_state
+ 413              		.cfi_restore 1
+ 414 008c 6244     		lw	s0,24(sp)
+ 415              		.cfi_restore 8
+ 416              	.LVL31:
+ 417 008e D244     		lw	s1,20(sp)
+ 418              		.cfi_restore 9
+ 419 0090 4249     		lw	s2,16(sp)
+ 420              		.cfi_restore 18
+ 421              	.LVL32:
+ 422 0092 B249     		lw	s3,12(sp)
+ 423              		.cfi_restore 19
+ 424              	.LVL33:
+ 425 0094 224A     		lw	s4,8(sp)
+ 426              		.cfi_restore 20
+ 427 0096 924A     		lw	s5,4(sp)
+ 428              		.cfi_restore 21
+ 429 0098 0561     		addi	sp,sp,32
+ 430              	.LCFI8:
+ 431              		.cfi_def_cfa_offset 0
+ 432 009a 8280     		jr	ra
+ 433              	.LVL34:
+ 434              	.L27:
+ 435              	.LCFI9:
+ 436              		.cfi_restore_state
+ 437              	.LBB8:
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+ 438              		.loc 1 82 34 is_stmt 1 discriminator 3
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+ 439              		.loc 1 82 64 is_stmt 0 discriminator 3
+ 440 009c 33878900 		add	a4,s3,s0
+ 441 00a0 83460700 		lbu	a3,0(a4)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 11
+
+
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+ 442              		.loc 1 82 47 discriminator 3
+ 443 00a4 33878700 		add	a4,a5,s0
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+ 444              		.loc 1 82 30 discriminator 3
+ 445 00a8 0504     		addi	s0,s0,1
+ 446              	.LVL35:
+  82:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //strncpy((char*)tx_buffer, ptr, len);
+ 447              		.loc 1 82 47 discriminator 3
+ 448 00aa 2300D700 		sb	a3,0(a4)
+ 449 00ae 65BF     		j	.L26
+ 450              	.LBE8:
+ 451              		.cfi_endproc
+ 452              	.LFE10:
+ 454              		.section	.text.set_usb_clock_96m_hxtal,"ax",@progbits
+ 455              		.align	1
+ 456              		.globl	set_usb_clock_96m_hxtal
+ 458              	set_usb_clock_96m_hxtal:
+ 459              	.LFB11:
+  87:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  88:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** void set_usb_clock_96m_hxtal(void){
+ 460              		.loc 1 88 35 is_stmt 1
+ 461              		.cfi_startproc
+  89:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  90:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* reset the RCC clock configuration to the default reset state */
+  91:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* enable IRC8M */
+  92:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL |= RCU_CTL_IRC8MEN;
+ 462              		.loc 1 92 5
+ 463              		.loc 1 92 13 is_stmt 0
+ 464 0000 B7170240 		li	a5,1073876992
+ 465 0004 9843     		lw	a4,0(a5)
+  93:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     
+  94:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* reset SCS, AHBPSC, APB1PSC, APB2PSC, ADCPSC, CKOUT0SEL bits */
+  95:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 &= ~(RCU_CFG0_SCS | RCU_CFG0_AHBPSC | RCU_CFG0_APB1PSC | RCU_CFG0_APB2PSC |
+ 466              		.loc 1 95 14
+ 467 0006 B706FFE0 		li	a3,-520159232
+ 468 000a B106     		addi	a3,a3,12
+  92:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     
+ 469              		.loc 1 92 13
+ 470 000c 13671700 		ori	a4,a4,1
+ 471 0010 98C3     		sw	a4,0(a5)
+ 472              		.loc 1 95 5 is_stmt 1
+ 473              		.loc 1 95 14 is_stmt 0
+ 474 0012 D843     		lw	a4,4(a5)
+ 475 0014 758F     		and	a4,a4,a3
+ 476 0016 D8C3     		sw	a4,4(a5)
+  96:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                   RCU_CFG0_ADCPSC | RCU_CFG0_ADCPSC_2 | RCU_CFG0_CKOUT0SEL);
+  97:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+  98:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* reset HXTALEN, CKMEN, PLLEN bits */
+  99:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL &= ~(RCU_CTL_HXTALEN | RCU_CTL_CKMEN | RCU_CTL_PLLEN);
+ 477              		.loc 1 99 5 is_stmt 1
+ 478              		.loc 1 99 13 is_stmt 0
+ 479 0018 9843     		lw	a4,0(a5)
+ 480 001a B706F7FE 		li	a3,-17367040
+ 481 001e FD16     		addi	a3,a3,-1
+ 482 0020 758F     		and	a4,a4,a3
+ 483 0022 98C3     		sw	a4,0(a5)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 12
+
+
+ 100:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 101:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* Reset HXTALBPS bit */
+ 102:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL &= ~(RCU_CTL_HXTALBPS);
+ 484              		.loc 1 102 5 is_stmt 1
+ 485              		.loc 1 102 13 is_stmt 0
+ 486 0024 9843     		lw	a4,0(a5)
+ 487 0026 B706FCFF 		li	a3,-262144
+ 488 002a FD16     		addi	a3,a3,-1
+ 489 002c 758F     		and	a4,a4,a3
+ 490 002e 98C3     		sw	a4,0(a5)
+ 103:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 104:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* reset PLLSEL, PREDV0_LSB, PLLMF, USBFSPSC bits */
+ 105:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     
+ 106:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 &= ~(RCU_CFG0_PLLSEL | RCU_CFG0_PREDV0_LSB | RCU_CFG0_PLLMF |
+ 491              		.loc 1 106 5 is_stmt 1
+ 492              		.loc 1 106 14 is_stmt 0
+ 493 0030 D843     		lw	a4,4(a5)
+ 494 0032 B70601DF 		li	a3,-553582592
+ 495 0036 FD16     		addi	a3,a3,-1
+ 496 0038 758F     		and	a4,a4,a3
+ 497 003a D8C3     		sw	a4,4(a5)
+ 107:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****                   RCU_CFG0_USBFSPSC | RCU_CFG0_PLLMF_4);
+ 108:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG1 = 0x00000000U;
+ 498              		.loc 1 108 5 is_stmt 1
+ 499              		.loc 1 108 14 is_stmt 0
+ 500 003c 23A60702 		sw	zero,44(a5)
+ 109:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 110:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* Reset HXTALEN, CKMEN, PLLEN, PLL1EN and PLL2EN bits */
+ 111:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL &= ~(RCU_CTL_PLLEN | RCU_CTL_PLL1EN | RCU_CTL_PLL2EN | RCU_CTL_CKMEN | RCU_CTL_HXTALEN)
+ 501              		.loc 1 111 5 is_stmt 1
+ 502              		.loc 1 111 13 is_stmt 0
+ 503 0040 9843     		lw	a4,0(a5)
+ 504 0042 B706F7EA 		li	a3,-352911360
+ 505 0046 FD16     		addi	a3,a3,-1
+ 506 0048 758F     		and	a4,a4,a3
+ 507 004a 98C3     		sw	a4,0(a5)
+ 112:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* disable all interrupts */
+ 113:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_INT = 0x00FF0000U;
+ 508              		.loc 1 113 5 is_stmt 1
+ 509              		.loc 1 113 13 is_stmt 0
+ 510 004c 3707FF00 		li	a4,16711680
+ 511 0050 98C7     		sw	a4,8(a5)
+ 114:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 115:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 116:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     uint32_t timeout = 0U;
+ 512              		.loc 1 116 5 is_stmt 1
+ 513              	.LVL36:
+ 117:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     uint32_t stab_flag = 0U;
+ 514              		.loc 1 117 5
+ 118:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 119:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* enable HXTAL */
+ 120:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL |= RCU_CTL_HXTALEN;
+ 515              		.loc 1 120 5
+ 516              		.loc 1 120 13 is_stmt 0
+ 517 0052 9443     		lw	a3,0(a5)
+ 518 0054 4167     		li	a4,65536
+ 519 0056 D98E     		or	a3,a3,a4
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 13
+
+
+ 520 0058 94C3     		sw	a3,0(a5)
+ 521 005a 9307F7FF 		addi	a5,a4,-1
+ 121:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 122:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* wait until HXTAL is stable or the startup time is longer than HXTAL_STARTUP_TIMEOUT */
+ 123:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     do{
+ 124:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         timeout++;
+ 125:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         stab_flag = (RCU_CTL & RCU_CTL_HXTALSTB);
+ 522              		.loc 1 125 22
+ 523 005e 37170240 		li	a4,1073876992
+ 524              	.LVL37:
+ 525              	.L32:
+ 123:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         timeout++;
+ 526              		.loc 1 123 5 is_stmt 1 discriminator 2
+ 124:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         stab_flag = (RCU_CTL & RCU_CTL_HXTALSTB);
+ 527              		.loc 1 124 9 discriminator 2
+ 528              		.loc 1 125 9 discriminator 2
+ 529              		.loc 1 125 22 is_stmt 0 discriminator 2
+ 530 0062 1443     		lw	a3,0(a4)
+ 531              	.LVL38:
+ 126:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }while((0U == stab_flag) && (HXTAL_STARTUP_TIMEOUT != timeout));
+ 532              		.loc 1 126 5 discriminator 2
+ 533 0064 1396E600 		slli	a2,a3,14
+ 534 0068 63440600 		blt	a2,zero,.L31
+ 535 006c FD17     		addi	a5,a5,-1
+ 536              	.LVL39:
+ 537              		.loc 1 126 30 discriminator 1
+ 538 006e F5FB     		bne	a5,zero,.L32
+ 539              	.LVL40:
+ 540              	.L31:
+ 127:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 128:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* if fail */
+ 129:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     if(0U == (RCU_CTL & RCU_CTL_HXTALSTB)){
+ 541              		.loc 1 129 5 is_stmt 1
+ 542              		.loc 1 129 15 is_stmt 0
+ 543 0070 B7170240 		li	a5,1073876992
+ 544 0074 9843     		lw	a4,0(a5)
+ 545              		.loc 1 129 7
+ 546 0076 9316E700 		slli	a3,a4,14
+ 547              	.LVL41:
+ 548 007a 63C30600 		blt	a3,zero,.L33
+ 549              	.L34:
+ 130:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         while(1){
+ 550              		.loc 1 130 9 is_stmt 1 discriminator 1
+ 131:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         }
+ 551              		.loc 1 131 9 discriminator 1
+ 552 007e 01A0     		j	.L34
+ 553              	.L33:
+ 554              	.LBB11:
+ 555              	.LBB12:
+ 132:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 133:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 134:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* HXTAL is stable */
+ 135:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* AHB = SYSCLK */
+ 136:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 |= RCU_AHB_CKSYS_DIV1;
+ 556              		.loc 1 136 5
+ 557              		.loc 1 136 14 is_stmt 0
+ 558 0080 D843     		lw	a4,4(a5)
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 14
+
+
+ 137:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* APB2 = AHB/1 */
+ 138:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 |= RCU_APB2_CKAHB_DIV1;
+ 139:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* APB1 = AHB/2 */
+ 140:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 |= RCU_APB1_CKAHB_DIV2;
+ 141:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 142:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     if(HXTAL_VALUE==25000000){
+ 143:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 144:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* CK_PLL = (CK_PREDIV0) * 24 = 96 MHz */
+ 145:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG0 &= ~(RCU_CFG0_PLLMF | RCU_CFG0_PLLMF_4);
+ 146:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG0 |= (RCU_PLLSRC_HXTAL | RCU_PLL_MUL24);
+ 147:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 148:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* CK_PREDIV0 = (CK_HXTAL)/5 *8 /10 = 4 MHz */
+ 149:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG1 &= ~(RCU_CFG1_PREDV0SEL | RCU_CFG1_PLL1MF | RCU_CFG1_PREDV1 | RCU_CFG1_PREDV0);
+ 150:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG1 |= (RCU_PREDV0SRC_CKPLL1 | RCU_PLL1_MUL8 | RCU_PREDV1_DIV5 | RCU_PREDV0_DIV10);
+ 151:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* enable PLL1 */
+ 152:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CTL |= RCU_CTL_PLL1EN;
+ 153:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* wait till PLL1 is ready */
+ 154:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         while((RCU_CTL & RCU_CTL_PLL1STB) == 0){
+ 155:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         }
+ 156:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 157:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }else if(HXTAL_VALUE==8000000){
+ 158:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* CK_PLL = (CK_PREDIV0) * 24 = 96 MHz */
+ 159:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG0 &= ~(RCU_CFG0_PLLMF | RCU_CFG0_PLLMF_4);
+ 559              		.loc 1 159 18
+ 560 0082 B706C4DF 		li	a3,-540803072
+ 561 0086 FD16     		addi	a3,a3,-1
+ 136:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* APB2 = AHB/1 */
+ 562              		.loc 1 136 14
+ 563 0088 D8C3     		sw	a4,4(a5)
+ 138:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* APB1 = AHB/2 */
+ 564              		.loc 1 138 5 is_stmt 1
+ 138:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* APB1 = AHB/2 */
+ 565              		.loc 1 138 14 is_stmt 0
+ 566 008a D843     		lw	a4,4(a5)
+ 567 008c D8C3     		sw	a4,4(a5)
+ 140:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 568              		.loc 1 140 5 is_stmt 1
+ 140:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 569              		.loc 1 140 14 is_stmt 0
+ 570 008e D843     		lw	a4,4(a5)
+ 571 0090 13670740 		ori	a4,a4,1024
+ 572 0094 D8C3     		sw	a4,4(a5)
+ 142:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 573              		.loc 1 142 5 is_stmt 1
+ 157:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         /* CK_PLL = (CK_PREDIV0) * 24 = 96 MHz */
+ 574              		.loc 1 157 11
+ 575              		.loc 1 159 9
+ 576              		.loc 1 159 18 is_stmt 0
+ 577 0096 D843     		lw	a4,4(a5)
+ 578 0098 758F     		and	a4,a4,a3
+ 579 009a D8C3     		sw	a4,4(a5)
+ 160:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****         RCU_CFG0 |= (RCU_PLLSRC_HXTAL | RCU_PLL_MUL24);
+ 580              		.loc 1 160 9 is_stmt 1
+ 581              		.loc 1 160 18 is_stmt 0
+ 582 009c D843     		lw	a4,4(a5)
+ 583 009e B7061D20 		li	a3,538771456
+ 584 00a2 558F     		or	a4,a4,a3
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 15
+
+
+ 585 00a4 D8C3     		sw	a4,4(a5)
+ 161:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 162:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 		RCU_CFG1 &= ~(RCU_CFG1_PREDV0SEL | RCU_CFG1_PREDV1 | RCU_CFG1_PLL1MF | RCU_CFG1_PREDV0);
+ 586              		.loc 1 162 3 is_stmt 1
+ 587              		.loc 1 162 12 is_stmt 0
+ 588 00a6 D857     		lw	a4,44(a5)
+ 589 00a8 BD76     		li	a3,-69632
+ 590 00aa 758F     		and	a4,a4,a3
+ 591 00ac D8D7     		sw	a4,44(a5)
+ 163:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 		RCU_CFG1 |= (RCU_PREDV0SRC_HXTAL | RCU_PREDV0_DIV2 );
+ 592              		.loc 1 163 3 is_stmt 1
+ 593              		.loc 1 163 12 is_stmt 0
+ 594 00ae D857     		lw	a4,44(a5)
+ 164:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 165:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 166:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* enable PLL */
+ 167:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CTL |= RCU_CTL_PLLEN;
+ 595              		.loc 1 167 13
+ 596 00b0 B7060001 		li	a3,16777216
+ 163:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 		RCU_CFG1 |= (RCU_PREDV0SRC_HXTAL | RCU_PREDV0_DIV2 );
+ 597              		.loc 1 163 12
+ 598 00b4 13671700 		ori	a4,a4,1
+ 599 00b8 D8D7     		sw	a4,44(a5)
+ 600              		.loc 1 167 5 is_stmt 1
+ 601              		.loc 1 167 13 is_stmt 0
+ 602 00ba 9843     		lw	a4,0(a5)
+ 603 00bc 558F     		or	a4,a4,a3
+ 604 00be 98C3     		sw	a4,0(a5)
+ 168:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 169:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* wait until PLL is stable */
+ 170:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     while(0U == (RCU_CTL & RCU_CTL_PLLSTB)){
+ 605              		.loc 1 170 5 is_stmt 1
+ 606              		.loc 1 170 18 is_stmt 0
+ 607 00c0 B7170240 		li	a5,1073876992
+ 608              	.L35:
+ 171:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 609              		.loc 1 171 5 is_stmt 1
+ 170:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 610              		.loc 1 170 18 is_stmt 0
+ 611 00c4 9843     		lw	a4,0(a5)
+ 170:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 612              		.loc 1 170 10
+ 613 00c6 93166700 		slli	a3,a4,6
+ 614 00ca E3DD06FE 		bge	a3,zero,.L35
+ 172:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 173:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* select PLL as system clock */
+ 174:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 &= ~RCU_CFG0_SCS;
+ 615              		.loc 1 174 5 is_stmt 1
+ 616              		.loc 1 174 14 is_stmt 0
+ 617 00ce D843     		lw	a4,4(a5)
+ 618 00d0 719B     		andi	a4,a4,-4
+ 619 00d2 D8C3     		sw	a4,4(a5)
+ 175:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     RCU_CFG0 |= RCU_CKSYSSRC_PLL;
+ 620              		.loc 1 175 5 is_stmt 1
+ 621              		.loc 1 175 14 is_stmt 0
+ 622 00d4 D843     		lw	a4,4(a5)
+ 623 00d6 13672700 		ori	a4,a4,2
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 16
+
+
+ 624 00da D8C3     		sw	a4,4(a5)
+ 176:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c **** 
+ 177:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     /* wait until PLL is selected as system clock */
+ 178:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     while(0U == (RCU_CFG0 & RCU_SCSS_PLL)){
+ 625              		.loc 1 178 5 is_stmt 1
+ 626              		.loc 1 178 18 is_stmt 0
+ 627 00dc 37170240 		li	a4,1073876992
+ 628              	.L36:
+ 179:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 629              		.loc 1 179 5 is_stmt 1
+ 178:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 630              		.loc 1 178 18 is_stmt 0
+ 631 00e0 5C43     		lw	a5,4(a4)
+ 178:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 632              		.loc 1 178 27
+ 633 00e2 A18B     		andi	a5,a5,8
+ 178:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     }
+ 634              		.loc 1 178 10
+ 635 00e4 F5DF     		beq	a5,zero,.L36
+ 180:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     //SystemCoreClock = 96000000;
+ 181:../../firmware/debugger/lib/usbcdc/src/usb_serial_if.c ****     SystemCoreClockUpdate();
+ 636              		.loc 1 181 5 is_stmt 1
+ 637 00e6 17030000 		tail	SystemCoreClockUpdate
+ 637      67000300 
+ 638              	.LVL42:
+ 639              	.LBE12:
+ 640              	.LBE11:
+ 641              		.cfi_endproc
+ 642              	.LFE11:
+ 644              		.section	.bss.receive_buffer.5944,"aw",@nobits
+ 645              		.align	2
+ 646              		.set	.LANCHOR2,. + 0
+ 649              	receive_buffer.5944:
+ 650 0000 00000000 		.zero	64
+ 650      00000000 
+ 650      00000000 
+ 650      00000000 
+ 650      00000000 
+ 651              		.section	.bss.tx_buffer,"aw",@nobits
+ 652              		.align	2
+ 653              		.set	.LANCHOR3,. + 0
+ 656              	tx_buffer:
+ 657 0000 00000000 		.zero	512
+ 657      00000000 
+ 657      00000000 
+ 657      00000000 
+ 657      00000000 
+ 658              		.section	.data.USB_OTG_dev,"aw"
+ 659              		.align	2
+ 660              		.set	.LANCHOR1,. + 0
+ 663              	USB_OTG_dev:
+ 664 0000 00000000 		.zero	196
+ 664      00000000 
+ 664      00000000 
+ 664      00000000 
+ 664      00000000 
+ 665 00c4 00000000 		.zero	848
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 17
+
+
+ 665      00000000 
+ 665      00000000 
+ 665      00000000 
+ 665      00000000 
+ 666 0414 00000000 		.word	device_descriptor
+ 667 0418 00000000 		.word	configuration_descriptor
+ 668 041c 00000000 		.zero	4
+ 669 0420 00000000 		.word	usbd_strings
+ 670 0424 00000000 		.zero	16
+ 670      00000000 
+ 670      00000000 
+ 670      00000000 
+ 671              		.section	.data.usb_buffer,"aw"
+ 672              		.align	2
+ 673              		.set	.LANCHOR0,. + 0
+ 676              	usb_buffer:
+ 677 0000 00       		.string	""
+ 678 0001 00000000 		.zero	511
+ 678      00000000 
+ 678      00000000 
+ 678      00000000 
+ 678      00000000 
+ 679 0200 00020000 		.word	512
+ 680 0204 00000000 		.word	0
+ 681              		.text
+ 682              	.Letext0:
+ 683              		.file 2 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 684              		.file 3 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 685              		.file 4 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/lib/gcc/riscv6
+ 686              		.file 5 "../../firmware/debugger/lib/usbcdc/include/drv_usb_regs.h"
+ 687              		.file 6 "../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+ 688              		.file 7 "../../firmware/debugger/lib/usbcdc/include/usb_ch9_std.h"
+ 689              		.file 8 "../../firmware/debugger/lib/usbcdc/include/drv_usb_core.h"
+ 690              		.file 9 "../../firmware/debugger/lib/usbcdc/include/drv_usb_dev.h"
+ 691              		.file 10 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unkno
+ 692              		.file 11 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unkno
+ 693              		.file 12 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unkno
+ 694              		.file 13 "../../firmware/debugger/lib/usbcdc/include/cdc_acm_core.h"
+ 695              		.file 14 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unkno
+ 696              		.file 15 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unkno
+ 697              		.file 16 "../../firmware/debugger/lib/usbcdc/include/usb_serial_if.h"
+ 698              		.file 17 "../../firmware/RISCV/drivers/n200_func.h"
+ 699              		.file 18 "../../firmware/debugger/lib/usbcdc/include/usbd_core.h"
+ 700              		.file 19 "../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_eclic.h"
+ 701              		.file 20 "../../firmware/debugger/lib/usbcdc/include/drv_usb_hw.h"
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 18
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usb_serial_if.c
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:663    .data.USB_OTG_dev:0000000000000000 USB_OTG_dev
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:676    .data.usb_buffer:0000000000000000 usb_buffer
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:656    .bss.tx_buffer:0000000000000000 tx_buffer
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:16     .text.usb_serial_connected:0000000000000000 usb_serial_connected
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:20     .text.usb_serial_connected:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:21     .text.usb_serial_connected:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:22     .text.usb_serial_connected:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:23     .text.usb_serial_connected:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:25     .text.usb_serial_connected:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:27     .text.usb_serial_connected:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:29     .text.usb_serial_connected:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:32     .text.usb_serial_connected:000000000000000c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:33     .text.usb_serial_connected:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:37     .text.usb_serial_connected:0000000000000014 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:39     .text.usb_serial_connected:0000000000000016 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:46     .text.read_usb_serial:0000000000000000 read_usb_serial
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:49     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:51     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:52     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:53     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:54     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:55     .text.read_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:57     .text.read_usb_serial:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:59     .text.read_usb_serial:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:61     .text.read_usb_serial:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:64     .text.read_usb_serial:000000000000000c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:71     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:72     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:73     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:74     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:75     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:76     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:77     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:79     .text.read_usb_serial:000000000000001a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:81     .text.read_usb_serial:000000000000001e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:82     .text.read_usb_serial:000000000000001e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:86     .text.read_usb_serial:000000000000002a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:93     .text.read_usb_serial:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:95     .text.read_usb_serial:0000000000000040 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:97     .text.read_usb_serial:0000000000000042 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:100    .text.read_usb_serial:0000000000000046 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:105    .text.read_usb_serial:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:108    .text.read_usb_serial:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:109    .text.read_usb_serial:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:111    .text.read_usb_serial:0000000000000056 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:113    .text.read_usb_serial:000000000000005a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:117    .text.read_usb_serial:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:120    .text.read_usb_serial:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:121    .text.read_usb_serial:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:124    .text.read_usb_serial:0000000000000064 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:128    .text.read_usb_serial:0000000000000066 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:134    .text.read_usb_serial:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:135    .text.read_usb_serial:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:137    .text.read_usb_serial:0000000000000072 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:138    .text.read_usb_serial:0000000000000074 .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 19
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:139    .text.read_usb_serial:0000000000000074 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:141    .text.read_usb_serial:0000000000000076 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:143    .text.read_usb_serial:0000000000000078 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:145    .text.read_usb_serial:000000000000007a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:147    .text.read_usb_serial:000000000000007c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:149    .text.read_usb_serial:000000000000007e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:151    .text.read_usb_serial:0000000000000080 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:153    .text.read_usb_serial:0000000000000082 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:155    .text.read_usb_serial:0000000000000082 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:157    .text.read_usb_serial:0000000000000084 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:159    .text.read_usb_serial:0000000000000086 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:164    .text.read_usb_serial:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:166    .text.read_usb_serial:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:167    .text.read_usb_serial:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:169    .text.read_usb_serial:000000000000008c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:172    .text.read_usb_serial:000000000000008e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:175    .text.read_usb_serial:0000000000000092 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:179    .text.read_usb_serial:0000000000000094 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:180    .text.read_usb_serial:0000000000000094 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:182    .text.read_usb_serial:0000000000000098 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:187    .text.read_usb_serial:00000000000000a6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:190    .text.read_usb_serial:00000000000000a8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:193    .text.read_usb_serial:00000000000000ac .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:194    .text.read_usb_serial:00000000000000ac .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:199    .text.read_usb_serial:00000000000000b2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:200    .text.read_usb_serial:00000000000000b2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:201    .text.read_usb_serial:00000000000000b2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:206    .text.read_usb_serial:00000000000000be .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:208    .text.read_usb_serial:00000000000000c2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:209    .text.read_usb_serial:00000000000000c2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:211    .text.read_usb_serial:00000000000000c6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:214    .text.read_usb_serial:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:222    .text.read_usb_serial:00000000000000da .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:223    .text.read_usb_serial:00000000000000da .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:226    .text.read_usb_serial:00000000000000e2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:228    .text.read_usb_serial:00000000000000e6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:231    .text.read_usb_serial:00000000000000e8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:234    .text.read_usb_serial:00000000000000ee .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:241    .text.configure_usb_serial:0000000000000000 configure_usb_serial
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:244    .text.configure_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:245    .text.configure_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:246    .text.configure_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:247    .text.configure_usb_serial:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:249    .text.configure_usb_serial:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:251    .text.configure_usb_serial:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:458    .text.set_usb_clock_96m_hxtal:0000000000000000 set_usb_clock_96m_hxtal
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:253    .text.configure_usb_serial:0000000000000004 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:256    .text.configure_usb_serial:000000000000000c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:259    .text.configure_usb_serial:0000000000000014 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:263    .text.configure_usb_serial:000000000000001e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:266    .text.configure_usb_serial:0000000000000026 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:269    .text.configure_usb_serial:000000000000002e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:272    .text.configure_usb_serial:0000000000000036 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:273    .text.configure_usb_serial:0000000000000036 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:274    .text.configure_usb_serial:0000000000000038 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:276    .text.configure_usb_serial:0000000000000038 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:279    .text.configure_usb_serial:0000000000000040 .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 20
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:280    .text.configure_usb_serial:0000000000000040 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:284    .text.configure_usb_serial:000000000000004a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:286    .text.configure_usb_serial:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:288    .text.configure_usb_serial:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:290    .text.configure_usb_serial:0000000000000054 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:297    .text.usb_serial_available:0000000000000000 usb_serial_available
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:300    .text.usb_serial_available:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:301    .text.usb_serial_available:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:302    .text.usb_serial_available:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:303    .text.usb_serial_available:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:307    .text.usb_serial_available:000000000000000c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:309    .text.usb_serial_available:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:311    .text.usb_serial_available:0000000000000014 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:318    .text._write:0000000000000000 _write
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:321    .text._write:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:323    .text._write:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:324    .text._write:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:325    .text._write:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:327    .text._write:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:335    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:336    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:337    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:338    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:339    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:340    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:341    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:343    .text._write:0000000000000010 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:346    .text._write:0000000000000014 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:349    .text._write:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:350    .text._write:000000000000001c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:356    .text._write:0000000000000028 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:357    .text._write:0000000000000028 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:358    .text._write:0000000000000028 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:362    .text._write:0000000000000030 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:364    .text._write:0000000000000034 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:371    .text._write:000000000000003e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:372    .text._write:000000000000003e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:375    .text._write:0000000000000044 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:378    .text._write:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:383    .text._write:0000000000000058 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:385    .text._write:000000000000005c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:388    .text._write:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:390    .text._write:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:391    .text._write:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:393    .text._write:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:397    .text._write:0000000000000066 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:400    .text._write:000000000000006a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:409    .text._write:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:410    .text._write:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:412    .text._write:000000000000008c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:413    .text._write:000000000000008c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:415    .text._write:000000000000008e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:418    .text._write:0000000000000090 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:420    .text._write:0000000000000092 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:423    .text._write:0000000000000094 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:426    .text._write:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:428    .text._write:0000000000000098 .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 21
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:431    .text._write:000000000000009a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:436    .text._write:000000000000009c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:439    .text._write:000000000000009c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:440    .text._write:000000000000009c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:443    .text._write:00000000000000a4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:445    .text._write:00000000000000a8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:448    .text._write:00000000000000aa .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:451    .text._write:00000000000000b0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:461    .text.set_usb_clock_96m_hxtal:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:462    .text.set_usb_clock_96m_hxtal:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:463    .text.set_usb_clock_96m_hxtal:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:464    .text.set_usb_clock_96m_hxtal:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:467    .text.set_usb_clock_96m_hxtal:0000000000000006 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:470    .text.set_usb_clock_96m_hxtal:000000000000000c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:473    .text.set_usb_clock_96m_hxtal:0000000000000012 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:474    .text.set_usb_clock_96m_hxtal:0000000000000012 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:478    .text.set_usb_clock_96m_hxtal:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:479    .text.set_usb_clock_96m_hxtal:0000000000000018 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:485    .text.set_usb_clock_96m_hxtal:0000000000000024 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:486    .text.set_usb_clock_96m_hxtal:0000000000000024 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:492    .text.set_usb_clock_96m_hxtal:0000000000000030 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:493    .text.set_usb_clock_96m_hxtal:0000000000000030 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:499    .text.set_usb_clock_96m_hxtal:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:500    .text.set_usb_clock_96m_hxtal:000000000000003c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:502    .text.set_usb_clock_96m_hxtal:0000000000000040 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:503    .text.set_usb_clock_96m_hxtal:0000000000000040 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:509    .text.set_usb_clock_96m_hxtal:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:510    .text.set_usb_clock_96m_hxtal:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:514    .text.set_usb_clock_96m_hxtal:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:515    .text.set_usb_clock_96m_hxtal:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:516    .text.set_usb_clock_96m_hxtal:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:517    .text.set_usb_clock_96m_hxtal:0000000000000052 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:523    .text.set_usb_clock_96m_hxtal:000000000000005e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:527    .text.set_usb_clock_96m_hxtal:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:528    .text.set_usb_clock_96m_hxtal:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:529    .text.set_usb_clock_96m_hxtal:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:530    .text.set_usb_clock_96m_hxtal:0000000000000062 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:533    .text.set_usb_clock_96m_hxtal:0000000000000064 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:538    .text.set_usb_clock_96m_hxtal:000000000000006e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:542    .text.set_usb_clock_96m_hxtal:0000000000000070 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:543    .text.set_usb_clock_96m_hxtal:0000000000000070 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:546    .text.set_usb_clock_96m_hxtal:0000000000000076 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:551    .text.set_usb_clock_96m_hxtal:000000000000007e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:552    .text.set_usb_clock_96m_hxtal:000000000000007e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:557    .text.set_usb_clock_96m_hxtal:0000000000000080 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:558    .text.set_usb_clock_96m_hxtal:0000000000000080 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:560    .text.set_usb_clock_96m_hxtal:0000000000000082 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:563    .text.set_usb_clock_96m_hxtal:0000000000000088 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:565    .text.set_usb_clock_96m_hxtal:000000000000008a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:566    .text.set_usb_clock_96m_hxtal:000000000000008a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:569    .text.set_usb_clock_96m_hxtal:000000000000008e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:570    .text.set_usb_clock_96m_hxtal:000000000000008e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:574    .text.set_usb_clock_96m_hxtal:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:575    .text.set_usb_clock_96m_hxtal:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:576    .text.set_usb_clock_96m_hxtal:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:577    .text.set_usb_clock_96m_hxtal:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:581    .text.set_usb_clock_96m_hxtal:000000000000009c .L0 
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 22
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:582    .text.set_usb_clock_96m_hxtal:000000000000009c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:587    .text.set_usb_clock_96m_hxtal:00000000000000a6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:588    .text.set_usb_clock_96m_hxtal:00000000000000a6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:593    .text.set_usb_clock_96m_hxtal:00000000000000ae .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:594    .text.set_usb_clock_96m_hxtal:00000000000000ae .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:596    .text.set_usb_clock_96m_hxtal:00000000000000b0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:598    .text.set_usb_clock_96m_hxtal:00000000000000b4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:601    .text.set_usb_clock_96m_hxtal:00000000000000ba .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:602    .text.set_usb_clock_96m_hxtal:00000000000000ba .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:606    .text.set_usb_clock_96m_hxtal:00000000000000c0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:607    .text.set_usb_clock_96m_hxtal:00000000000000c0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:610    .text.set_usb_clock_96m_hxtal:00000000000000c4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:611    .text.set_usb_clock_96m_hxtal:00000000000000c4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:613    .text.set_usb_clock_96m_hxtal:00000000000000c6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:616    .text.set_usb_clock_96m_hxtal:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:617    .text.set_usb_clock_96m_hxtal:00000000000000ce .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:621    .text.set_usb_clock_96m_hxtal:00000000000000d4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:622    .text.set_usb_clock_96m_hxtal:00000000000000d4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:626    .text.set_usb_clock_96m_hxtal:00000000000000dc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:627    .text.set_usb_clock_96m_hxtal:00000000000000dc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:630    .text.set_usb_clock_96m_hxtal:00000000000000e0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:631    .text.set_usb_clock_96m_hxtal:00000000000000e0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:633    .text.set_usb_clock_96m_hxtal:00000000000000e2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:635    .text.set_usb_clock_96m_hxtal:00000000000000e4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:637    .text.set_usb_clock_96m_hxtal:00000000000000e6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:641    .text.set_usb_clock_96m_hxtal:00000000000000ee .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:646    .bss.receive_buffer.5944:0000000000000000 .LANCHOR2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:649    .bss.receive_buffer.5944:0000000000000000 receive_buffer.5944
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:653    .bss.tx_buffer:0000000000000000 .LANCHOR3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:660    .data.USB_OTG_dev:0000000000000000 .LANCHOR1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:673    .data.usb_buffer:0000000000000000 .LANCHOR0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:42     .text.usb_serial_connected:0000000000000016 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:237    .text.read_usb_serial:00000000000000ee .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:293    .text.configure_usb_serial:0000000000000054 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:314    .text.usb_serial_available:0000000000000014 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:454    .text._write:00000000000000b0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:644    .text.set_usb_clock_96m_hxtal:00000000000000ee .L0 
+                     .debug_frame:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:131    .text.read_usb_serial:000000000000006e .L10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:162    .text.read_usb_serial:0000000000000088 .L7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:219    .text.read_usb_serial:00000000000000da .L9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:198    .text.read_usb_serial:00000000000000b2 .L5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:177    .text.read_usb_serial:0000000000000094 .L6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:102    .text.read_usb_serial:000000000000004a .L4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:126    .text.read_usb_serial:0000000000000066 .L8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:354    .text._write:0000000000000028 .L22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:381    .text._write:0000000000000058 .L23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:369    .text._write:000000000000003e .L28
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:434    .text._write:000000000000009c .L27
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:395    .text._write:0000000000000066 .L26
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:540    .text.set_usb_clock_96m_hxtal:0000000000000070 .L31
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:525    .text.set_usb_clock_96m_hxtal:0000000000000062 .L32
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:553    .text.set_usb_clock_96m_hxtal:0000000000000080 .L33
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:549    .text.set_usb_clock_96m_hxtal:000000000000007e .L34
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:608    .text.set_usb_clock_96m_hxtal:00000000000000c4 .L35
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:628    .text.set_usb_clock_96m_hxtal:00000000000000e0 .L36
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:5058   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 23
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6396   .debug_str:0000000000000200 .LASF374
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7050   .debug_str:0000000000001158 .LASF375
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6776   .debug_str:0000000000000b3b .LASF376
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6274   .debug_ranges:0000000000000000 .Ldebug_ranges0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6310   .debug_line:0000000000000000 .Ldebug_line0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6732   .debug_str:0000000000000a34 .LASF0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6482   .debug_str:0000000000000470 .LASF1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6418   .debug_str:00000000000002f4 .LASF4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6494   .debug_str:00000000000004d0 .LASF2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6946   .debug_str:0000000000000f05 .LASF3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6552   .debug_str:000000000000062d .LASF5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7030   .debug_str:00000000000010d9 .LASF6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6442   .debug_str:000000000000037a .LASF7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6680   .debug_str:0000000000000906 .LASF8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6624   .debug_str:00000000000007b5 .LASF9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6982   .debug_str:0000000000000fbb .LASF10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6684   .debug_str:000000000000091c .LASF11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6840   .debug_str:0000000000000cf6 .LASF12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6484   .debug_str:000000000000047c .LASF13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6848   .debug_str:0000000000000d2a .LASF14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7006   .debug_str:0000000000001061 .LASF15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7046   .debug_str:0000000000001148 .LASF16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6638   .debug_str:0000000000000816 .LASF92
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6326   .debug_str:0000000000000064 .LASF17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6802   .debug_str:0000000000000c2e .LASF18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6594   .debug_str:000000000000070e .LASF19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6562   .debug_str:0000000000000675 .LASF20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6502   .debug_str:00000000000004ff .LASF21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6686   .debug_str:000000000000092a .LASF22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6572   .debug_str:00000000000006ac .LASF23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6928   .debug_str:0000000000000ea5 .LASF24
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6586   .debug_str:00000000000006ed .LASF25
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7044   .debug_str:0000000000001142 .LASF26
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6948   .debug_str:0000000000000f0f .LASF27
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7058   .debug_str:00000000000011b0 .LASF28
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7056   .debug_str:00000000000011a8 .LASF29
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6918   .debug_str:0000000000000e79 .LASF30
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7052   .debug_str:000000000000118f .LASF31
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7018   .debug_str:00000000000010a3 .LASF32
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6576   .debug_str:00000000000006bc .LASF33
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6514   .debug_str:0000000000000530 .LASF34
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6600   .debug_str:0000000000000737 .LASF35
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7048   .debug_str:0000000000001150 .LASF36
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6406   .debug_str:00000000000002af .LASF37
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7038   .debug_str:0000000000001111 .LASF38
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6866   .debug_str:0000000000000d81 .LASF39
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6478   .debug_str:000000000000045c .LASF40
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6814   .debug_str:0000000000000c76 .LASF41
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7010   .debug_str:000000000000107c .LASF42
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6910   .debug_str:0000000000000e53 .LASF43
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7036   .debug_str:0000000000001107 .LASF44
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7066   .debug_str:00000000000011e3 .LASF45
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6618   .debug_str:000000000000079d .LASF46
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6570   .debug_str:00000000000006a3 .LASF47
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7026   .debug_str:00000000000010c7 .LASF48
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6922   .debug_str:0000000000000e8a .LASF49
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6864   .debug_str:0000000000000d7a .LASF50
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 24
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6464   .debug_str:00000000000003ff .LASF51
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6750   .debug_str:0000000000000ab7 .LASF52
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6504   .debug_str:0000000000000506 .LASF53
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6508   .debug_str:0000000000000514 .LASF54
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6852   .debug_str:0000000000000d3f .LASF55
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6378   .debug_str:000000000000018c .LASF56
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6530   .debug_str:000000000000059b .LASF57
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6664   .debug_str:00000000000008a6 .LASF58
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6550   .debug_str:0000000000000623 .LASF59
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7070   .debug_str:00000000000011ef .LASF60
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6360   .debug_str:0000000000000139 .LASF61
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6564   .debug_str:0000000000000686 .LASF62
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6566   .debug_str:0000000000000691 .LASF63
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6962   .debug_str:0000000000000f54 .LASF64
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6512   .debug_str:0000000000000528 .LASF65
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6436   .debug_str:000000000000035a .LASF66
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6336   .debug_str:0000000000000097 .LASF67
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6862   .debug_str:0000000000000d72 .LASF68
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6438   .debug_str:0000000000000362 .LASF69
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6818   .debug_str:0000000000000c88 .LASF70
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6604   .debug_str:000000000000074a .LASF71
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7076   .debug_str:000000000000120d .LASF72
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6958   .debug_str:0000000000000f43 .LASF73
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6966   .debug_str:0000000000000f6b .LASF74
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6524   .debug_str:0000000000000572 .LASF75
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6356   .debug_str:0000000000000116 .LASF76
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6466   .debug_str:000000000000040a .LASF77
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6498   .debug_str:00000000000004ec .LASF78
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6790   .debug_str:0000000000000be9 .LASF79
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6658   .debug_str:000000000000088a .LASF80
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6474   .debug_str:0000000000000441 .LASF81
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6574   .debug_str:00000000000006b3 .LASF82
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6708   .debug_str:00000000000009b2 .LASF83
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6950   .debug_str:0000000000000f16 .LASF84
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6454   .debug_str:00000000000003af .LASF85
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6580   .debug_str:00000000000006ce .LASF94
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6446   .debug_str:000000000000038f .LASF86
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6930   .debug_str:0000000000000eac .LASF87
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6924   .debug_str:0000000000000e93 .LASF88
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6646   .debug_str:000000000000084e .LASF89
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6410   .debug_str:00000000000002c1 .LASF90
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6822   .debug_str:0000000000000c99 .LASF91
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6920   .debug_str:0000000000000e80 .LASF93
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6590   .debug_str:00000000000006fa .LASF95
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6496   .debug_str:00000000000004de .LASF96
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6772   .debug_str:0000000000000b2b .LASF97
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6506   .debug_str:000000000000050d .LASF98
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6844   .debug_str:0000000000000d1b .LASF99
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6372   .debug_str:000000000000016b .LASF100
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6668   .debug_str:00000000000008b8 .LASF101
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6420   .debug_str:00000000000002fe .LASF102
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6838   .debug_str:0000000000000cee .LASF103
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6614   .debug_str:000000000000077e .LASF104
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6558   .debug_str:0000000000000650 .LASF105
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6868   .debug_str:0000000000000d86 .LASF106
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6526   .debug_str:000000000000057d .LASF107
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6404   .debug_str:00000000000002a8 .LASF108
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 25
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6926   .debug_str:0000000000000e98 .LASF109
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6350   .debug_str:00000000000000f1 .LASF110
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6434   .debug_str:000000000000034a .LASF111
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6628   .debug_str:00000000000007dd .LASF112
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6878   .debug_str:0000000000000dc4 .LASF113
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6870   .debug_str:0000000000000d94 .LASF114
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6492   .debug_str:00000000000004c6 .LASF115
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6716   .debug_str:00000000000009d6 .LASF116
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6312   .debug_str:0000000000000000 .LASF117
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6630   .debug_str:00000000000007ed .LASF118
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6626   .debug_str:00000000000007c7 .LASF119
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6698   .debug_str:0000000000000971 .LASF120
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6540   .debug_str:00000000000005ee .LASF121
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6806   .debug_str:0000000000000c44 .LASF122
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6736   .debug_str:0000000000000a4c .LASF123
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6744   .debug_str:0000000000000a84 .LASF124
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6768   .debug_str:0000000000000b11 .LASF125
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6674   .debug_str:00000000000008d3 .LASF126
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7014   .debug_str:000000000000108e .LASF127
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6654   .debug_str:000000000000086e .LASF128
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6490   .debug_str:00000000000004b8 .LASF129
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6938   .debug_str:0000000000000ece .LASF130
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6316   .debug_str:0000000000000015 .LASF131
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6642   .debug_str:000000000000082e .LASF132
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6740   .debug_str:0000000000000a64 .LASF133
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6914   .debug_str:0000000000000e61 .LASF134
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6476   .debug_str:0000000000000449 .LASF135
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6896   .debug_str:0000000000000e1c .LASF136
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6320   .debug_str:0000000000000035 .LASF137
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7020   .debug_str:00000000000010ae .LASF138
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6328   .debug_str:000000000000006b .LASF139
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6704   .debug_str:0000000000000994 .LASF140
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6452   .debug_str:00000000000003a5 .LASF141
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6620   .debug_str:00000000000007a4 .LASF142
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7028   .debug_str:00000000000010cf .LASF143
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6660   .debug_str:0000000000000893 .LASF144
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6944   .debug_str:0000000000000efc .LASF145
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6462   .debug_str:00000000000003f8 .LASF146
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6318   .debug_str:0000000000000027 .LASF147
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6752   .debug_str:0000000000000ac0 .LASF148
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6952   .debug_str:0000000000000f22 .LASF149
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6968   .debug_str:0000000000000f73 .LASF150
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6792   .debug_str:0000000000000bf4 .LASF151
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6830   .debug_str:0000000000000cc0 .LASF152
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6890   .debug_str:0000000000000df9 .LASF153
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6366   .debug_str:0000000000000150 .LASF154
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6934   .debug_str:0000000000000ebb .LASF155
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6432   .debug_str:0000000000000342 .LASF156
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6812   .debug_str:0000000000000c6d .LASF157
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6334   .debug_str:000000000000008f .LASF158
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6690   .debug_str:000000000000093a .LASF159
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6936   .debug_str:0000000000000ec4 .LASF160
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7008   .debug_str:000000000000106a .LASF161
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6416   .debug_str:00000000000002e3 .LASF162
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6500   .debug_str:00000000000004f8 .LASF163
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6702   .debug_str:0000000000000987 .LASF164
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6780   .debug_str:0000000000000b96 .LASF165
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 26
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6678   .debug_str:00000000000008fe .LASF166
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6314   .debug_str:0000000000000009 .LASF167
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6932   .debug_str:0000000000000eb3 .LASF168
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6340   .debug_str:00000000000000a8 .LASF169
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6834   .debug_str:0000000000000cd8 .LASF170
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6534   .debug_str:00000000000005c2 .LASF171
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6640   .debug_str:0000000000000826 .LASF172
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6394   .debug_str:00000000000001f7 .LASF173
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6738   .debug_str:0000000000000a5b .LASF174
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7016   .debug_str:0000000000001098 .LASF175
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6522   .debug_str:0000000000000567 .LASF176
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6386   .debug_str:00000000000001d9 .LASF177
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6592   .debug_str:0000000000000703 .LASF178
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6808   .debug_str:0000000000000c51 .LASF179
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7034   .debug_str:00000000000010f6 .LASF180
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6904   .debug_str:0000000000000e41 .LASF181
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6900   .debug_str:0000000000000e2c .LASF182
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6846   .debug_str:0000000000000d22 .LASF183
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6472   .debug_str:0000000000000437 .LASF184
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6916   .debug_str:0000000000000e74 .LASF185
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6568   .debug_str:000000000000069c .LASF186
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6422   .debug_str:000000000000030f .LASF187
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6412   .debug_str:00000000000002cb .LASF188
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6520   .debug_str:000000000000055e .LASF189
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6538   .debug_str:00000000000005db .LASF190
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6754   .debug_str:0000000000000ac8 .LASF191
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6892   .debug_str:0000000000000e02 .LASF192
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6598   .debug_str:0000000000000729 .LASF193
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6388   .debug_str:00000000000001e2 .LASF194
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6728   .debug_str:0000000000000a1a .LASF195
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6734   .debug_str:0000000000000a41 .LASF196
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6842   .debug_str:0000000000000d0d .LASF197
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6874   .debug_str:0000000000000dab .LASF198
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6886   .debug_str:0000000000000de7 .LASF199
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6898   .debug_str:0000000000000e27 .LASF200
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6722   .debug_str:00000000000009f0 .LASF201
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6756   .debug_str:0000000000000adc .LASF202
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6956   .debug_str:0000000000000f36 .LASF203
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6414   .debug_str:00000000000002d3 .LASF204
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6584   .debug_str:00000000000006e0 .LASF377
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6800   .debug_str:0000000000000c21 .LASF205
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6964   .debug_str:0000000000000f5c .LASF206
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6742   .debug_str:0000000000000a74 .LASF207
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6536   .debug_str:00000000000005cc .LASF208
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6906   .debug_str:0000000000000e46 .LASF209
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7022   .debug_str:00000000000010bb .LASF210
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6826   .debug_str:0000000000000cb1 .LASF211
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6324   .debug_str:000000000000005b .LASF212
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6428   .debug_str:000000000000032c .LASF213
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6828   .debug_str:0000000000000cb9 .LASF214
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6784   .debug_str:0000000000000bab .LASF215
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6332   .debug_str:0000000000000087 .LASF216
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6894   .debug_str:0000000000000e11 .LASF217
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7004   .debug_str:0000000000001059 .LASF218
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6644   .debug_str:000000000000083c .LASF219
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6884   .debug_str:0000000000000dde .LASF220
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6662   .debug_str:000000000000089e .LASF221
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 27
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6908   .debug_str:0000000000000e4d .LASF222
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6666   .debug_str:00000000000008b0 .LASF223
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6720   .debug_str:00000000000009ea .LASF224
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6588   .debug_str:00000000000006f5 .LASF225
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6364   .debug_str:000000000000014b .LASF226
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6370   .debug_str:0000000000000162 .LASF227
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7072   .debug_str:00000000000011f7 .LASF228
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7032   .debug_str:00000000000010ec .LASF229
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6608   .debug_str:000000000000075d .LASF230
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6468   .debug_str:0000000000000412 .LASF231
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6960   .debug_str:0000000000000f4a .LASF232
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6798   .debug_str:0000000000000c17 .LASF233
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6804   .debug_str:0000000000000c3a .LASF234
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7060   .debug_str:00000000000011b8 .LASF235
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6426   .debug_str:000000000000031e .LASF236
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6390   .debug_str:00000000000001e9 .LASF237
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6850   .debug_str:0000000000000d33 .LASF238
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6954   .debug_str:0000000000000f2d .LASF239
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6986   .debug_str:0000000000000fcc .LASF240
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6778   .debug_str:0000000000000b8e .LASF241
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6980   .debug_str:0000000000000fb6 .LASF242
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6542   .debug_str:00000000000005ff .LASF243
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6984   .debug_str:0000000000000fc5 .LASF244
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6882   .debug_str:0000000000000dd8 .LASF245
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6450   .debug_str:000000000000039f .LASF246
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6632   .debug_str:00000000000007fb .LASF247
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6774   .debug_str:0000000000000b34 .LASF248
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6424   .debug_str:0000000000000318 .LASF249
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6976   .debug_str:0000000000000fa8 .LASF250
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6582   .debug_str:00000000000006d8 .LASF251
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6342   .debug_str:00000000000000b0 .LASF252
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6346   .debug_str:00000000000000de .LASF253
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6820   .debug_str:0000000000000c93 .LASF254
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6544   .debug_str:0000000000000604 .LASF255
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6760   .debug_str:0000000000000aec .LASF256
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6368   .debug_str:000000000000015c .LASF257
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6860   .debug_str:0000000000000d69 .LASF258
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6602   .debug_str:0000000000000742 .LASF259
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6912   .debug_str:0000000000000e5b .LASF260
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6392   .debug_str:00000000000001f1 .LASF261
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6766   .debug_str:0000000000000b08 .LASF262
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6636   .debug_str:000000000000080e .LASF263
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6400   .debug_str:000000000000028e .LASF264
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6650   .debug_str:000000000000085e .LASF265
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6556   .debug_str:0000000000000649 .LASF266
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6856   .debug_str:0000000000000d4c .LASF267
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6762   .debug_str:0000000000000af2 .LASF268
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6978   .debug_str:0000000000000fb1 .LASF269
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6682   .debug_str:0000000000000911 .LASF270
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7062   .debug_str:00000000000011c3 .LASF271
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7002   .debug_str:0000000000001051 .LASF272
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6634   .debug_str:0000000000000803 .LASF273
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6670   .debug_str:00000000000008c0 .LASF274
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7012   .debug_str:0000000000001086 .LASF275
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6448   .debug_str:0000000000000395 .LASF276
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6622   .debug_str:00000000000007b0 .LASF277
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6712   .debug_str:00000000000009c6 .LASF278
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 28
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6354   .debug_str:000000000000010e .LASF279
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6606   .debug_str:0000000000000755 .LASF280
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6758   .debug_str:0000000000000ae7 .LASF281
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6672   .debug_str:00000000000008ca .LASF282
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6596   .debug_str:000000000000071f .LASF283
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6694   .debug_str:0000000000000951 .LASF284
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6338   .debug_str:00000000000000a3 .LASF285
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6796   .debug_str:0000000000000c12 .LASF286
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6888   .debug_str:0000000000000df2 .LASF287
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6718   .debug_str:00000000000009e4 .LASF288
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6688   .debug_str:0000000000000933 .LASF289
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6714   .debug_str:00000000000009d0 .LASF290
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6854   .debug_str:0000000000000d44 .LASF291
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6816   .debug_str:0000000000000c82 .LASF292
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6398   .debug_str:0000000000000288 .LASF293
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7024   .debug_str:00000000000010c2 .LASF294
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6480   .debug_str:0000000000000463 .LASF295
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6872   .debug_str:0000000000000d9e .LASF296
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6352   .debug_str:0000000000000101 .LASF297
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6460   .debug_str:00000000000003e9 .LASF298
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6706   .debug_str:00000000000009a3 .LASF299
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6770   .debug_str:0000000000000b20 .LASF300
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6902   .debug_str:0000000000000e3c .LASF301
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6942   .debug_str:0000000000000eef .LASF302
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6832   .debug_str:0000000000000cca .LASF303
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6764   .debug_str:0000000000000afa .LASF304
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6374   .debug_str:0000000000000173 .LASF305
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6656   .debug_str:000000000000087e .LASF306
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7074   .debug_str:0000000000001200 .LASF307
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6440   .debug_str:000000000000036c .LASF308
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6876   .debug_str:0000000000000db5 .LASF309
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7040   .debug_str:0000000000001118 .LASF310
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6746   .debug_str:0000000000000a98 .LASF311
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6730   .debug_str:0000000000000a23 .LASF312
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6546   .debug_str:000000000000060b .LASF313
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6990   .debug_str:0000000000000fe1 .LASF314
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6700   .debug_str:000000000000097e .LASF315
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6362   .debug_str:0000000000000143 .LASF316
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6330   .debug_str:000000000000007c .LASF378
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6444   .debug_str:0000000000000383 .LASF317
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6788   .debug_str:0000000000000bd6 .LASF318
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6516   .debug_str:0000000000000536 .LASF319
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7064   .debug_str:00000000000011dc .LASF320
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6992   .debug_str:0000000000000fe8 .LASF321
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6488   .debug_str:00000000000004a9 .LASF322
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6510   .debug_str:0000000000000519 .LASF323
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6380   .debug_str:0000000000000192 .LASF324
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6786   .debug_str:0000000000000bb3 .LASF325
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6998   .debug_str:000000000000102a .LASF326
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6554   .debug_str:0000000000000638 .LASF327
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6486   .debug_str:0000000000000484 .LASF328
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6458   .debug_str:00000000000003d2 .LASF329
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6972   .debug_str:0000000000000f86 .LASF330
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6470   .debug_str:000000000000041b .LASF331
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6612   .debug_str:000000000000076d .LASF332
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6402   .debug_str:0000000000000295 .LASF333
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6358   .debug_str:000000000000011f .LASF334
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 29
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6532   .debug_str:00000000000005a6 .LASF335
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6724   .debug_str:00000000000009f8 .LASF336
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6322   .debug_str:0000000000000042 .LASF337
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6344   .debug_str:00000000000000b6 .LASF338
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6988   .debug_str:0000000000000fd4 .LASF339
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6996   .debug_str:0000000000001018 .LASF340
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6456   .debug_str:00000000000003b9 .LASF341
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6348   .debug_str:00000000000000e5 .LASF342
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6408   .debug_str:00000000000002b9 .LASF343
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6648   .debug_str:0000000000000854 .LASF344
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6710   .debug_str:00000000000009ba .LASF345
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6382   .debug_str:00000000000001c0 .LASF346
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6616   .debug_str:000000000000078e .LASF347
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6692   .debug_str:0000000000000945 .LASF348
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6578   .debug_str:00000000000006c7 .LASF349
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6652   .debug_str:0000000000000865 .LASF350
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6610   .debug_str:0000000000000767 .LASF351
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6810   .debug_str:0000000000000c59 .LASF352
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6880   .debug_str:0000000000000dcd .LASF353
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6994   .debug_str:000000000000100e .LASF354
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6696   .debug_str:0000000000000959 .LASF379
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6726   .debug_str:0000000000000a12 .LASF355
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6384   .debug_str:00000000000001cf .LASF356
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:319    .text._write:0000000000000000 .LFB10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:452    .text._write:00000000000000b0 .LFE10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:5972   .debug_loc:0000000000000000 .LLST7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:5995   .debug_loc:0000000000000038 .LLST8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6009   .debug_loc:0000000000000059 .LLST9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6031   .debug_loc:0000000000000090 .LLST10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7054   .debug_str:00000000000011a3 .LASF357
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6046   .debug_loc:00000000000000b9 .LLST11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6970   .debug_str:0000000000000f7d .LASF358
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6058   .debug_loc:00000000000000d1 .LLST12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6069   .debug_loc:00000000000000ef .LLST13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:347    .text._write:000000000000001c .LVL23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:376    .text._write:000000000000004c .LVL27
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:407    .text._write:0000000000000088 .LVL30
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6858   .debug_str:0000000000000d54 .LASF380
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:298    .text.usb_serial_available:0000000000000000 .LFB9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:312    .text.usb_serial_available:0000000000000014 .LFE9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6560   .debug_str:0000000000000660 .LASF381
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:242    .text.configure_usb_serial:0000000000000000 .LFB8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:291    .text.configure_usb_serial:0000000000000054 .LFE8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6089   .debug_loc:0000000000000124 .LLST6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:254    .text.configure_usb_serial:000000000000000c .LVL15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:257    .text.configure_usb_serial:0000000000000014 .LVL16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:261    .text.configure_usb_serial:000000000000001e .LVL17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:264    .text.configure_usb_serial:0000000000000026 .LVL18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:267    .text.configure_usb_serial:000000000000002e .LVL19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:270    .text.configure_usb_serial:0000000000000036 .LVL20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:289    .text.configure_usb_serial:0000000000000054 .LVL21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6940   .debug_str:0000000000000edf .LASF359
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:47     .text.read_usb_serial:0000000000000000 .LFB7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:235    .text.read_usb_serial:00000000000000ee .LFE7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6107   .debug_loc:0000000000000150 .LLST1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7068   .debug_str:00000000000011ea .LASF360
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6130   .debug_loc:0000000000000188 .LLST2
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 30
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6152   .debug_loc:00000000000001bf .LLST3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6376   .debug_str:000000000000017d .LASF361
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6160   .debug_loc:00000000000001d3 .LLST4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6172   .debug_loc:00000000000001f2 .LLST5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:212    .text.read_usb_serial:00000000000000ce .LVL11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:216    .text.read_usb_serial:00000000000000d8 .LVL12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6518   .debug_str:0000000000000549 .LASF382
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:17     .text.usb_serial_connected:0000000000000000 .LFB6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:40     .text.usb_serial_connected:0000000000000016 .LFE6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6188   .debug_loc:000000000000021c .LLST0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:30     .text.usb_serial_connected:000000000000000c .LVL0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:459    .text.set_usb_clock_96m_hxtal:0000000000000000 .LFB11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:642    .text.set_usb_clock_96m_hxtal:00000000000000ee .LFE11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6206   .debug_loc:0000000000000248 .LLST14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6233   .debug_loc:000000000000027e .LLST15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:554    .text.set_usb_clock_96m_hxtal:0000000000000080 .LBB11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:640    .text.set_usb_clock_96m_hxtal:00000000000000ee .LBE11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:555    .text.set_usb_clock_96m_hxtal:0000000000000080 .LBB12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:639    .text.set_usb_clock_96m_hxtal:00000000000000ee .LBE12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:638    .text.set_usb_clock_96m_hxtal:00000000000000ee .LVL42
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6748   .debug_str:0000000000000aa7 .LASF362
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6836   .debug_str:0000000000000ce1 .LASF363
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6676   .debug_str:00000000000008e0 .LASF364
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7042   .debug_str:0000000000001129 .LASF365
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6548   .debug_str:0000000000000614 .LASF366
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6794   .debug_str:0000000000000c03 .LASF367
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6430   .debug_str:0000000000000332 .LASF368
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6824   .debug_str:0000000000000ca7 .LASF369
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6974   .debug_str:0000000000000f9a .LASF370
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6782   .debug_str:0000000000000ba0 .LASF371
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:6528   .debug_str:0000000000000584 .LASF372
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:7000   .debug_str:000000000000103b .LASF373
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:326    .text._write:0000000000000002 .LCFI7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:430    .text._write:000000000000009a .LCFI8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:435    .text._write:000000000000009c .LCFI9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:322    .text._write:0000000000000000 .LVL22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:424    .text._write:0000000000000094 .LVL33
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:433    .text._write:000000000000009c .LVL34
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:421    .text._write:0000000000000092 .LVL32
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:365    .text._write:0000000000000038 .LVL25
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:353    .text._write:0000000000000028 .LVL24
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:389    .text._write:0000000000000060 .LVL28
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:394    .text._write:0000000000000066 .LVL29
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:416    .text._write:000000000000008e .LVL31
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:248    .text.configure_usb_serial:0000000000000002 .LCFI5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:285    .text.configure_usb_serial:000000000000004c .LCFI6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:56     .text.read_usb_serial:0000000000000002 .LCFI2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:158    .text.read_usb_serial:0000000000000086 .LCFI3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:163    .text.read_usb_serial:0000000000000088 .LCFI4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:50     .text.read_usb_serial:0000000000000000 .LVL1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:101    .text.read_usb_serial:000000000000004a .LVL2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:130    .text.read_usb_serial:000000000000006e .LVL5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:161    .text.read_usb_serial:0000000000000088 .LVL6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:173    .text.read_usb_serial:0000000000000092 .LVL7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:176    .text.read_usb_serial:0000000000000094 .LVL8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:195    .text.read_usb_serial:00000000000000ae .LVL10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:118    .text.read_usb_serial:0000000000000060 .LVL3
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s 			page 31
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:125    .text.read_usb_serial:0000000000000066 .LVL4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:218    .text.read_usb_serial:00000000000000da .LVL13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:24     .text.usb_serial_connected:0000000000000002 .LCFI0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:36     .text.usb_serial_connected:0000000000000014 .LCFI1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:513    .text.set_usb_clock_96m_hxtal:0000000000000052 .LVL36
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:524    .text.set_usb_clock_96m_hxtal:0000000000000062 .LVL37
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:536    .text.set_usb_clock_96m_hxtal:000000000000006e .LVL39
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:539    .text.set_usb_clock_96m_hxtal:0000000000000070 .LVL40
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:531    .text.set_usb_clock_96m_hxtal:0000000000000064 .LVL38
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:547    .text.set_usb_clock_96m_hxtal:000000000000007a .LVL41
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:703    .debug_info:0000000000000000 .Ldebug_info0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:98     .text.read_usb_serial:0000000000000046 .LBB2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:103    .text.read_usb_serial:000000000000004a .LBE2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:170    .text.read_usb_serial:000000000000008e .LBB5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:191    .text.read_usb_serial:00000000000000ac .LBE5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:116    .text.read_usb_serial:0000000000000060 .LBB3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:119    .text.read_usb_serial:0000000000000060 .LBE3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:122    .text.read_usb_serial:0000000000000064 .LBB4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:132    .text.read_usb_serial:000000000000006e .LBE4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:220    .text.read_usb_serial:00000000000000da .LBB6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:233    .text.read_usb_serial:00000000000000ee .LBE6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:387    .text._write:0000000000000060 .LBB7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:398    .text._write:000000000000006a .LBE7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:437    .text._write:000000000000009c .LBB8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//ccPE7XbM.s:450    .text._write:00000000000000b0 .LBE8
+
+UNDEFINED SYMBOLS
+cdc_acm_get_line_state
+packet_receive
+receive_length
+usbd_ep_recev
+usb_mdelay
+eclic_global_interrupt_enable
+eclic_priority_group_set
+usb_rcu_config
+usb_timer_init
+usb_intr_config
+usbd_cdc_cb
+usbd_init
+get_timer_value
+packet_sent
+usbd_ep_send
+SystemCoreClockUpdate
+device_descriptor
+configuration_descriptor
+usbd_strings

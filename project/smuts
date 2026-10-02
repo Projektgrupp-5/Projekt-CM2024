@@ -1,0 +1,77 @@
+/*
+
+while(1){                                                                               // Loop forever
+        
+        if(gpio_input_bit_get(GPIOA, GPIO_PIN_8)){                                          // Read pin A8
+            gpio_bit_write(GPIOB, GPIO_PIN_0, !gpio_output_bit_get(GPIOB, GPIO_PIN_0));      // If A8 is HIGH(SET), toggle B0 DIR!!!
+        }
+        if(gpio_input_bit_get(GPIOA, GPIO_PIN_7)){                                          // Read pin A7                        
+            gpio_bit_write(GPIOB, GPIO_PIN_1, (!gpio_output_bit_get(GPIOB, GPIO_PIN_1)));  // If A7 is HIGH(SET), toggle B1 STEP!!!!
+        }
+        if(gpio_input_bit_get(GPIOA, GPIO_PIN_6)){                                          // Read pin A6                        
+            gpio_bit_write(GPIOB, GPIO_PIN_2, (!gpio_output_bit_get(GPIOB, GPIO_PIN_2)));  // If A6 is HIGH(SET), toggle B2
+        }
+        delay_1ms(500);                                                                     // Wait for half a second
+    }
+
+
+-----------------------------------------
+
+    while(1){   // Loop forever
+           
+             // Riktning fram
+        gpio_bit_write(GPIOB, GPIO_PIN_0, RESET);
+        for (int i = 0; i < 200; i++) {
+            gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+            delay_1ms(5);
+            gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+            delay_1ms(5);
+        }
+        delay_1ms(2000);   
+
+            // Riktning bak
+        gpio_bit_write(GPIOB, GPIO_PIN_0, SET);
+        for (int i = 0; i < 200; i++) {
+            gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+            delay_1ms(5);
+            gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+            delay_1ms(5);
+        }
+        delay_1ms(2000); 
+
+------------------------------------------------
+
+    while(1){   // Loop forever
+           
+               // Riktning fram
+        gpio_bit_write(GPIOB, GPIO_PIN_0, RESET);
+
+        for (int section = 0; section < 6; section++) {
+            int steps = (section == 6) ? 35 : 33; // Gör sista sektionen lite längre
+    
+            for (int i = 0; i < steps; i++) {
+                gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+                delay_1ms(5); // Gör så att den snurrar långsammare
+                gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+                delay_1ms(5); // Gör så att den snurrar långsammare
+            }
+    
+            delay_1ms(2000); // Vänta 2 sek efter varje del
+        }
+            // Riktning bak
+        gpio_bit_write(GPIOB, GPIO_PIN_0, SET);
+        
+        for (int section = 0; section < 6; section++) {
+            int steps = (section == 6) ? 35 : 33; // Om section är lika med 6 gå 35 varv annars 33 varv
+    
+            for (int i = 0; i < steps; i++) {
+                gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+                delay_1ms(5); // Gör så att den snurrar långsammare
+                gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+                delay_1ms(5); // Gör så att den snurrar långsammare
+            }
+    
+            delay_1ms(2000); // ⏸ Vänta 2 sek efter varje del
+        }                                                                    // Wait for half a second
+    } 
+*/

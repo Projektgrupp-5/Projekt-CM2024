@@ -1,0 +1,472 @@
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 1
+
+
+   1              		.file	"app.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.section	.text.startup.main,"ax",@progbits
+  10              		.align	1
+  11              		.globl	main
+  13              	main:
+  14              	.LFB2:
+  15              		.file 1 "app.c"
+   1:app.c         **** 
+   2:app.c         **** #include "gd32vf103.h"
+   3:app.c         **** #include "delay.h"
+   4:app.c         **** 
+   5:app.c         **** int main(void)
+   6:app.c         **** {
+  16              		.loc 1 6 1
+  17              		.cfi_startproc
+   7:app.c         ****     /* GD32VF103 Utilizes clock gating for peripherals so that they don't consume power while not b
+   8:app.c         ****        therefore for each peripheral you intend to use you need to enable the clock for that periph
+   9:app.c         ****        This example uses GPIO from PORT B so its corresponding RCU needs to be activated. */
+  10:app.c         ****     rcu_periph_clock_enable(RCU_GPIOB);
+  18              		.loc 1 10 5
+   6:app.c         ****     /* GD32VF103 Utilizes clock gating for peripherals so that they don't consume power while not b
+  19              		.loc 1 6 1 is_stmt 0
+  20 0000 4111     		addi	sp,sp,-16
+  21              	.LCFI0:
+  22              		.cfi_def_cfa_offset 16
+  23              		.loc 1 10 5
+  24 0002 13053060 		li	a0,1539
+   6:app.c         ****     /* GD32VF103 Utilizes clock gating for peripherals so that they don't consume power while not b
+  25              		.loc 1 6 1
+  26 0006 06C6     		sw	ra,12(sp)
+  27 0008 22C4     		sw	s0,8(sp)
+  28 000a 26C2     		sw	s1,4(sp)
+  29 000c 4AC0     		sw	s2,0(sp)
+  30              		.cfi_offset 1, -4
+  31              		.cfi_offset 8, -8
+  32              		.cfi_offset 9, -12
+  33              		.cfi_offset 18, -16
+  34              		.loc 1 10 5
+  35 000e 97000000 		call	rcu_periph_clock_enable
+  35      E7800000 
+  36              	.LVL0:
+  11:app.c         ****     rcu_periph_clock_enable(RCU_GPIOA);
+  37              		.loc 1 11 5 is_stmt 1
+  38 0016 13052060 		li	a0,1538
+  39 001a 97000000 		call	rcu_periph_clock_enable
+  39      E7800000 
+  40              	.LVL1:
+  12:app.c         **** 
+  13:app.c         ****     /* The following two lines initializes the pins connected to the LEDs on the longan board as ou
+  14:app.c         ****        with push-pull. */
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 2
+
+
+  15:app.c         ****     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2);   
+  41              		.loc 1 15 5
+  42 0022 37140140 		li	s0,1073811456
+  43 0026 130504C0 		addi	a0,s0,-1024
+  44 002a 9D46     		li	a3,7
+  45 002c 0D46     		li	a2,3
+  46 002e C145     		li	a1,16
+  47 0030 97000000 		call	gpio_init
+  47      E7800000 
+  48              	.LVL2:
+  16:app.c         ****     /* You can init multiple pins on the same port by using bitwise or */
+  17:app.c         **** 
+  18:app.c         ****     /* This configures the A3 and A4 pins as inputs with internal pull ups enabled */
+  19:app.c         ****     gpio_init(GPIOA, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8
+  49              		.loc 1 19 5
+  50 0038 13050480 		addi	a0,s0,-2048
+  51 003c 9306001C 		li	a3,448
+  52 0040 0D46     		li	a2,3
+  53 0042 9145     		li	a1,4
+  54 0044 97000000 		call	gpio_init
+  54      E7800000 
+  55              	.LVL3:
+  20:app.c         **** 
+  21:app.c         ****     /* gpio_bit_write() sets the state of a pin to either 3.3V or 0V(GND). 
+  22:app.c         ****        Use SET or 1 for 3.3V, and RESET or 0 for 0V(GND) */
+  23:app.c         ****     
+  24:app.c         ****     
+  25:app.c         ****     while(1){   // Loop forever
+  26:app.c         ****            
+  27:app.c         ****                // Riktning fram
+  28:app.c         ****         gpio_bit_write(GPIOB, GPIO_PIN_0, RESET);
+  56              		.loc 1 28 9 is_stmt 0
+  57 004c 130404C0 		addi	s0,s0,-1024
+  58              	.L7:
+  25:app.c         ****            
+  59              		.loc 1 25 5 is_stmt 1
+  60              		.loc 1 28 9
+  61 0050 0146     		li	a2,0
+  62 0052 8545     		li	a1,1
+  63 0054 2285     		mv	a0,s0
+  64 0056 97000000 		call	gpio_bit_write
+  64      E7800000 
+  65              	.LVL4:
+  29:app.c         **** 
+  30:app.c         ****         for (int section = 0; section < 6; section++) {
+  66              		.loc 1 30 9
+  67              	.LBB2:
+  68              		.loc 1 30 14
+  69              	.LBE2:
+  28:app.c         **** 
+  70              		.loc 1 28 9 is_stmt 0
+  71 005e 1949     		li	s2,6
+  72              	.LVL5:
+  73              	.L2:
+   6:app.c         ****     /* GD32VF103 Utilizes clock gating for peripherals so that they don't consume power while not b
+  74              		.loc 1 6 1
+  75 0060 93041002 		li	s1,33
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 3
+
+
+  76              	.LVL6:
+  77              	.L3:
+  78              	.LBB5:
+  79              	.LBB3:
+  80              	.LBB4:
+  31:app.c         ****             int steps;
+  32:app.c         ****             if(section==6)
+  33:app.c         ****                 steps=35;
+  34:app.c         ****             else 
+  35:app.c         ****                 steps=33;
+  36:app.c         ****     
+  37:app.c         ****             for (int i = 0; i < steps; i++) {
+  38:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+  81              		.loc 1 38 17 is_stmt 1 discriminator 3
+  82 0064 0546     		li	a2,1
+  83 0066 8945     		li	a1,2
+  84 0068 2285     		mv	a0,s0
+  85 006a 97000000 		call	gpio_bit_write
+  85      E7800000 
+  86              	.LVL7:
+  39:app.c         ****                 delay_1ms(5); // Gör så att den snurrar långsammare
+  87              		.loc 1 39 17 discriminator 3
+  88 0072 1545     		li	a0,5
+  89 0074 97000000 		call	delay_1ms
+  89      E7800000 
+  90              	.LVL8:
+  40:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+  91              		.loc 1 40 17 discriminator 3
+  92 007c 0146     		li	a2,0
+  93 007e 8945     		li	a1,2
+  94 0080 2285     		mv	a0,s0
+  95 0082 97000000 		call	gpio_bit_write
+  95      E7800000 
+  96              	.LVL9:
+  41:app.c         ****                 delay_1ms(5); // Gör så att den snurrar långsammare
+  97              		.loc 1 41 17 discriminator 3
+  98 008a 1545     		li	a0,5
+  99 008c FD14     		addi	s1,s1,-1
+ 100              	.LVL10:
+ 101 008e 97000000 		call	delay_1ms
+ 101      E7800000 
+ 102              	.LVL11:
+  37:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+ 103              		.loc 1 37 13 is_stmt 0 discriminator 3
+ 104 0096 F9F4     		bne	s1,zero,.L3
+ 105              	.LBE4:
+  42:app.c         ****             }
+  43:app.c         ****     
+  44:app.c         ****             delay_1ms(2000); // Vänta 2 sek efter varje del
+ 106              		.loc 1 44 13 is_stmt 1 discriminator 2
+ 107 0098 1305007D 		li	a0,2000
+ 108 009c 7D19     		addi	s2,s2,-1
+ 109              	.LVL12:
+ 110 009e 97000000 		call	delay_1ms
+ 110      E7800000 
+ 111              	.LVL13:
+ 112              	.LBE3:
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 4
+
+
+  30:app.c         ****             int steps;
+ 113              		.loc 1 30 9 is_stmt 0 discriminator 2
+ 114 00a6 E31D09FA 		bne	s2,zero,.L2
+ 115              	.LBE5:
+  45:app.c         ****         }
+  46:app.c         ****             // Riktning bak
+  47:app.c         ****         gpio_bit_write(GPIOB, GPIO_PIN_0, SET);
+ 116              		.loc 1 47 9 is_stmt 1
+ 117 00aa 0546     		li	a2,1
+ 118 00ac 8545     		li	a1,1
+ 119 00ae 2285     		mv	a0,s0
+ 120 00b0 97000000 		call	gpio_bit_write
+ 120      E7800000 
+ 121              	.LVL14:
+  48:app.c         ****         
+  49:app.c         ****         for (int section = 0; section < 6; section++) {
+ 122              		.loc 1 49 9
+ 123              	.LBB6:
+ 124              		.loc 1 49 14
+ 125              	.LBE6:
+  47:app.c         ****         
+ 126              		.loc 1 47 9 is_stmt 0
+ 127 00b8 1949     		li	s2,6
+ 128              	.LVL15:
+ 129              	.L5:
+  28:app.c         **** 
+ 130              		.loc 1 28 9
+ 131 00ba 93041002 		li	s1,33
+ 132              	.LVL16:
+ 133              	.L6:
+ 134              	.LBB9:
+ 135              	.LBB7:
+ 136              	.LBB8:
+  50:app.c         ****             int steps;
+  51:app.c         ****             if(section==6)
+  52:app.c         ****                 steps=35;
+  53:app.c         ****             else 
+  54:app.c         ****                 steps=33; // Om section är lika med 6 gå 35 varv annars 33 varv
+  55:app.c         ****     
+  56:app.c         ****             for (int i = 0; i < steps; i++) {
+  57:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+ 137              		.loc 1 57 17 is_stmt 1 discriminator 3
+ 138 00be 0546     		li	a2,1
+ 139 00c0 8945     		li	a1,2
+ 140 00c2 2285     		mv	a0,s0
+ 141 00c4 97000000 		call	gpio_bit_write
+ 141      E7800000 
+ 142              	.LVL17:
+  58:app.c         ****                 delay_1ms(5); // Gör så att den snurrar långsammare
+ 143              		.loc 1 58 17 discriminator 3
+ 144 00cc 1545     		li	a0,5
+ 145 00ce 97000000 		call	delay_1ms
+ 145      E7800000 
+ 146              	.LVL18:
+  59:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, RESET);
+ 147              		.loc 1 59 17 discriminator 3
+ 148 00d6 0146     		li	a2,0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 5
+
+
+ 149 00d8 8945     		li	a1,2
+ 150 00da 2285     		mv	a0,s0
+ 151 00dc 97000000 		call	gpio_bit_write
+ 151      E7800000 
+ 152              	.LVL19:
+  60:app.c         ****                 delay_1ms(5); // Gör så att den snurrar långsammare
+ 153              		.loc 1 60 17 discriminator 3
+ 154 00e4 1545     		li	a0,5
+ 155 00e6 FD14     		addi	s1,s1,-1
+ 156              	.LVL20:
+ 157 00e8 97000000 		call	delay_1ms
+ 157      E7800000 
+ 158              	.LVL21:
+  56:app.c         ****                 gpio_bit_write(GPIOB, GPIO_PIN_1, SET);
+ 159              		.loc 1 56 13 is_stmt 0 discriminator 3
+ 160 00f0 F9F4     		bne	s1,zero,.L6
+ 161              	.LBE8:
+  61:app.c         ****             }
+  62:app.c         ****     
+  63:app.c         ****             delay_1ms(2000); // ⏸ Vänta 2 sek efter varje del
+ 162              		.loc 1 63 13 is_stmt 1 discriminator 2
+ 163 00f2 1305007D 		li	a0,2000
+ 164 00f6 7D19     		addi	s2,s2,-1
+ 165              	.LVL22:
+ 166 00f8 97000000 		call	delay_1ms
+ 166      E7800000 
+ 167              	.LVL23:
+ 168              	.LBE7:
+  49:app.c         ****             int steps;
+ 169              		.loc 1 49 9 is_stmt 0 discriminator 2
+ 170 0100 E31D09FA 		bne	s2,zero,.L5
+ 171 0104 B1B7     		j	.L7
+ 172              	.LBE9:
+ 173              		.cfi_endproc
+ 174              	.LFE2:
+ 176              		.text
+ 177              	.Letext0:
+ 178              		.file 2 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 179              		.file 3 "/Users/emmaandersson/Documents/datariscv/toolchain-gd32v-v202-osx/compiler/riscv64-unknow
+ 180              		.file 4 "../../firmware/GD32VF103_standard_peripheral/gd32vf103.h"
+ 181              		.file 5 "../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_rcu.h"
+ 182              		.file 6 "../../firmware/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h"
+ 183              		.file 7 "delay.h"
+ 184              		.file 8 "../../firmware/GD32VF103_standard_peripheral/system_gd32vf103.h"
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 app.c
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:13     .text.startup.main:0000000000000000 main
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:17     .text.startup.main:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:18     .text.startup.main:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:19     .text.startup.main:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:20     .text.startup.main:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:22     .text.startup.main:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:24     .text.startup.main:0000000000000002 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:26     .text.startup.main:0000000000000006 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:30     .text.startup.main:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:31     .text.startup.main:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:32     .text.startup.main:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:33     .text.startup.main:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:35     .text.startup.main:000000000000000e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:38     .text.startup.main:0000000000000016 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:42     .text.startup.main:0000000000000022 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:50     .text.startup.main:0000000000000038 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:57     .text.startup.main:000000000000004c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:60     .text.startup.main:0000000000000050 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:61     .text.startup.main:0000000000000050 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:68     .text.startup.main:000000000000005e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:70     .text.startup.main:000000000000005e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:71     .text.startup.main:000000000000005e .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:75     .text.startup.main:0000000000000060 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:82     .text.startup.main:0000000000000064 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:88     .text.startup.main:0000000000000072 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:92     .text.startup.main:000000000000007c .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:98     .text.startup.main:000000000000008a .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:104    .text.startup.main:0000000000000096 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:107    .text.startup.main:0000000000000098 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:114    .text.startup.main:00000000000000a6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:117    .text.startup.main:00000000000000aa .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:124    .text.startup.main:00000000000000b8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:126    .text.startup.main:00000000000000b8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:127    .text.startup.main:00000000000000b8 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:131    .text.startup.main:00000000000000ba .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:138    .text.startup.main:00000000000000be .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:144    .text.startup.main:00000000000000cc .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:148    .text.startup.main:00000000000000d6 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:154    .text.startup.main:00000000000000e4 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:160    .text.startup.main:00000000000000f0 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:163    .text.startup.main:00000000000000f2 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:170    .text.startup.main:0000000000000100 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:173    .text.startup.main:0000000000000106 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:176    .text.startup.main:0000000000000106 .L0 
+                     .debug_frame:0000000000000000 .L0 
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:77     .text.startup.main:0000000000000064 .L3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:73     .text.startup.main:0000000000000060 .L2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:133    .text.startup.main:00000000000000be .L6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:129    .text.startup.main:00000000000000ba .L5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:58     .text.startup.main:0000000000000050 .L7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:783    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1249   .debug_str:0000000000000000 .LASF58
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1349   .debug_str:0000000000000293 .LASF59
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1367   .debug_str:00000000000002f1 .LASF60
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1229   .debug_ranges:0000000000000000 .Ldebug_ranges0
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 7
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1247   .debug_line:0000000000000000 .Ldebug_line0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1323   .debug_str:000000000000020f .LASF0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1317   .debug_str:00000000000001e3 .LASF1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1373   .debug_str:0000000000000355 .LASF6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1307   .debug_str:00000000000001a3 .LASF2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1269   .debug_str:00000000000000e6 .LASF3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1329   .debug_str:0000000000000228 .LASF4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1281   .debug_str:000000000000011f .LASF5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1265   .debug_str:00000000000000d3 .LASF7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1345   .debug_str:0000000000000277 .LASF8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1263   .debug_str:00000000000000c5 .LASF9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1319   .debug_str:00000000000001ef .LASF10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1271   .debug_str:00000000000000f0 .LASF11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1321   .debug_str:0000000000000206 .LASF12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1251   .debug_str:0000000000000088 .LASF61
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1325   .debug_str:000000000000021c .LASF13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1337   .debug_str:0000000000000256 .LASF14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1339   .debug_str:000000000000025f .LASF15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1371   .debug_str:000000000000034d .LASF16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1369   .debug_str:0000000000000344 .LASF17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1359   .debug_str:00000000000002c4 .LASF18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1291   .debug_str:000000000000014e .LASF19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1279   .debug_str:0000000000000114 .LASF20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1295   .debug_str:0000000000000161 .LASF21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1297   .debug_str:000000000000016c .LASF22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1299   .debug_str:0000000000000177 .LASF23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1301   .debug_str:0000000000000182 .LASF24
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1277   .debug_str:000000000000010a .LASF25
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1285   .debug_str:0000000000000131 .LASF26
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1287   .debug_str:000000000000013a .LASF27
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1355   .debug_str:00000000000002ae .LASF28
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1357   .debug_str:00000000000002b9 .LASF29
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1361   .debug_str:00000000000002ce .LASF30
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1363   .debug_str:00000000000002d8 .LASF31
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1331   .debug_str:000000000000023b .LASF32
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1333   .debug_str:0000000000000244 .LASF33
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1273   .debug_str:00000000000000f8 .LASF34
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1275   .debug_str:0000000000000101 .LASF35
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1315   .debug_str:00000000000001da .LASF36
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1313   .debug_str:00000000000001d2 .LASF37
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1341   .debug_str:0000000000000268 .LASF38
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1267   .debug_str:00000000000000de .LASF39
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1343   .debug_str:0000000000000270 .LASF40
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1253   .debug_str:0000000000000098 .LASF41
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1255   .debug_str:00000000000000a2 .LASF42
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1257   .debug_str:00000000000000ac .LASF43
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1259   .debug_str:00000000000000b6 .LASF44
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1303   .debug_str:000000000000018d .LASF45
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1311   .debug_str:00000000000001c9 .LASF46
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1335   .debug_str:000000000000024d .LASF47
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1289   .debug_str:0000000000000143 .LASF48
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1283   .debug_str:0000000000000128 .LASF49
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1353   .debug_str:00000000000002a3 .LASF50
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1305   .debug_str:0000000000000197 .LASF51
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1261   .debug_str:00000000000000c0 .LASF62
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:14     .text.startup.main:0000000000000000 .LFB2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:174    .text.startup.main:0000000000000106 .LFE2
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 8
+
+
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1103   .debug_loc:0000000000000000 .LLST0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1293   .debug_str:0000000000000159 .LASF52
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1116   .debug_loc:0000000000000020 .LLST1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:79     .text.startup.main:0000000000000064 .LBB3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:112    .text.startup.main:00000000000000a6 .LBE3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1327   .debug_str:0000000000000222 .LASF53
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:80     .text.startup.main:0000000000000064 .LBB4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:105    .text.startup.main:0000000000000098 .LBE4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1140   .debug_loc:0000000000000052 .LLST2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:86     .text.startup.main:0000000000000072 .LVL7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:90     .text.startup.main:000000000000007c .LVL8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:96     .text.startup.main:000000000000008a .LVL9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:102    .text.startup.main:0000000000000096 .LVL11
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:111    .text.startup.main:00000000000000a6 .LVL13
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1166   .debug_loc:0000000000000086 .LLST3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:135    .text.startup.main:00000000000000be .LBB7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:168    .text.startup.main:0000000000000100 .LBE7
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:136    .text.startup.main:00000000000000be .LBB8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:161    .text.startup.main:00000000000000f2 .LBE8
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1190   .debug_loc:00000000000000b8 .LLST4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:142    .text.startup.main:00000000000000cc .LVL17
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:146    .text.startup.main:00000000000000d6 .LVL18
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:152    .text.startup.main:00000000000000e4 .LVL19
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:158    .text.startup.main:00000000000000f0 .LVL21
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:167    .text.startup.main:0000000000000100 .LVL23
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:36     .text.startup.main:0000000000000016 .LVL0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:40     .text.startup.main:0000000000000022 .LVL1
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:48     .text.startup.main:0000000000000038 .LVL2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:55     .text.startup.main:000000000000004c .LVL3
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:65     .text.startup.main:000000000000005e .LVL4
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:121    .text.startup.main:00000000000000b8 .LVL14
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1365   .debug_str:00000000000002e2 .LASF54
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1347   .debug_str:0000000000000289 .LASF55
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1309   .debug_str:00000000000001b1 .LASF56
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:1351   .debug_str:0000000000000299 .LASF57
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:21     .text.startup.main:0000000000000002 .LCFI0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:72     .text.startup.main:0000000000000060 .LVL5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:109    .text.startup.main:000000000000009e .LVL12
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:76     .text.startup.main:0000000000000064 .LVL6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:100    .text.startup.main:000000000000008e .LVL10
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:128    .text.startup.main:00000000000000ba .LVL15
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:165    .text.startup.main:00000000000000f8 .LVL22
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:132    .text.startup.main:00000000000000be .LVL16
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:156    .text.startup.main:00000000000000e8 .LVL20
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:186    .debug_info:0000000000000000 .Ldebug_info0
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:67     .text.startup.main:000000000000005e .LBB2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:69     .text.startup.main:000000000000005e .LBE2
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:78     .text.startup.main:0000000000000064 .LBB5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:115    .text.startup.main:00000000000000aa .LBE5
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:123    .text.startup.main:00000000000000b8 .LBB6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:125    .text.startup.main:00000000000000b8 .LBE6
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:134    .text.startup.main:00000000000000be .LBB9
+/var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s:172    .text.startup.main:0000000000000106 .LBE9
+
+UNDEFINED SYMBOLS
+rcu_periph_clock_enable
+gpio_init
+GAS LISTING /var/folders/sr/y53svg6x7yn047ffb38m8ptr0000gn/T//cciJhPom.s 			page 9
+
+
+gpio_bit_write
+delay_1ms
